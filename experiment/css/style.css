@@ -42,6 +42,15 @@ body {
   width: 25%;
 }
 
+.selection-panel {
+  /* background-color: black; */
+  padding: 5px;
+}
+
+.selection-panel td:hover {
+  border: 3px solid #e0e0e0;
+}
+
 .task-button {
   background-color: #f4f4f4;
   border: #e0e0e0 1px solid;
@@ -84,28 +93,10 @@ body {
   background-color: #116466;
 }
 
-.blue-plain {
-  background-color: rgb(61, 60, 134);
-}
-
-.yellow-plain {
-  background-color: rgb(245, 230, 99);
-}
-
-.red-plain {
-  background-color: rgb(163, 53, 47);
-}
-
-.blue-yellow-vt {
-
-}
-
-.blue-yellow-left {
-  background: repeating-linear-gradient(
-    -45deg,
-    rgb(245, 230, 99),
-    rgb(245, 230, 99) 10px,
-    rgb(61, 60, 134) 10px,
-    rgb(61, 60, 134) 20px
-  );
+.panel-stone {
+  height: 20px;
+  width: 20px;
+  border-radius: 50%;
+  background-color: #116466;
+  margin: 5px
 }

@@ -2,34 +2,30 @@
 
 let learnDemo = {
   "taskId": "learn-demo",
-  "bg": "pink-bg",
-  "agent": "blue-plain",
-  "recipient": "yellow-plain",
-  "result": "blue-yellow-left"
+  "agent": "rt-orange-blue",
+  "recipient": "lt-yellow-orange",
+  "result": "plain-blue"
 }
 
 let task01= {
   "taskId": "task01",
-  "bg": "pink-bg",
-  "agent": "blue-plain",
-  "recipient": "yellow-plain",
-  "result": "blue-yellow-left",
+  "agent": "ht-blue-red",
+  "recipient": "vt-red-blue",
+  "result": "plain-blue",
 }
 
 function createLearnDemo (config) {
   const taskBox = createDivWithClassId("task-box", "learn-demo");
 
   const displayBox = createDivWithClassId("display-box", "learn-demo-display-box");
-  const learnDemoBg = createDivWithClassId(config.bg, "learn-demo-bg");
-  const learnDemoAgent = createDivWithClassId(config.agent, "learn-demo-agent");
-  const learnDemoRecipient = createDivWithClassId(config.recipient, "learn-demo-recipient");
-  learnDemoBg.append(learnDemoAgent);
-  learnDemoBg.append(learnDemoRecipient);
-  displayBox.append(learnDemoBg);
+  const learnDemoAgent = createDivWithStyle("stone", "learn-demo-agent", config.agent);
+  const learnDemoRecipient = createDivWithStyle("stone", "learn-demo-recipient", config.recipient);
+  displayBox.append(learnDemoAgent);
+  displayBox.append(learnDemoRecipient);
 
   const recordPan = createDivWithClassId("record-pan", "learn-demo-record-pan");
   recordPan.append(document.createTextNode("Original recipient"));
-  const learnDemoResult = createDivWithClassId(config.recipient, "learn-demo-original");
+  const learnDemoResult = createDivWithStyle("stone", "learn-demo-original", config.recipient);
   recordPan.append(learnDemoResult);
 
   const buttonGroup = createDivWithClassId("button-group", "learn-demo-record-pan");
@@ -52,12 +48,10 @@ function createTaskBox (config) {
   taskBox.append(document.createTextNode(`${config.taskId.slice(4,)}.`));
 
   const displayBox = createDivWithClassId("display-box", `${config.taskId}-display-box`);
-  const taskBg = createDivWithClassId(config.bg, `${config.taskId}-bg`);
-  const taskAgent = createDivWithClassId(config.agent, `${config.taskId}-agent`);
-  const taskRecipient = createDivWithClassId(config.recipient, `${config.taskId}-recipient`);
-  taskBg.append(taskAgent);
-  taskBg.append(taskRecipient);
-  displayBox.append(taskBg);
+  const taskAgent = createDivWithStyle("stone", `${config.taskId}-agent`, config.agent);
+  const taskRecipient = createDivWithStyle("stone", `${config.taskId}-recipient`, config.recipient);
+  displayBox.append(taskAgent);
+  displayBox.append(taskRecipient);
 
   const recordPan = createDivWithClassId("record-pan", `${config.taskId}-record-pan`);
 
@@ -80,6 +74,14 @@ function createDivWithClassId (className = "div", id = "") {
   let element = document.createElement('div');
   element.setAttribute("class", className);
   element.setAttribute("id", id);
+  return element;
+}
+
+function createDivWithStyle (className = "div", id = "", style = "") {
+  let element = document.createElement('div');
+  element.setAttribute("class", className);
+  element.setAttribute("id", id);
+  setStyle(element, style);
   return element;
 }
 
@@ -121,7 +123,7 @@ function moveStone (config) {
 function changeStone (config) {
   const recipentStone = document.getElementById(`${config.taskId}-recipient`);
   setTimeout(() => {
-    recipentStone.className = `${config.result}`;
+    setStyle(recipentStone, config.result);
   }, 1500);
 }
 
@@ -133,4 +135,36 @@ function getCurrentLocation(id) {
   rect.left = pos.left;
   rect.right = pos.right;
   return rect;
+}
+
+function setStyle (el, styleStr) {
+  const fill = styleStr.split('-')[0];
+  const color1 = styleStr.split('-')[1];
+  const color2 = styleStr.split('-').length > 2 ? styleStr.split('-')[2] : '';
+
+  switch (fill) {
+    case "plain":
+      el.style.background = color1;
+      break;
+    case "lt":
+      el.style.background = `repeating-linear-gradient(
+        -45deg, ${color1}, ${color1} 10px, ${color2} 10px, ${color2} 20px
+      )`;
+      break;
+    case "rt":
+      el.style.background = `repeating-linear-gradient(
+        45deg, ${color1}, ${color1} 10px, ${color2} 10px, ${color2} 20px
+      )`;
+      break;
+    case "ht":
+      el.style.background = `repeating-linear-gradient(
+        0deg, ${color1}, ${color1} 10px, ${color2} 10px, ${color2} 20px
+      )`;
+      break;
+    case "vt":
+      el.style.background = `repeating-linear-gradient(
+        90deg, ${color1}, ${color1} 10px, ${color2} 10px, ${color2} 20px
+      )`;
+      break;
+  }
 }

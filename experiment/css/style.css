@@ -1,7 +1,7 @@
 
 body {
   font-family: Arial, Helvetica, sans-serif;
-  background-color: #f4f4f4;
+  background-color: #e0e0e0;
 }
 
 .task-box {
@@ -17,7 +17,7 @@ body {
 }
 
 .display-box, .sel-pan, .record-pan, .button-group {
-  background-color: #e0e0e0;
+  background-color: #f4f4f4;
   height: 80%;
   margin: 10px;
   display: flex;
@@ -31,7 +31,7 @@ body {
 
 .display-box {
   width: 60%;
-  justify-content: center;
+  justify-content: space-evenly;
   align-items: center;
 }
 
@@ -71,31 +71,34 @@ body {
   align-items: center;
 }
 
-.blue-plain {
+/* Stones attributes */
+.stone {
   height: 80px;
   width: 80px;
   border-radius: 50%;
-  background-color: rgb(61, 60, 134);
   transition: all 1s cubic-bezier(0, 0, 1, 1);
   position: relative;
   left: 0;
+  background-color: #116466;
+}
+
+.blue-plain {
+  background-color: rgb(61, 60, 134);
 }
 
 .yellow-plain {
-  height: 80px;
-  width: 80px;
-  border-radius: 50%;
   background-color: rgb(245, 230, 99);
-  transition: all 1s cubic-bezier(0, 0, 1, 1);
-  position: relative;
-  left: 0;
+}
+
+.red-plain {
+  background-color: rgb(163, 53, 47);
+}
+
+.blue-yellow-vt {
 
 }
 
 .blue-yellow-left {
-  height: 80px;
-  width: 80px;
-  border-radius: 50%;
   background: repeating-linear-gradient(
     -45deg,
     rgb(245, 230, 99),
@@ -103,7 +106,4 @@ body {
     rgb(61, 60, 134) 10px,
     rgb(61, 60, 134) 20px
   );
-  transition: all 1s cubic-bezier(0, 0, 1, 1);
-  position: relative;
-  left: 0;
 }

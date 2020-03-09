@@ -1,7 +1,7 @@
 
 
-let learnDemo = {
-  "taskId": "learn-demo",
+let demo = {
+  "taskId": "demo",
   "agent": "rt-orange-blue",
   "recipient": "lt-yellow-orange",
   "result": "plain-blue"
@@ -10,34 +10,21 @@ let learnDemo = {
 let task01= {
   "taskId": "task01",
   "agent": "ht-blue-red",
-  "recipient": "vt-red-blue",
-  "result": "plain-blue",
+  "recipient": "vt-red-blue"
 }
 
-function createLearnDemo (config) {
-  const taskBox = createDivWithClassId("task-box", "learn-demo");
+function createDemo (config) {
+  const taskBox = createDivWithClassId("task-box", config.taskId);
 
-  const displayBox = createDivWithClassId("display-box", "learn-demo-display-box");
-  const learnDemoAgent = createDivWithStyle("stone", "learn-demo-agent", config.agent);
-  const learnDemoRecipient = createDivWithStyle("stone", "learn-demo-recipient", config.recipient);
-  displayBox.append(learnDemoAgent);
-  displayBox.append(learnDemoRecipient);
+  const displayBox = createDivWithClassId("display-box", `${config.taskId}-display-box`);
+  displayBox.append(createDivWithStyle("stone", `${config.taskId}-agent`, config.agent));
+  displayBox.append(createDivWithStyle("stone", `${config.taskId}-recipient`, config.recipient));
 
-  const recordPan = createDivWithClassId("record-pan", "learn-demo-record-pan");
-  recordPan.append(document.createTextNode("Original recipient"));
-  const learnDemoResult = createDivWithStyle("stone", "learn-demo-original", config.recipient);
-  recordPan.append(learnDemoResult);
-
-  const buttonGroup = createDivWithClassId("button-group", "learn-demo-record-pan");
-  const playButton = createDivWithClassId("play-button", "learn-demo-play-btn");
-  playButton.append(document.createTextNode("Play"));
-  const nextButton = createDivWithClassId("next-button", "learn-demo-next-btn");
-  nextButton.append(document.createTextNode("Next"));
-  buttonGroup.append(playButton);
-  buttonGroup.append(nextButton);
+  const buttonGroup = createDivWithClassId("button-group", `${config.taskId}-button-group`);
+  buttonGroup.append(createBtn(`${config.taskId}-play-btn`, "Play"));
+  buttonGroup.append(createBtn(`${config.taskId}-reset-btn`, "Reset", false));
 
   taskBox.append(displayBox);
-  taskBox.append(recordPan);
   taskBox.append(buttonGroup);
 
   return(taskBox);
@@ -48,20 +35,14 @@ function createTaskBox (config) {
   taskBox.append(document.createTextNode(`${config.taskId.slice(4,)}.`));
 
   const displayBox = createDivWithClassId("display-box", `${config.taskId}-display-box`);
-  const taskAgent = createDivWithStyle("stone", `${config.taskId}-agent`, config.agent);
-  const taskRecipient = createDivWithStyle("stone", `${config.taskId}-recipient`, config.recipient);
-  displayBox.append(taskAgent);
-  displayBox.append(taskRecipient);
+  displayBox.append(createDivWithStyle("stone", `${config.taskId}-agent`, config.agent));
+  displayBox.append(createDivWithStyle("stone", `${config.taskId}-recipient`, config.recipient));
 
   const recordPan = createDivWithClassId("record-pan", `${config.taskId}-record-pan`);
 
-  const buttonGroup = createDivWithClassId("button-group", `${config.taskId}-record-pan`);
-  const checkButton = createDivWithClassId("check-button", `${config.taskId}-check-btn`);
-  checkButton.append(document.createTextNode("Check"));
-  const nextButton = createDivWithClassId("next-button", `${config.taskId}-next-btn`);
-  nextButton.append(document.createTextNode("Next"));
-  buttonGroup.append(checkButton);
-  buttonGroup.append(nextButton);
+  const buttonGroup = createDivWithClassId("button-group", `${config.taskId}-button-group`);
+  buttonGroup.append(createBtn(`${config.taskId}-check-btn`, "Check"));
+  buttonGroup.append(createBtn(`${config.taskId}-next-btn`, "Next"));
 
   taskBox.append(displayBox);
   taskBox.append(recordPan);
@@ -91,15 +72,16 @@ function addText (id, text) {
   el.appendChild(t);
 }
 
-document.body.append(createLearnDemo(learnDemo));
+document.body.append(createDemo(demo));
 document.body.append(createTaskBox(task01));
-
-document.getElementById("learn-demo-play-btn").onclick = () => {
-  playEffects(learnDemo);
-  // setTimeout(() => {
-  //     resetBtn.disabled = false;
-  //     nextBtn.disabled = false
-  // }, 2000);
+document.getElementById(`${demo.taskId}-play-btn`).onclick = () => {
+  playEffects(demo);
+  setTimeout(() => {
+    document.getElementById(`${demo.taskId}-reset-btn`).disabled = false;
+  }, 2000);
+};
+document.getElementById(`${demo.taskId}-reset-btn`).onclick = () => {
+  resetStones(demo);
 };
 
 // Magic effects
@@ -167,4 +149,34 @@ function setStyle (el, styleStr) {
       )`;
       break;
   }
+}
+
+function createBtn (btnId, text = "Button", on = true, className = "task-button") {
+  let btn = document.createElement("button");
+  btn.setAttribute("class", className);
+  btn.setAttribute("id", btnId);
+  btn.disabled = !on;
+  (text.length > 0) ? btn.append(document.createTextNode(text)): null;
+  return(btn)
+}
+
+function resetStones (config) {
+  let stones = [ "agent", "recipient" ].map(s => `${config.taskId}-${s}`);
+  clearElements(stones);
+  createStones(config);
+  document.getElementById(`${demo.taskId}-reset-btn`).disabled = true;
+}
+
+function createStones (config, box = ".display-box") {
+  let el = document.querySelector(box);
+  el.append(createDivWithStyle("stone", `${config.taskId}-agent`, config.agent));
+  el.append(createDivWithStyle("stone", `${config.taskId}-recipient`, config.recipient));
+  return(el)
+}
+
+function clearElements (els) {
+  els.forEach (el => {
+      let clear = document.getElementById(el);
+      clear.parentNode.removeChild(clear);
+  })
 }

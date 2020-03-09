@@ -17,10 +17,13 @@ body {
 }
 
 .display-box, .sel-pan, .record-pan, .button-group {
-  background-color: #f4f4f4;
   height: 80%;
   margin: 10px;
   display: flex;
+}
+
+.display-box, .sel-pan, .record-pan {
+  background-color: #f4f4f4;
 }
 
 .button-group {
@@ -39,7 +42,7 @@ body {
   width: 25%;
 }
 
-.play-button, .reset-button, .check-button, .next-button {
+.task-button {
   background-color: #f4f4f4;
   border: #e0e0e0 1px solid;
   height: 20px;
@@ -49,8 +52,7 @@ body {
   margin: 2px;
 }
 
-.play-button:hover, .reset-button:hover,
-.check-button:hover, .next-button:hover {
+.task-button:hover:enabled {
   background-color: #116466;
   color: #e0e0e0;
 }

@@ -1,36 +1,46 @@
 
+/** Settings */
 const basePatterns = [ 'plain', 'lt', 'rt'];
 const allPatterns = basePatterns.concat(['ht', 'vt']);
 
-const baseColors = [ 'red', 'orange', 'blue' ];
+const baseColors = [ 'tomato', 'darkorange', 'royalblue' ];
 const allColors = baseColors.concat(['green']);
+
+// Rules:
+// 1. Colors: to same color
+// 2. Strips: add same strips or flip stripps
+// Hard-coded in the setRules(agent, target) functions
 
 let baseStones = []
 let allStones = []
 
-function getAllStones (stones, patterns, colors) {
-  patterns.forEach(p => {
-    if (p === 'plain') {
-      colors.forEach(c => stones.push([p, c].join('-')))
-    } else {
-      let colorsToUse = colors;
-      colors.forEach(c => {
-        colorsToUse = colorsToUse.filter(cu => cu != c);
-        colorsToUse.forEach(ct => stones.push([p, c, ct].join("-")))
-      })
-    }
-  })
-  return(stones);
-}
-
 baseStones = getAllStones(baseStones, basePatterns, baseColors);
-console.log(baseStones);
 
 let demo = { "taskId": "demo" };
 demo = createDemoConfig(demo);
 let tasks = [];
 tasks = createTaskConfig(tasks, demo);
+const task01 = tasks[0];
 
+/** Main page */
+console.log(demo.agent);
+console.log(demo.recipient);
+console.log(setRules(demo.agent, demo.recipient));
+document.body.append(createDemo(demo));
+document.getElementById(`${demo.taskId}-play-btn`).onclick = () => {
+  (document.getElementById(`${demo.taskId}-agent`) === null)? createStones(demo): null;
+  playEffects(demo);
+  setTimeout(() => {
+    clearElements(demo);
+    document.getElementById(`${demo.taskId}-next-btn`).disabled = false;
+  }, 3000);
+};
+document.getElementById(`${demo.taskId}-next-btn`).onclick = () => {
+  (document.getElementById(`${task01.taskId}-display-box`) === null)?
+    document.body.append(createTaskBox(task01)) : null;
+}
+
+/** Functions */
 function sampleStone (isBase = true) {
   let stoneStyle = '';
 
@@ -49,6 +59,72 @@ function sampleStone (isBase = true) {
   return(stoneStyle);
 }
 
+function getAllStones (stones, patterns, colors) {
+  patterns.forEach(p => {
+    if (p === 'plain') {
+      colors.forEach(c => stones.push([p, c].join('-')))
+    } else {
+      let colorsToUse = colors;
+      colors.forEach(c => {
+        colorsToUse = colorsToUse.filter(cu => cu != c);
+        colorsToUse.forEach(ct => stones.push([p, c, ct].join("-")))
+      })
+    }
+  })
+  return(stones);
+}
+
+function getDiffColors (agentColors, recipientColors) {
+  let diffs = recipientColors.filter(rc => rc != agentColors);
+  let diff = (diffs.length > 1)? diffs[Math.floor(Math.random() * diffs.length)]: diffs[0];
+  return(diff);
+}
+/** Rules
+ * If agent has strips: flip recipient strips or add strips
+ * Agent colors get passed onto the recipient
+ */
+function setRules (agent, recipient) {
+  let result = []
+  const agts = agent.split("-");
+  const rcps = recipient.split("-");
+
+  let agentPattern = agts.shift();
+  let recipientPattern = rcps.shift();
+
+  if (agentPattern !== "plain") {
+    if (recipientPattern === 'plain') {
+      result.push(agentPattern)
+      result.push(rcps[0])
+      result.push(getDiffColors(rcps[0], agts))
+    } else {
+      switch(recipientPattern) {
+        case 'lt':
+          result.push('rt');
+          break;
+        case 'rt':
+          result.push('lt');
+          break;
+        case 'vt':
+          result.push('ht');
+          break;
+        case 'ht':
+          result.push('vt');
+          break;
+      }
+      result.push(rcps[0])
+      result.push(rcps[1])
+    }
+  } else {
+    result.push(recipientPattern);
+    result.push(agts[0]);
+    if (recipientPattern !== 'plain') {
+      let c = getDiffColors(agts[0], rcps);
+      result.push(c)
+    }
+  }
+  return result.join("-");
+}
+
 function createDemoConfig (demoObj = demo) {
   const agent = sampleStone();
   const recipient = sampleStone();
@@ -56,7 +132,7 @@ function createDemoConfig (demoObj = demo) {
   demoObj["taskId"] = "demo";
   demoObj["agent"] = agent;
   demoObj["recipient"] = recipient;
-  demoObj["result"] = result;
+  demoObj["result"] = setRules(agent, recipient);
   return(demoObj);
 }
 
@@ -67,12 +143,10 @@ function createTaskConfig(taskArr, demoObj, type = 'training') {
   task["type"] = type;
   task["agent"] = demoObj.agent;
   task["recipient"] = demoObj.recipient;
-  task["result"] = demoObj.result;
+  task["result"] = setRules(demoObj.agent, demoObj.recipient);
   taskArr.push(task);
   return(taskArr);
 }
-
-const task01 = tasks[0];
 
 function createDemo (config) {
   const taskBox = createDivWithClassId("task-box", config.taskId);
@@ -133,19 +207,6 @@ function addText (id, text) {
   const t = document.createTextNode(text);
   el.appendChild(t);
 }
-document.body.append(createDemo(demo));
-document.getElementById(`${demo.taskId}-play-btn`).onclick = () => {
-  (document.getElementById(`${demo.taskId}-agent`) === null)? createStones(demo): null;
-  playEffects(demo);
-  setTimeout(() => {
-    clearElements(demo);
-    document.getElementById(`${demo.taskId}-next-btn`).disabled = false;
-  }, 3000);
-};
-document.getElementById(`${demo.taskId}-next-btn`).onclick = () => {
-  (document.getElementById(`${task01.taskId}-display-box`) === null)?
-    document.body.append(createTaskBox(task01)) : null;
-}
 
 function playEffects (config, isInit = true) {
   !isInit? createStones(config): null;
@@ -155,20 +216,20 @@ function playEffects (config, isInit = true) {
 
 function moveStone (config) {
   const agent = `${config.taskId}-agent`;
-  const recipent = `${config.taskId}-recipient`;
+  const recipient = `${config.taskId}-recipient`;
 
   const agentStone = document.getElementById(agent);
   const startPos = getCurrentLocation(agent).right;
-  const endPos = getCurrentLocation(recipent).left;
+  const endPos = getCurrentLocation(recipient).left;
 
   const delta = Math.round(endPos - startPos);
   (delta > 0) && (agentStone.style.left = `${delta}px`);
 }
 
 function changeStone (config) {
-  const recipentStone = document.getElementById(`${config.taskId}-recipient`);
+  const recipientStone = document.getElementById(`${config.taskId}-recipient`);
   setTimeout(() => {
-    setStyle(recipentStone, config.result);
+    setStyle(recipientStone, config.result);
   }, 1500);
 }
 
@@ -309,6 +370,7 @@ function setAttributes(el, attrs) {
   }
 }
 
+/** Fake hover effects for selection panel */
 function hover (tbid, selected) {
   const tb = document.getElementById(tbid);
   tb.onmouseover = function() {

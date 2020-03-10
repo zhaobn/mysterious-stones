@@ -6,10 +6,10 @@ const allPatterns = basePatterns.concat(['ht', 'vt']);
 const baseColors = [ 'tomato', 'darkorange', 'royalblue' ];
 const allColors = baseColors.concat(['green']);
 
-// Rules:
-// 1. Colors: to same color
-// 2. Strips: add same strips or flip stripps
-// Hard-coded in the setRules(agent, target) functions
+/** Rules are hand-crafted in the setRules(agent, target) function
+ * If agent has strips: flip recipient strips or add strips
+ * Agent colors get passed onto the recipient
+ */
 
 let baseStones = []
 let allStones = []
@@ -23,21 +23,25 @@ tasks = createTaskConfig(tasks, demo);
 const task01 = tasks[0];
 
 /** Main page */
-console.log(demo.agent);
-console.log(demo.recipient);
-console.log(setRules(demo.agent, demo.recipient));
 document.body.append(createDemo(demo));
-document.getElementById(`${demo.taskId}-play-btn`).onclick = () => {
+document.body.append(createTaskBox(task01));
+
+const playBtn = document.getElementById(`${demo.taskId}-play-btn`);
+const demoNextBtn = document.getElementById(`${demo.taskId}-next-btn`);
+const checkBtn = document.getElementById(`${task01.taskId}-check-btn`);
+const taskNextBtn = document.getElementById(`${task01.taskId}-next-btn`);
+
+
+playBtn.onclick = () => {
   (document.getElementById(`${demo.taskId}-agent`) === null)? createStones(demo): null;
   playEffects(demo);
   setTimeout(() => {
     clearElements(demo);
-    document.getElementById(`${demo.taskId}-next-btn`).disabled = false;
+    demoNextBtn.disabled = false;
   }, 3000);
 };
-document.getElementById(`${demo.taskId}-next-btn`).onclick = () => {
-  (document.getElementById(`${task01.taskId}-display-box`) === null)?
-    document.body.append(createTaskBox(task01)) : null;
+demoNextBtn.onclick = () => {
+  document.getElementById(`${task01.taskId}`).style.display = "flex"
 }
 
 /** Functions */
@@ -165,7 +169,7 @@ function createDemo (config) {
   return(taskBox);
 }
 
-function createTaskBox (config) {
+function createTaskBox (config, display = "none") {
   const taskBox = createDivWithClassId("task-box", `${config.taskId}`);
   taskBox.append(document.createTextNode(`${config.taskId.slice(4,)}.`));
 
@@ -177,12 +181,14 @@ function createTaskBox (config) {
   recordPan.append(createPanel(config));
 
   const buttonGroup = createDivWithClassId("button-group", `${config.taskId}-button-group`);
-  buttonGroup.append(createBtn(`${config.taskId}-check-btn`, "Check"));
-  buttonGroup.append(createBtn(`${config.taskId}-next-btn`, "Next"));
+  buttonGroup.append(createBtn(`${config.taskId}-check-btn`, "Check", false));
+  buttonGroup.append(createBtn(`${config.taskId}-next-btn`, "Next", false));
 
   taskBox.append(displayBox);
   taskBox.append(recordPan);
   taskBox.append(buttonGroup);
+
+  taskBox.style.display = display;
 
   return(taskBox);
 }
@@ -327,13 +333,14 @@ function createPanel(config) {
     let clicked = {};
     clicked.stone = tbId.slice(3,);
     clicked.timestamp = Date.now();
-    clicks.push(clicked)
+    clicks.push(clicked);
+    checkBtn.disabled = false;
+    checkBtn.onclick = () => checkSelection(config, clicked.stone);
     // let idx = parseInt(trial.taskId.slice(5,)) - 1;
     // //taskData.trial[idx] = idx + 1;
     // taskData.selection[idx] = readStone(tbId);
     // taskData.ts[idx] = Date.now();
     // taskData.clicks[idx] = clicks;
-    console.log(clicks)
     // trialData[taskId].selection = clicked;
     // trialData[taskId].clicks.push(clicked);
     // sessionStorage.setItem('taskData', JSON.stringify(taskData))
@@ -379,4 +386,30 @@ function hover (tbid, selected) {
   tb.onmouseleave = function() {
       (tbid !== selected)? this.style.border = '0px' : null;
   };
+}
+
+function checkSelection (config, selection) {
+  if (matchSelections(config.result, selection)) {
+    document.getElementById(`${config.taskId}-next-btn`).disabled = false;
+  } else {
+    alert("Wrong selection, try again!")
+  }
+}
+
+function matchSelections (stone1, stone2) {
+  let s1 = stone1.split("-");
+  let s2 = stone2.split("-");
+
+  s1Pattern = s1.shift();
+  s2Pattern = s2.shift();
+
+  let patternMatch = (s1Pattern === s2Pattern);
+  let colorMatch = true;
+  if (s1.length > 1) {
+    s1.forEach(s1c => colorMatch && (s2.indexOf(s1c) > -1))
+  } else {
+    colorMatch = (s1[0] === s2[0])
+  }
+
+  return(patternMatch && colorMatch)
 }

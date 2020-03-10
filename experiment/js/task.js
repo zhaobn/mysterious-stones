@@ -24,7 +24,8 @@ const task01 = tasks[0];
 
 /** Main page */
 document.body.append(createDemo(demo));
-document.body.append(createTaskBox(task01));
+document.body.append(createTaskBox(task01, "flex"));
+document.body.append(createTextInputPanel(task01));
 
 const playBtn = document.getElementById(`${demo.taskId}-play-btn`);
 const demoNextBtn = document.getElementById(`${demo.taskId}-next-btn`);
@@ -153,13 +154,13 @@ function createTaskConfig(taskArr, demoObj, type = 'training') {
 }
 
 function createDemo (config) {
-  const taskBox = createDivWithClassId("task-box", config.taskId);
+  const taskBox = createCustomElement("div", "task-box", config.taskId);
 
-  const displayBox = createDivWithClassId("display-box", `${config.taskId}-display-box`);
+  const displayBox = createCustomElement("div", "display-box", `${config.taskId}-display-box`);
   displayBox.append(createDivWithStyle("stone", `${config.taskId}-agent`, config.agent));
   displayBox.append(createDivWithStyle("stone", `${config.taskId}-recipient`, config.recipient));
 
-  const buttonGroup = createDivWithClassId("button-group", `${config.taskId}-button-group`);
+  const buttonGroup = createCustomElement("div", "button-group", `${config.taskId}-button-group`);
   buttonGroup.append(createBtn(`${config.taskId}-play-btn`, "Play"));
   buttonGroup.append(createBtn(`${config.taskId}-next-btn`, "Next", false));
 
@@ -170,17 +171,16 @@ function createDemo (config) {
 }
 
 function createTaskBox (config, display = "none") {
-  const taskBox = createDivWithClassId("task-box", `${config.taskId}`);
-  taskBox.append(document.createTextNode(`${config.taskId.slice(4,)}.`));
+  const taskBox = createCustomElement("div", "task-box", `${config.taskId}`);
 
-  const displayBox = createDivWithClassId("display-box", `${config.taskId}-display-box`);
+  const displayBox = createCustomElement("div", "display-box", `${config.taskId}-display-box`);
   displayBox.append(createDivWithStyle("stone", `${config.taskId}-agent`, config.agent));
   displayBox.append(createDivWithStyle("stone", `${config.taskId}-recipient`, config.recipient));
 
-  const recordPan = createDivWithClassId("record-pan", `${config.taskId}-record-pan`);
+  const recordPan = createCustomElement("div", "record-pan", `${config.taskId}-record-pan`);
   recordPan.append(createPanel(config));
 
-  const buttonGroup = createDivWithClassId("button-group", `${config.taskId}-button-group`);
+  const buttonGroup = createCustomElement("div", "button-group", `${config.taskId}-button-group`);
   buttonGroup.append(createBtn(`${config.taskId}-check-btn`, "Check", false));
   buttonGroup.append(createBtn(`${config.taskId}-next-btn`, "Next", false));
 
@@ -193,17 +193,42 @@ function createTaskBox (config, display = "none") {
   return(taskBox);
 }
 
-function createDivWithClassId (className = "div", id = "") {
-  let element = document.createElement('div');
+function createTextInputPanel (config) {
+  const taskBox = createCustomElement("div", "task-box", `${config.taskId}-input`);
+  taskBox.setAttribute("style", "height:600px");
+
+  const instructionPan = createCustomElement("div", "instruction", `${config.taskId}-instruction`);
+  instructionPan.innerHTML = `
+    <h1>Make sure you:</h1>
+    <ul>
+      <li>Use terms: color, strip, red, orange, blue, left-strip, right-strip.</li>
+      <li>Use a functional format, eg. X makes Y (if Z).</li>
+      <li>Be clear and descriptive.</li>
+    </ul>
+    `
+  const displayBox = createCustomElement("div", "input-box", `${config.taskId}-input-box`);
+  displayBox.append(createInputForm(config));
+
+  const buttonGroup = createCustomElement("div", "button-group", `${config.taskId}-button-group`);
+  buttonGroup.append(createBtn(`${config.taskId}-submit-btn`, "Submit", false));
+  buttonGroup.append(createBtn(`${config.taskId}-input-next-btn`, "Next", false));
+
+  taskBox.append(instructionPan);
+  taskBox.append(displayBox);
+  taskBox.append(buttonGroup);
+
+  return(taskBox);
+}
+
+function createCustomElement (type = 'div', className, id) {
+  let element = document.createElement(type);
   element.setAttribute("class", className);
   element.setAttribute("id", id);
   return element;
 }
 
 function createDivWithStyle (className = "div", id = "", style = "") {
-  let element = document.createElement('div');
-  element.setAttribute("class", className);
-  element.setAttribute("id", id);
+  let element = createCustomElement('div', className, id);
   setStyle(element, style);
   return element;
 }
@@ -212,6 +237,55 @@ function addText (id, text) {
   let el = document.getElementById(id);
   const t = document.createTextNode(text);
   el.appendChild(t);
+}
+
+function createText(h = "h1", text = 'hello') {
+  let element = document.createElement(h);
+  let tx = document.createTextNode(text);
+  element.append(tx);
+  return(element)
+}
+
+function createInputForm(config) {
+  let form = createCustomElement("form", "input-form", `${config.taskId}-input-form`);
+  const options = `
+    <option value="--" SELECTED>
+    <option value="10">10 - Very certain</option>
+    <option value="9">9</option>
+    <option value="8">8</option>
+    <option value="7">7</option>
+    <option value="6">6</option>
+    <option value="5">5 - Moderately</option>
+    <option value="4">4</option>
+    <option value="3">3</option>
+    <option value="2">2</option>
+    <option value="1">1</option>
+    <option value="0">0 - Not sure at all</option>
+  `
+  form.innerHTML = `
+    <p>1. What do you think is the most probable magic rule?</p>
+    <textarea name="${config.taskId}-input-1" id="${config.taskId}-input-1" placeholder="Please type here"></textarea>
+    <p>How certain are you with this rule?
+      <select id="${config.taskId}-input-1-certainty" name="${config.taskId}-input-1-certainty" class="input-rule">
+        ${options}
+      </select>
+    </p>
+    <p>2. What do you think is the second probable magic rule?</p>
+    <textarea name="${config.taskId}-input-2" id="${config.taskId}-input-2" placeholder="Please type here"></textarea>
+    <p>How certain are you with this rule?
+      <select id="${config.taskId}-input-2-certainty" name="${config.taskId}-input-2-certainty" class="input-rule">
+        ${options}
+      </select>
+    </p>
+    <p>3. What do you think is the third probable magic rule?</p>
+    <textarea name="${config.taskId}-input-3" id="${config.taskId}-input-3" placeholder="Please type here"></textarea>
+    <p>How certain are you with this rule?
+      <select id="${config.taskId}-input-3-certainty" name="${config.taskId}-input-3-certainty" class="input-rule">
+        ${options}
+      </select>
+    </p>
+    `
+  return(form);
 }
 
 function playEffects (config, isInit = true) {
@@ -284,9 +358,7 @@ function setStyle (el, styleStr, isSmall = false) {
 }
 
 function createBtn (btnId, text = "Button", on = true, className = "task-button") {
-  let btn = document.createElement("button");
-  btn.setAttribute("class", className);
-  btn.setAttribute("id", btnId);
+  let btn = createCustomElement("button", className, btnId);
   btn.disabled = !on;
   (text.length > 0) ? btn.append(document.createTextNode(text)): null;
   return(btn)
@@ -316,8 +388,7 @@ function createPanel(config) {
   ncol = (config.type === 'training')? 3: 5;
   nrow = (config.type === 'training')? 3: 4;
 
-  let tbl = document.createElement('table');
-  setAttributes(tbl, { 'class': 'selection-panel', 'id': `${taskId}-panel` })
+  let tbl = createCustomElement("table", 'selection-panel', `${taskId}-panel`);
 
   const styleClicked = (id) => {
     const selectedTb = id.replace(/ps/g, 'tb');
@@ -355,13 +426,9 @@ function createPanel(config) {
         tbs.push(tbId)
 
         let td = tr.insertCell();
-        setAttributes(td, {'id': tbId})
+        td.setAttribute("id", tbId)
 
-        let tc = document.createElement('div');
-        setAttributes(tc, {
-            'class': "panel-stone",
-            'id': tbId.replace(/tb/g, 'ps'),
-          })
+        let tc = createCustomElement("div", "panel-stone", tbId.replace(/tb/g, 'ps'));
         setStyle(tc, tc.id.slice(3,), true)
 
         tc.addEventListener('click', recordClick);
@@ -369,12 +436,6 @@ function createPanel(config) {
       }
   }
   return tbl;
-}
-
-function setAttributes(el, attrs) {
-  for(var key in attrs) {
-    el.setAttribute(key, attrs[key]);
-  }
 }
 
 /** Fake hover effects for selection panel */

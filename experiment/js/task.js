@@ -3,7 +3,7 @@
 const basePatterns = [ 'plain', 'lt', 'rt'];
 const allPatterns = basePatterns.concat(['ht', 'vt']);
 
-const baseColors = [ 'tomato', 'darkorange', 'royalblue' ];
+const baseColors = [ 'tomato', 'gold', 'royalblue' ];
 const allColors = baseColors.concat(['green']);
 
 /** Rules are hand-crafted in the setRules(agent, target) function
@@ -24,7 +24,7 @@ const task01 = tasks[0];
 
 /** Main page */
 document.body.append(createDemo(demo));
-document.body.append(createTaskBox(task01, "flex"));
+document.body.append(createTaskBox(task01, "none"));
 document.body.append(createTextInputPanel(task01));
 
 const playBtn = document.getElementById(`${demo.taskId}-play-btn`);
@@ -41,9 +41,8 @@ playBtn.onclick = () => {
     demoNextBtn.disabled = false;
   }, 3000);
 };
-demoNextBtn.onclick = () => {
-  document.getElementById(`${task01.taskId}`).style.display = "flex"
-}
+demoNextBtn.onclick = () => document.getElementById(`${task01.taskId}`).style.display = "flex";
+taskNextBtn.onclick = () => document.getElementById(`${task01.taskId}-input`).style.display = "flex";
 
 /** Functions */
 function sampleStone (isBase = true) {
@@ -193,7 +192,7 @@ function createTaskBox (config, display = "none") {
   return(taskBox);
 }
 
-function createTextInputPanel (config) {
+function createTextInputPanel (config, display = "none") {
   const taskBox = createCustomElement("div", "task-box", `${config.taskId}-input`);
   taskBox.setAttribute("style", "height:600px");
 
@@ -216,6 +215,8 @@ function createTextInputPanel (config) {
   taskBox.append(instructionPan);
   taskBox.append(displayBox);
   taskBox.append(buttonGroup);
+
+  taskBox.style.display = display;
 
   return(taskBox);
 }

@@ -16,35 +16,40 @@ let allStones = []
 
 baseStones = getAllStones(baseStones, basePatterns, baseColors);
 
-let demo = { "taskId": "demo" };
-demo = createDemoConfig(demo);
-let tasks = [];
-tasks = createTaskConfig(tasks, demo);
-const task01 = tasks[0];
+const configs = createConfigs(1);
 
 /** Main page */
-document.body.append(createDemo(demo));
-document.body.append(createTaskBox(task01, "none"));
-document.body.append(createTextInputPanel(task01));
+createLearnTask(configs);
 
-const playBtn = document.getElementById(`${demo.taskId}-play-btn`);
-const demoNextBtn = document.getElementById(`${demo.taskId}-next-btn`);
-const checkBtn = document.getElementById(`${task01.taskId}-check-btn`);
-const taskNextBtn = document.getElementById(`${task01.taskId}-next-btn`);
-
-
-playBtn.onclick = () => {
-  (document.getElementById(`${demo.taskId}-agent`) === null)? createStones(demo): null;
-  playEffects(demo);
-  setTimeout(() => {
-    clearElements(demo);
-    demoNextBtn.disabled = false;
-  }, 3000);
-};
-demoNextBtn.onclick = () => document.getElementById(`${task01.taskId}`).style.display = "flex";
-taskNextBtn.onclick = () => document.getElementById(`${task01.taskId}-input`).style.display = "flex";
 
 /** Functions */
+function createLearnTask (config) {
+  let learnBox = createCustomElement("div", "box", `${config.task.type}-${config.index}`);
+
+  learnBox.append(createDemo(config.demo));
+  learnBox.append(createTaskBox(config.task, "none"));
+  learnBox.append(createTextInputPanel(config.task));
+
+  document.body.append(learnBox);
+
+  const playBtn = document.getElementById(`${configs.demo.taskId}-play-btn`);
+  const demoNextBtn = document.getElementById(`${configs.demo.taskId}-next-btn`);
+  const checkBtn = document.getElementById(`${configs.task.taskId}-check-btn`);
+  const taskNextBtn = document.getElementById(`${configs.task.taskId}-next-btn`);
+
+  playBtn.onclick = () => {
+    (document.getElementById(`${configs.demo.taskId}-agent`) === null)? createStones(configs.demo): null;
+    playEffects(configs.demo);
+    setTimeout(() => {
+      clearElements(configs.demo);
+      demoNextBtn.disabled = false;
+    }, 3000);
+  };
+  demoNextBtn.onclick = () => document.getElementById(`${configs.task.taskId}`).style.display = "flex";
+  taskNextBtn.onclick = () => document.getElementById(`${configs.task.taskId}-input`).style.display = "flex";
+}
+
+
 function sampleStone (isBase = true) {
   let stoneStyle = '';
 
@@ -129,27 +134,29 @@ function setRules (agent, recipient) {
   return result.join("-");
 }
 
-function createDemoConfig (demoObj = demo) {
+function createConfigs(counter = 1, type = "training") {
+  let configs = {
+    "index": counter,
+    "demo": {},
+    "task": {}
+  }
   const agent = sampleStone();
   const recipient = sampleStone();
-  const result = sampleStone(); // TODO: proper function
-  demoObj["taskId"] = "demo";
-  demoObj["agent"] = agent;
-  demoObj["recipient"] = recipient;
-  demoObj["result"] = setRules(agent, recipient);
-  return(demoObj);
-}
+  const idx = counter.toString().padStart(2, '0');
 
-function createTaskConfig(taskArr, demoObj, type = 'training') {
-  const counter = taskArr.length + 1;
-  let task = {};
-  task["taskId"] = "task" + counter.toString().padStart(2, '0');
-  task["type"] = type;
-  task["agent"] = demoObj.agent;
-  task["recipient"] = demoObj.recipient;
-  task["result"] = setRules(demoObj.agent, demoObj.recipient);
-  taskArr.push(task);
-  return(taskArr);
+  configs.demo["taskId"] = "demo" + idx;
+  configs.demo["agent"] = agent;
+  configs.demo["recipient"] = recipient;
+  configs.demo["result"] = setRules(agent, recipient);
+
+  configs.task["taskId"] = "task" + idx;
+  configs.task["type"] = type;
+  configs.task["agent"] = agent;
+  configs.task["recipient"] = recipient;
+  configs.task["result"] = setRules(agent, recipient);
+
+  return(configs);
+
 }
 
 function createDemo (config) {
@@ -406,6 +413,8 @@ function createPanel(config) {
     clicked.stone = tbId.slice(3,);
     clicked.timestamp = Date.now();
     clicks.push(clicked);
+
+    let checkBtn = document.getElementById(`${taskId}-check-btn`);
     checkBtn.disabled = false;
     checkBtn.onclick = () => checkSelection(config, clicked.stone);
     // let idx = parseInt(trial.taskId.slice(5,)) - 1;

@@ -4,6 +4,11 @@ body {
   background-color: #e0e0e0;
 }
 
+.box {
+  display: flex;
+  flex-direction: column;
+}
+
 .task-box {
   /* background-color: #a0a0a0; */
   min-width: 500px;

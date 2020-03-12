@@ -9,6 +9,27 @@ body {
   flex-direction: column;
 }
 
+.box h1 {
+  margin: 0 10%;
+  background-color: #a0a0a0;
+  padding: 5px;
+  font-size: 28px;
+}
+
+.feedback-true, .feedback-false {
+  margin: 0 auto;
+  font-size: 20px;
+  font-weight: bold;
+}
+
+.feedback-true {
+  color: #116466;
+}
+
+.feedback-false {
+  color: red;
+}
+
 .task-box {
   /* background-color: #a0a0a0; */
   min-width: 500px;
@@ -27,7 +48,8 @@ body {
   display: flex;
 }
 
-.display-box, .record-pan, .instruction, .input-box {
+.display-box, .record-pan, .input-box, .task-button,
+.instruction, .instruction h1 {
   background-color: #f4f4f4;
 }
 
@@ -73,7 +95,6 @@ body {
 }
 
 .task-button {
-  background-color: #f4f4f4;
   border: #e0e0e0 1px solid;
   height: 20px;
   width: 80%;

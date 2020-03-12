@@ -24,17 +24,21 @@ createLearnTask(configs);
 
 /** Functions */
 function createLearnTask (config) {
-  let learnBox = createCustomElement("div", "box", `${config.task.type}-${config.index}`);
+  let learnBox = createCustomElement("div", "box", `box-${config.index}`);
 
+  learnBox.append(createText('h1', `Trial ${config.index}/6`))
   learnBox.append(createDemo(config.demo));
-  learnBox.append(createTaskBox(config.task, "none"));
-  learnBox.append(createTextInputPanel(config.task));
+
+  learnBox.append(createTaskBox(config.task, "flex"));
+  learnBox.append(createFeedbackText(config.task, true));
+  learnBox.append(createFeedbackText(config.task, false));
+
+  learnBox.append(createTextInputPanel(config.task, "flex"));
 
   document.body.append(learnBox);
 
   const playBtn = document.getElementById(`${configs.demo.taskId}-play-btn`);
   const demoNextBtn = document.getElementById(`${configs.demo.taskId}-next-btn`);
-  const checkBtn = document.getElementById(`${configs.task.taskId}-check-btn`);
   const taskNextBtn = document.getElementById(`${configs.task.taskId}-next-btn`);
 
   playBtn.onclick = () => {
@@ -48,7 +52,6 @@ function createLearnTask (config) {
   demoNextBtn.onclick = () => document.getElementById(`${configs.task.taskId}`).style.display = "flex";
   taskNextBtn.onclick = () => document.getElementById(`${configs.task.taskId}-input`).style.display = "flex";
 }
-
 
 function sampleStone (isBase = true) {
   let stoneStyle = '';
@@ -228,9 +231,18 @@ function createTextInputPanel (config, display = "none") {
   return(taskBox);
 }
 
+function createFeedbackText (config, pass = false) {
+  let feedbackDiv = createCustomElement("div", `feedback-${pass}`, `${config.taskId}-${pass}-text`);
+  const text = pass? `Well done! Click the "Next" button to proceed.`
+                   : `Doesn't look right. Please play the magic effects again, watch carefully, and retry.`;
+  feedbackDiv.style.display = "none";
+  feedbackDiv.append(document.createTextNode(text))
+  return(feedbackDiv);
+}
+
 function createCustomElement (type = 'div', className, id) {
   let element = document.createElement(type);
-  element.setAttribute("class", className);
+  if (className.length > 0) element.setAttribute("class", className);
   element.setAttribute("id", id);
   return element;
 }
@@ -239,12 +251,6 @@ function createDivWithStyle (className = "div", id = "", style = "") {
   let element = createCustomElement('div', className, id);
   setStyle(element, style);
   return element;
-}
-
-function addText (id, text) {
-  let el = document.getElementById(id);
-  const t = document.createTextNode(text);
-  el.appendChild(t);
 }
 
 function createText(h = "h1", text = 'hello') {
@@ -460,11 +466,12 @@ function hover (tbid, selected) {
 }
 
 function checkSelection (config, selection) {
-  if (matchSelections(config.result, selection)) {
-    document.getElementById(`${config.taskId}-next-btn`).disabled = false;
-  } else {
-    alert("Wrong selection, try again!")
-  }
+  const pass = matchSelections(config.result, selection);
+  const passTextDiv = document.getElementById(`${config.taskId}-${pass}-text`);
+  passTextDiv.style.display = "block";
+  (pass)? document.getElementById(`${config.taskId}-next-btn`).disabled = false :
+          document.getElementById(`${config.taskId}-check-btn`).disabled = true;
+  setTimeout(() => passTextDiv.style.display = "none", 3000);
 }
 
 function matchSelections (stone1, stone2) {

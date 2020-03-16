@@ -20,6 +20,9 @@ body {
   margin: 0 auto;
   font-size: 20px;
   font-weight: bold;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .feedback-true {
@@ -29,6 +32,13 @@ body {
 .feedback-false {
   color: red;
 }
+
+.feedback-stone {
+  height: 30px;
+  width: 30px;
+  border-radius: 50%;
+}
+
 
 .task-box {
   /* background-color: #a0a0a0; */
@@ -130,7 +140,7 @@ body {
   height: 20px;
   width: 20px;
   border-radius: 50%;
-  background-color: #116466;
+  /* background-color: #116466; */
   margin: 5px
 }
 

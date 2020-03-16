@@ -1,10 +1,10 @@
 
 /** Settings */
 const basePatterns = [ 'plain', 'lt', 'rt'];
-const allPatterns = basePatterns.concat(['ht', 'vt']);
+const allPatterns = [ 'lt', 'rt', 'ht', 'vt', 'plain' ];
 
 const baseColors = [ 'tomato', 'gold', 'royalblue' ];
-const allColors = baseColors.concat(['green']);
+const allColors = baseColors.concat(['limegreen']);
 
 /** Rules are hand-crafted in the setRules(agent, target) function
  * If agent has strips: flip recipient strips or add strips
@@ -12,6 +12,7 @@ const allColors = baseColors.concat(['green']);
  */
 
 const nLearnTasks = 6;
+const nGenTasks = 15; // Gen: short for generalization
 
 
 /** Global variables */
@@ -19,22 +20,54 @@ let baseStones = [];
 let allStones = [];
 
 baseStones = getAllStones(baseStones, basePatterns, baseColors);
-const taskConfigs = Array.from(Array(nLearnTasks).keys()).map(k => createConfigs(k+1))
+allStones = getAllStones(allStones, allPatterns, allColors);
 
-
+const learningTaskConfigs = Array.from(Array(nLearnTasks).keys()).map(k => createConfigs(k+1));
+const genTaskConfigs = Array.from(Array(nGenTasks).keys()).map(k => createConfigs(k+1, "generalization"));
 
 /** Main page */
-for(let i = 0; i < nLearnTasks; i++ ) {
-  (i > 0)? createLearnTask(taskConfigs[i], "none"): createLearnTask(taskConfigs[i], "flex");
+// for(let i = 0; i < nLearnTasks; i++ ) {
+//   (i > 0)? createLearnTask(learningTaskConfigs[i], "none"): createLearnTask(learningTaskConfigs[i], "flex");
+// }
+
+for(let i = 0; i < nGenTasks; i++ ) {
+  createGeneralizationTask(genTaskConfigs[i], (i > 0)? "none": "flex");
 }
 
 
 
 /** Functions */
+function createGeneralizationTask (config, display = "flex") {
+  let genBox = createCustomElement("div", "box", `genbox-${config.index}`);
+
+  genBox.append(createText('h1', `Task ${config.index}/${nGenTasks}`));
+  genBox.append(createTaskBox(config.gen, "flex"));
+
+  genBox.append(createFeedbackText(config.gen, true));
+  genBox.append(createFeedbackText(config.gen, false));
+
+  genBox.append(createTextInputPanel(config.gen, "none"));
+
+  document.body.append(genBox);
+
+  const taskNextBtn = document.getElementById(`${config.gen.taskId}-next-btn`);
+  const inputForm = document.getElementById(`${config.gen.taskId}-input-form`);
+  const inputNextBtn = document.getElementById(`${config.gen.taskId}-input-next-btn`);
+
+  taskNextBtn.onclick = () => showNext(`${config.gen.taskId}-input`);
+  inputForm.onchange = () => isFilled(`${config.gen.taskId}-input-form`)? inputNextBtn.disabled = false: null;
+  inputNextBtn.onclick= () => (config.index < nGenTasks)? showNext(`genbox-${config.index+1}`) : null;
+
+  genBox.style.display = display;
+
+
+}
+
+
 function createLearnTask (config, display = "flex") {
   let learnBox = createCustomElement("div", "box", `box-${config.index}`);
 
-  learnBox.append(createText('h1', `Trial ${config.index}/6`))
+  learnBox.append(createText('h1', `Trial ${config.index}/${nLearnTasks}`))
   learnBox.append(createDemo(config.demo));
 
   learnBox.append(createTaskBox(config.task, "none"));
@@ -157,25 +190,34 @@ function setRules (agent, recipient) {
 }
 
 function createConfigs(counter = 1, type = "training") {
-  let configs = {
-    "index": counter,
-    "demo": {},
-    "task": {}
-  }
+  let configs = { "index": counter }
+
   const agent = sampleStone();
   const recipient = sampleStone();
   const idx = counter.toString().padStart(2, '0');
 
-  configs.demo["taskId"] = "demo" + idx;
-  configs.demo["agent"] = agent;
-  configs.demo["recipient"] = recipient;
-  configs.demo["result"] = setRules(agent, recipient);
+  if (type === "training") {
+    configs["demo"] = {};
+    configs["task"] = {};
 
-  configs.task["taskId"] = "task" + idx;
-  configs.task["type"] = type;
-  configs.task["agent"] = agent;
-  configs.task["recipient"] = recipient;
-  configs.task["result"] = setRules(agent, recipient);
+    configs.demo["taskId"] = "demo" + idx;
+    configs.demo["agent"] = agent;
+    configs.demo["recipient"] = recipient;
+    configs.demo["result"] = setRules(agent, recipient);
+
+    configs.task["taskId"] = "task" + idx;
+    configs.task["type"] = "training";
+    configs.task["agent"] = agent;
+    configs.task["recipient"] = recipient;
+    configs.task["result"] = setRules(agent, recipient);
+
+  } else if (type === "generalization") {
+    configs["gen"] = {};
+    configs.gen["taskId"] = "gen" + idx;
+    configs.gen["agent"] = sampleStone(false);
+    configs.gen["recipient"] = sampleStone(false);
+    configs.gen["result"] = setRules(configs.gen["agent"], configs.gen["recipient"]);
+  }
 
   return(configs);
 }
@@ -249,11 +291,20 @@ function createTextInputPanel (config, display = "none") {
 }
 
 function createFeedbackText (config, pass = false) {
+  let text = (pass)? `Well done! Click the "Next" button to proceed.` :
+    ((config.taskId.indexOf('gen') > -1)) ? "The correct answer is" :
+  `Doesn't look right. Please play the magic effects again, watch carefully, and retry.`;
   let feedbackDiv = createCustomElement("div", `feedback-${pass}`, `${config.taskId}-${pass}-text`);
-  const text = pass? `Well done! Click the "Next" button to proceed.`
-                   : `Doesn't look right. Please play the magic effects again, watch carefully, and retry.`;
   feedbackDiv.style.display = "none";
   feedbackDiv.append(document.createTextNode(text))
+
+  if ((config.taskId.indexOf('gen') > -1) && !pass) {
+    let correctAnswer = createCustomElement("div", `feedback-stone`, `${config.taskId}-correct-answer`);
+    setStyle(correctAnswer, config.result, true);
+    feedbackDiv.append(correctAnswer);
+  }
+
+
   return(feedbackDiv);
 }
 
@@ -418,8 +469,8 @@ function createPanel(config) {
   tbs = [];
 
   stones = (config.type === 'training')? baseStones: allStones;
-  ncol = (config.type === 'training')? 3: 5;
-  nrow = (config.type === 'training')? 3: 4;
+  nrow = (config.type === 'training')? 3: 5;
+  ncol = (config.type === 'training')? 3: 6;
 
   let tbl = createCustomElement("table", 'selection-panel', `${taskId}-panel`);
 
@@ -457,17 +508,20 @@ function createPanel(config) {
   for(let i = 0; i < nrow; i++){
       let tr = tbl.insertRow();
       for(let j = 0; j < ncol; j++){
-        let tbId = `tb-${stones[j + i * nrow]}`;
+        let idx = j + i * ncol;
+        let tbId = `tb-${stones[idx]}`;
         tbs.push(tbId)
 
         let td = tr.insertCell();
         td.setAttribute("id", tbId)
 
-        let tc = createCustomElement("div", "panel-stone", tbId.replace(/tb/g, 'ps'));
-        setStyle(tc, tc.id.slice(3,), true)
+        if(idx < allStones.length) {
+          let tc = createCustomElement("div", "panel-stone", tbId.replace(/tb/g, 'ps'));
+          setStyle(tc, tc.id.slice(3,), true)
 
-        tc.addEventListener('click', recordClick);
-        td.appendChild(tc);
+          tc.addEventListener('click', recordClick);
+          td.appendChild(tc);
+        }
       }
   }
   return tbl;
@@ -490,7 +544,9 @@ function checkSelection (config, selection) {
   passTextDiv.style.display = "block";
   (pass)? document.getElementById(`${config.taskId}-next-btn`).disabled = false :
           document.getElementById(`${config.taskId}-check-btn`).disabled = true;
-  setTimeout(() => passTextDiv.style.display = "none", 3000);
+
+  setTimeout(() => passTextDiv.style.display = "none",
+    (config.taskId.indexOf("gen") < 0 || pass)? 3000: 5000)
 }
 
 function matchSelections (stone1, stone2) {

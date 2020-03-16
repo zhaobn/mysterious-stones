@@ -41,13 +41,15 @@ function createLearnTask (config, display = "flex") {
   learnBox.append(createFeedbackText(config.task, true));
   learnBox.append(createFeedbackText(config.task, false));
 
-  learnBox.append(createTextInputPanel(config.task, "flex"));
+  learnBox.append(createTextInputPanel(config.task, "none"));
 
   document.body.append(learnBox);
 
   const playBtn = document.getElementById(`${config.demo.taskId}-play-btn`);
   const demoNextBtn = document.getElementById(`${config.demo.taskId}-next-btn`);
   const taskNextBtn = document.getElementById(`${config.task.taskId}-next-btn`);
+  const inputForm = document.getElementById(`${config.task.taskId}-input-form`);
+  const inputNextBtn = document.getElementById(`${config.task.taskId}-input-next-btn`);
 
   playBtn.onclick = () => {
     (document.getElementById(`${config.demo.taskId}-agent`) === null)? createStones(config.demo): null;
@@ -59,7 +61,10 @@ function createLearnTask (config, display = "flex") {
   };
   demoNextBtn.onclick = () => document.getElementById(`${config.task.taskId}`).style.display = "flex";
   taskNextBtn.onclick = () => document.getElementById(`${config.task.taskId}-input`).style.display = "flex";
-
+  inputForm.onchange = () => isFilled(`${config.task.taskId}-input-form`)? inputNextBtn.disabled = false: null;
+  inputNextBtn.onclick= () => {
+    if (config.index < nLearnTasks) document.getElementById(`box-${config.index+1}`).style.display = "flex";
+  }
   learnBox.style.display = display;
 }
 
@@ -228,7 +233,6 @@ function createTextInputPanel (config, display = "none") {
   displayBox.append(createInputForm(config));
 
   const buttonGroup = createCustomElement("div", "button-group", `${config.taskId}-button-group`);
-  buttonGroup.append(createBtn(`${config.taskId}-submit-btn`, "Submit", false));
   buttonGroup.append(createBtn(`${config.taskId}-input-next-btn`, "Next", false));
 
   taskBox.append(instructionPan);
@@ -499,4 +503,18 @@ function matchSelections (stone1, stone2) {
   }
 
   return(patternMatch && colorMatch)
+}
+
+
+function isFilled (formID) {
+  let notFilled = false;
+  const nulls = [ '', '--', '', '--', '', '--' ];
+  const form = document.getElementById(formID);
+  const inputs = form.elements;
+  (Object.keys(inputs)).forEach((input, idx) => {
+    let field = inputs[input];
+    notFilled = (notFilled || (field.value === nulls[idx]));
+    // saveFormData(field, feedbackData);
+  });
+  return (!notFilled)
 }

@@ -11,25 +11,33 @@ const allColors = baseColors.concat(['green']);
  * Agent colors get passed onto the recipient
  */
 
-let baseStones = []
-let allStones = []
+const nLearnTasks = 6;
+
+
+/** Global variables */
+let baseStones = [];
+let allStones = [];
 
 baseStones = getAllStones(baseStones, basePatterns, baseColors);
+const taskConfigs = Array.from(Array(nLearnTasks).keys()).map(k => createConfigs(k+1))
 
-const configs = createConfigs(1);
+
 
 /** Main page */
-createLearnTask(configs);
+for(let i = 0; i < nLearnTasks; i++ ) {
+  (i > 0)? createLearnTask(taskConfigs[i], "none"): createLearnTask(taskConfigs[i], "flex");
+}
+
 
 
 /** Functions */
-function createLearnTask (config) {
+function createLearnTask (config, display = "flex") {
   let learnBox = createCustomElement("div", "box", `box-${config.index}`);
 
   learnBox.append(createText('h1', `Trial ${config.index}/6`))
   learnBox.append(createDemo(config.demo));
 
-  learnBox.append(createTaskBox(config.task, "flex"));
+  learnBox.append(createTaskBox(config.task, "none"));
   learnBox.append(createFeedbackText(config.task, true));
   learnBox.append(createFeedbackText(config.task, false));
 
@@ -37,20 +45,22 @@ function createLearnTask (config) {
 
   document.body.append(learnBox);
 
-  const playBtn = document.getElementById(`${configs.demo.taskId}-play-btn`);
-  const demoNextBtn = document.getElementById(`${configs.demo.taskId}-next-btn`);
-  const taskNextBtn = document.getElementById(`${configs.task.taskId}-next-btn`);
+  const playBtn = document.getElementById(`${config.demo.taskId}-play-btn`);
+  const demoNextBtn = document.getElementById(`${config.demo.taskId}-next-btn`);
+  const taskNextBtn = document.getElementById(`${config.task.taskId}-next-btn`);
 
   playBtn.onclick = () => {
-    (document.getElementById(`${configs.demo.taskId}-agent`) === null)? createStones(configs.demo): null;
-    playEffects(configs.demo);
+    (document.getElementById(`${config.demo.taskId}-agent`) === null)? createStones(config.demo): null;
+    playEffects(config.demo);
     setTimeout(() => {
-      clearElements(configs.demo);
+      clearElements(config.demo);
       demoNextBtn.disabled = false;
     }, 3000);
   };
-  demoNextBtn.onclick = () => document.getElementById(`${configs.task.taskId}`).style.display = "flex";
-  taskNextBtn.onclick = () => document.getElementById(`${configs.task.taskId}-input`).style.display = "flex";
+  demoNextBtn.onclick = () => document.getElementById(`${config.task.taskId}`).style.display = "flex";
+  taskNextBtn.onclick = () => document.getElementById(`${config.task.taskId}-input`).style.display = "flex";
+
+  learnBox.style.display = display;
 }
 
 function sampleStone (isBase = true) {
@@ -159,7 +169,6 @@ function createConfigs(counter = 1, type = "training") {
   configs.task["result"] = setRules(agent, recipient);
 
   return(configs);
-
 }
 
 function createDemo (config) {

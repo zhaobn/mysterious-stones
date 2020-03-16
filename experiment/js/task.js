@@ -52,20 +52,24 @@ function createLearnTask (config, display = "flex") {
   const inputNextBtn = document.getElementById(`${config.task.taskId}-input-next-btn`);
 
   playBtn.onclick = () => {
-    (document.getElementById(`${config.demo.taskId}-agent`) === null)? createStones(config.demo): null;
+    // (document.getElementById(`${config.demo.taskId}-agent`) === null)? createStones(config.demo): null;
     playEffects(config.demo);
     setTimeout(() => {
       clearElements(config.demo);
       demoNextBtn.disabled = false;
     }, 3000);
   };
-  demoNextBtn.onclick = () => document.getElementById(`${config.task.taskId}`).style.display = "flex";
-  taskNextBtn.onclick = () => document.getElementById(`${config.task.taskId}-input`).style.display = "flex";
+  demoNextBtn.onclick = () => showNext(`${config.task.taskId}`);
+  taskNextBtn.onclick = () => showNext(`${config.task.taskId}-input`);
   inputForm.onchange = () => isFilled(`${config.task.taskId}-input-form`)? inputNextBtn.disabled = false: null;
-  inputNextBtn.onclick= () => {
-    if (config.index < nLearnTasks) document.getElementById(`box-${config.index+1}`).style.display = "flex";
-  }
+  inputNextBtn.onclick= () => (config.index < nLearnTasks)? showNext(`box-${config.index+1}`) : null;
   learnBox.style.display = display;
+}
+
+function showNext(nextId) {
+  let nextDiv = document.getElementById(nextId);
+  nextDiv.style.display = "flex";
+  nextDiv.scrollIntoView();
 }
 
 function sampleStone (isBase = true) {
@@ -315,8 +319,10 @@ function createInputForm(config) {
   return(form);
 }
 
-function playEffects (config, isInit = true) {
-  !isInit? createStones(config): null;
+function playEffects (config) {
+  if (!(document.body.contains(document.getElementById(`${config.taskId}-agent`)))) {
+    createStones(config)
+  }
   moveStone(config);
   changeStone(config);
 }
@@ -391,8 +397,8 @@ function createBtn (btnId, text = "Button", on = true, className = "task-button"
   return(btn)
 }
 
-function createStones (config, box = ".display-box") {
-  let el = document.querySelector(box);
+function createStones (config) {
+  let el = document.getElementById(`${config.taskId}-display-box`);
   el.append(createDivWithStyle("stone", `${config.taskId}-agent`, config.agent));
   el.append(createDivWithStyle("stone", `${config.taskId}-recipient`, config.recipient));
   return(el)
@@ -402,7 +408,7 @@ function clearElements (config) {
   let els = [ "agent", "recipient" ].map(s => `${config.taskId}-${s}`);
   els.forEach (el => {
       let clear = document.getElementById(el);
-      clear.parentNode.removeChild(clear);
+      if(!(clear === null)) clear.parentNode.removeChild(clear);
   })
 }
 

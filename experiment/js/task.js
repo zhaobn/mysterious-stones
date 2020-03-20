@@ -12,8 +12,7 @@ const allColors = baseColors.concat(['limegreen']);
  */
 
 const nLearnTasks = 6;
-const nGenTasks = 15; // Gen: short for generalization
-
+const nGenTasks = 15; // gen := generalization
 
 /** Global variables */
 let baseStones = [];
@@ -25,18 +24,50 @@ allStones = getAllStones(allStones, allPatterns, allColors);
 const learningTaskConfigs = Array.from(Array(nLearnTasks).keys()).map(k => createConfigs(k+1));
 const genTaskConfigs = Array.from(Array(nGenTasks).keys()).map(k => createConfigs(k+1, "generalization"));
 
-/** Main page */
-// for(let i = 0; i < nLearnTasks; i++ ) {
-//   (i > 0)? createLearnTask(learningTaskConfigs[i], "none"): createLearnTask(learningTaskConfigs[i], "flex");
-// }
+let ltData = initDataFile("learn", learningTaskConfigs); // lt := learning tasks
+let gtData = initDataFile("gen", genTaskConfigs); // gt := generalization tasks
 
-for(let i = 0; i < nGenTasks; i++ ) {
-  createGeneralizationTask(genTaskConfigs[i], (i > 0)? "none": "flex");
+/** Main page */
+
+// for(let i = 0; i < nLearnTasks; i++ ) createLearnTask(learningTaskConfigs[i], (i > 0)? "none": "flex");
+for(let i = 0; i < nGenTasks; i++ ) createGeneralizationTask(genTaskConfigs[i], (i > 0)? "none": "flex");
+
+/** Functions */
+
+function initDataFile (type, configObj) {
+  let data = {};
+  data["task"] = [];
+  data["agent"] = [];
+  data["recipient"] = [];
+  data["result"] = [];
+
+  if (type === "learn") {
+    for (let i = 1; i < 4; i ++) {
+      data[`rule_${i}`] = Array.from('-'.repeat(configObj.length));
+      data[`confidence_${i}`] = Array.from('-'.repeat(configObj.length));
+    }
+    configObj.forEach(task => {
+      data.task.push(task.index);
+      data.agent.push(task.demo.agent);
+      data.recipient.push(task.demo.recipient);
+      data.result.push(task.demo.result);
+    })
+  } else {
+    for (let i = 1; i < 4; i ++) {
+      data[`rule_${i}`] = Array.from('-'.repeat(configObj.length));
+      data[`confidence_${i}`] = Array.from('-'.repeat(configObj.length));
+    }
+    configObj.forEach(task => {
+      data.task.push(task.index);
+      data.agent.push(task.gen.agent);
+      data.recipient.push(task.gen.recipient);
+      data.result.push(task.gen.result);
+    })
+  }
+  return(data);
 }
 
 
-
-/** Functions */
 function createGeneralizationTask (config, display = "flex") {
   let genBox = createCustomElement("div", "box", `genbox-${config.index}`);
 
@@ -56,11 +87,12 @@ function createGeneralizationTask (config, display = "flex") {
 
   taskNextBtn.onclick = () => showNext(`${config.gen.taskId}-input`);
   inputForm.onchange = () => isFilled(`${config.gen.taskId}-input-form`)? inputNextBtn.disabled = false: null;
-  inputNextBtn.onclick= () => (config.index < nGenTasks)? showNext(`genbox-${config.index+1}`) : null;
+  inputNextBtn.onclick= () => {
+    gtData = saveFormData(config, gtData);
+    (config.index < nGenTasks)? showNext(`genbox-${config.index+1}`) : null;
+  }
 
   genBox.style.display = display;
-
-
 }
 
 
@@ -95,7 +127,10 @@ function createLearnTask (config, display = "flex") {
   demoNextBtn.onclick = () => showNext(`${config.task.taskId}`);
   taskNextBtn.onclick = () => showNext(`${config.task.taskId}-input`);
   inputForm.onchange = () => isFilled(`${config.task.taskId}-input-form`)? inputNextBtn.disabled = false: null;
-  inputNextBtn.onclick= () => (config.index < nLearnTasks)? showNext(`box-${config.index+1}`) : null;
+  inputNextBtn.onclick= () => {
+    ltData = saveFormData(config, ltData);
+    (config.index < nLearnTasks)? showNext(`box-${config.index+1}`) : null;
+  }
   learnBox.style.display = display;
 }
 
@@ -576,7 +611,31 @@ function isFilled (formID) {
   (Object.keys(inputs)).forEach((input, idx) => {
     let field = inputs[input];
     notFilled = (notFilled || (field.value === nulls[idx]));
-    // saveFormData(field, feedbackData);
+    // saveFormData(field, formID);
   });
   return (!notFilled)
+}
+
+function saveFormData(config, dataObj) {
+  const form = (config.demo === undefined)?
+    document.getElementById(`${config.gen.taskId}-input-form`):
+    document.getElementById(`${config.task.taskId}-input-form`);
+
+  console.log(form);
+  console.log(dataObj);
+  const inputs = form.elements;
+  const idx = config.index - 1;
+
+  (Object.keys(inputs)).forEach((input) => {
+    let field = inputs[input];
+    let nth = field.name.split("-")[2]
+    if (field.name.split("-").length < 4) {
+      dataObj[`rule_${nth}`][idx] = field.value;
+    } else {
+      dataObj[`confidence_${nth}`][idx] = field.value;
+    }
+  })
+
+  console.log(dataObj);
+  return(dataObj);
 }

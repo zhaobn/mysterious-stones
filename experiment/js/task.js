@@ -29,41 +29,31 @@ let gtData = initDataFile("gen", genTaskConfigs); // gt := generalization tasks
 
 /** Main page */
 
-// for(let i = 0; i < nLearnTasks; i++ ) createLearnTask(learningTaskConfigs[i], (i > 0)? "none": "flex");
-for(let i = 0; i < nGenTasks; i++ ) createGeneralizationTask(genTaskConfigs[i], (i > 0)? "none": "flex");
+for(let i = 0; i < nLearnTasks; i++ ) createLearnTask(learningTaskConfigs[i], (i > 0)? "none": "flex");
+// for(let i = 0; i < nGenTasks; i++ ) createGeneralizationTask(genTaskConfigs[i], (i > 0)? "none": "flex");
 
 /** Functions */
 
 function initDataFile (type, configObj) {
+  let orig = (type==="learn")? "demo" : "gen";
   let data = {};
   data["task"] = [];
   data["agent"] = [];
   data["recipient"] = [];
   data["result"] = [];
 
-  if (type === "learn") {
-    for (let i = 1; i < 4; i ++) {
-      data[`rule_${i}`] = Array.from('-'.repeat(configObj.length));
-      data[`confidence_${i}`] = Array.from('-'.repeat(configObj.length));
-    }
-    configObj.forEach(task => {
-      data.task.push(task.index);
-      data.agent.push(task.demo.agent);
-      data.recipient.push(task.demo.recipient);
-      data.result.push(task.demo.result);
-    })
-  } else {
-    for (let i = 1; i < 4; i ++) {
-      data[`rule_${i}`] = Array.from('-'.repeat(configObj.length));
-      data[`confidence_${i}`] = Array.from('-'.repeat(configObj.length));
-    }
-    configObj.forEach(task => {
-      data.task.push(task.index);
-      data.agent.push(task.gen.agent);
-      data.recipient.push(task.gen.recipient);
-      data.result.push(task.gen.result);
-    })
+  for (let i = 1; i < 4; i ++) {
+    data[`rule_${i}`] = Array.from('-'.repeat(configObj.length));
+    data[`confidence_${i}`] = Array.from('-'.repeat(configObj.length));
   }
+
+  configObj.forEach(task => {
+    data.task.push(task.index);
+    data.agent.push(task[orig].agent);
+    data.recipient.push(task[orig].recipient);
+    data.result.push(task[orig].result);
+  })
+
   return(data);
 }
 
@@ -621,8 +611,6 @@ function saveFormData(config, dataObj) {
     document.getElementById(`${config.gen.taskId}-input-form`):
     document.getElementById(`${config.task.taskId}-input-form`);
 
-  console.log(form);
-  console.log(dataObj);
   const inputs = form.elements;
   const idx = config.index - 1;
 

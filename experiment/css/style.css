@@ -4,6 +4,34 @@ body {
   background-color: #e0e0e0;
 }
 
+h1 {
+  margin: 50px 100px 0px 100px;
+}
+
+h2 {
+  margin: 0 auto;
+  text-align: center;
+}
+
+h4 {
+  margin: 10px 100px 0px 100px;
+  font-weight: 300;
+}
+.frame {
+  /* border: solid 1px black; */
+  padding: 5px 20px;
+  border-radius: 5px;
+  background-color: #fff;
+  margin: 50px 100px 10px 100px;
+  font-size: 18px;
+  min-height: 300px;
+}
+
+.frame textarea {
+  height: 100px;
+  width: 80%;
+}
+
 .box {
   display: flex;
   flex-direction: column;
@@ -52,7 +80,9 @@ body {
   align-items: center;
 }
 
-.display-box, .record-pan, .button-group, .instruction, .input-box {
+.display-box, .record-pan,
+.button-group, .button-group-vc,
+.instruction, .input-box {
   height: 80%;
   margin: 10px;
   display: flex;
@@ -67,6 +97,12 @@ body {
   width: 8%;
   display: flex;
   flex-direction: column;
+}
+
+.button-group-vc {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
 }
 
 .display-box {
@@ -104,19 +140,34 @@ body {
   border: 3px solid #e0e0e0;
 }
 
-.task-button {
+
+.task-button, .big-button {
   border: #e0e0e0 1px solid;
-  height: 20px;
-  width: 80%;
   text-align: center;
   border-radius: 10%;
   margin: 2px;
+  padding: 5px 10px;
 }
 
-.task-button:hover:enabled {
+.task-button:hover:enabled,
+.big-button:hover:enabled {
   background-color: #116466;
   color: #e0e0e0;
 }
+
+.task-button:disabled,
+.big-button:disabled,
+.task-button:disabled:hover,
+.big-button:disabled:hover {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.big-button {
+  font-size: 15px;
+  padding: 10px 30px;
+}
+
 
 .record-pan {
   display: flex;
@@ -157,4 +208,10 @@ body {
 .input-form textarea {
   height: 50px;
   width: 90%;
+}
+
+#consent-info {
+  height: 400px;
+  overflow: scroll;
+  padding: 0 0 20px 0;
 }

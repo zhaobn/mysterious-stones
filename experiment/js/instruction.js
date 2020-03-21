@@ -7,16 +7,13 @@ descBtn.onclick = () => {
 
 const checkBtn = document.getElementById('check-btn');
 const checks = [ 'check1', 'check2', 'check3', 'check4' ];
-const answers = [ true, false, true, false ];
+const answers = [ true, true, false, true ];
 
 const passBtn = document.getElementById('pass-btn');
 const retryBtn = document.getElementById('retry-btn');
 
 
-checkBtn.onclick = () => {
-    checkComprehension();
-    location.href = "task.html"
-}
+checkBtn.onclick = () => checkComprehension();
 passBtn.onclick = () => location.href='task.html';
 retryBtn.onclick = () => location.href='instruction.html';
 

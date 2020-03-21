@@ -22,6 +22,10 @@ retryBtn.onclick = () => location.href='instruction.html';
 
 document.getElementById('prequiz').onchange = () => isFilled() ? checkBtn.disabled = false : null;
 
+setStyle (document.getElementById('eg-stone-agent'), "lt-tomato-gold", true)
+setStyle (document.getElementById('eg-stone-recipient'), "plain-royalblue", true)
+
+
 function checkComprehension() {
     let inputs = [];
     checks.map(check => {
@@ -46,3 +50,37 @@ function isFilled () {
     }
     return (checked > 3)
 }
+
+function setStyle (el, styleStr, isSmall = false) {
+    const fill = styleStr.split('-')[0];
+    const color1 = styleStr.split('-')[1];
+    const color2 = styleStr.split('-').length > 2 ? styleStr.split('-')[2] : '';
+
+    const len = isSmall? 5: 15;
+
+    switch (fill) {
+      case "plain":
+        el.style.background = color1;
+        break;
+      case "lt":
+        el.style.background = `repeating-linear-gradient(
+          -45deg, ${color1}, ${color1} ${len}px, ${color2} ${len}px, ${color2} ${2 * len}px
+        )`;
+        break;
+      case "rt":
+        el.style.background = `repeating-linear-gradient(
+          45deg, ${color1}, ${color1} ${len}px, ${color2} ${len}px, ${color2} ${2 * len}px
+        )`;
+        break;
+      case "ht":
+        el.style.background = `repeating-linear-gradient(
+          0deg, ${color1}, ${color1} ${len}px, ${color2} ${len}px, ${color2} ${2 * len}px
+        )`;
+        break;
+      case "vt":
+        el.style.background = `repeating-linear-gradient(
+          90deg, ${color1}, ${color1} ${len}px, ${color2} ${len}px, ${color2} ${2 * len}px
+        )`;
+        break;
+    }
+  }

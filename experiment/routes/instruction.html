@@ -6,36 +6,31 @@
   </head>
   <body>
     <div id='instruction'>
-      <h1>Once upon a time in a magic world ...</h1>
+      <h1>Instructions</h1>
       <div class="frame" id="box-desc">
-        <p>Some stones are magic stones, and some are normal stones.</p>
-        <p>A magic stone is indicated by having a border, like this:</p>
-        <div class="magic-stone"></div>
-        <p>And a normal stone does not have borders, like this:</p>
-        <div class="normal-stone"></div>
-        <br>
-        <p>For all the magic stones and normal stones:</p>
-        <ul>
-          <li>their shape can be
-            circle <div class="stone-yc" style="display: inline-block; height: 20px; width: 20px; margin: 0;"></div> ,
-            square <div class="stone-ys" style="display: inline-block; height: 20px; width: 20px; margin: 0;"></div> , or
-            diamond <div class="stone-yd" style="display: inline-block; height: 20px; width: 20px; margin: 0;"></div> ;
-          </li>
-          <li>their color can be
-            <span style="color: rgb(255, 102, 102); font-weight: bold;">red</span>,
-            <span style="color: rgb(245, 230, 99); font-weight: bold;">yellow</span>, or
-            <span style="color: rgb(61, 60, 134); font-weight: bold;">blue</span>;
-          </li>
-          <li>stones differ <b>only</b> in their magic power, color, and shape;</li>
-          <li style="font-weight: bold">magic stones can set the color and/or shape of normal stones into specific states.</li>
-        </ul>
-        <br>
-        <p>As a newcomer to the magic world, you have the chance to watch one specific magic stone's effect on a normal stone.</p>
-        <p>After that, you will be facing some other magic stones and normal stones. Give your best prediction at the given magic stone's effect on the given normal stone.</p>
-        <p>You will make predictions for 15 pairs of magic stones and normal stones. Between each prediction case, you watch the original effect again as a reminder.</p>
-        <p>To help you make accurate predictions, a summary of the original effect you saw will be displayed at the top of the page.</p>
-        <p>Hint: All the stones are in the same magic world and share the same magic rule.</p>
-        <p>Think carefully. Your prediction is important for these stones.</p>
+        <p>This experiment tests how you generalize causal relations.</p>
+        <p>You will go through two phases of the experiment, a learning phase, and a generalization phrase. <b>All objects in this experiment are governed by the same causal relation(s).</b></p>
+        <h3>Learning Phase</h2>
+        <p>In the learning phase, you will see six pairs of colored circles subsequently. Each pair looks like this:</p>
+        <div id="instruction-eg">
+          <div class="feedback-stone" id="eg-stone-agent"></div>
+          <div class="feedback-stone" id="eg-stone-recipient"></div>
+        </div>
+        <p>Let’s call the colored circle on the left the <b>Agent</b>, and the one on the right the <b>Recipient</b>.</p>
+        <p>Clicking the play button, Agent will touch the Recipient, and Agent will cause Recipient into a new state - call it the Result. These effects will disappear after 3000ms. We then ask you two questions:</p>
+        <ol>
+          <li>What’s Recipient changed to (i.e what’s the Result)?</li>
+          <li>What do you think is the causal relation inducing such effects?</li>
+        </ol>
+        <p>Note that all objects in this experiment are governed by the same causal relation(s). You can change your mind at any stage of the experiment, or stick with what you had.</p>
+        <p><b>When writing, please use the words Agent, Recipient, Result.</b> Once you clicked the `submit` button, you cannot change what you wrote.</p>
+        <h3>Generalization Phase</h2>
+        <p>In the generalization phase, you will be given fifteen pairs of objects - each pair is made of an Agent and a Recipient , and you are asked to make a prediction of the Result.</p>
+        <p>After you made a prediction, we will tell you whether you are right, or what the right answer is.</p>
+        <p>You will then be asked to provide the causal relation(s) that cause(s) such effects. Please note that in the generalization phase, while it is still the case that all objects in this experiment are governed by the same causal relation(s), you may see novel features that are not covered by the observations in the learning phase.</p>
+        <p>When you feel like understanding the tasks, please proceed to the comprehension questions.</p>
+
+
       </div>
       <div class='button-group-vc'>
           <button class='big-button' id='desc-btn'>>> Comprehension questions</button>

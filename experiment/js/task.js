@@ -21,6 +21,8 @@ let allStones = [];
 baseStones = getAllStones(baseStones, basePatterns, baseColors);
 allStones = getAllStones(allStones, allPatterns, allColors);
 
+console.log(baseStones)
+
 const learningTaskConfigs = Array.from(Array(nLearnTasks).keys()).map(k => createConfigs(k+1));
 const genTaskConfigs = Array.from(Array(nGenTasks).keys()).map(k => createConfigs(k+1, "generalization"));
 
@@ -127,7 +129,7 @@ function createLearnTask (config, display = "flex") {
 function showNext(nextId) {
   let nextDiv = document.getElementById(nextId);
   nextDiv.style.display = "flex";
-  nextDiv.scrollIntoView();
+  nextDiv.scrollIntoView(true);
 }
 
 function sampleStone (isBase = true) {

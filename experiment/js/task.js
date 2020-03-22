@@ -1,6 +1,6 @@
 
 /** Settings */
-const mode = ""; // Change to production when done
+const mode = "dev"; // Change to production when done
 
 const useNewFeatures = true;
 const useGroundTruth = true;
@@ -38,7 +38,6 @@ let gtData = initDataFile("gen", genTaskConfigs); // gt := generalization tasks
 
 /** Main page */
 
-console.log(learningTaskConfigs);
 document.body.append(createCustomElement("div", "section-page", "show-learning-phase"));
 document.getElementById("show-learning-phase").append(createText("h1", "Learning Phase"))
 document.body.append(createCustomElement("div", "section-page", "show-gen-phase"));
@@ -554,7 +553,7 @@ function clearElements (config) {
 function createPanel(config) {
   const taskId = config.taskId;
   let clicks = [];
-  tbs = [];
+  let tbs = [];
 
   stones = (config.type==="training"||!useNewFeatures)? baseStones: allStones;
   nrow = (config.type==="training"||!useNewFeatures)? 4: 5;
@@ -597,17 +596,20 @@ function createPanel(config) {
       let tr = tbl.insertRow();
       for(let j = 0; j < ncol; j++){
         let idx = j + i * ncol;
-        let tbId = `tb-${stones[idx]}`;
+        let tbId = (idx < stones.length)? `${taskId}-tb-${stones[idx]}` : `${taskId}-tb-blank-${idx - stones.length}`;
         tbs.push(tbId)
-
         let td = tr.insertCell();
         td.setAttribute("id", tbId)
 
-        if(idx < allStones.length) {
+        if(idx < stones.length) {
           let tc = createCustomElement("div", "panel-stone", tbId.replace(/tb/g, 'ps'));
-          setStyle(tc, tc.id.slice(3,), true)
+          const tcStyle = tc.id.split('-').slice(2,).join('-')
+          setStyle(tc, tcStyle, true)
 
           tc.addEventListener('click', recordClick);
+          td.appendChild(tc);
+        } else {
+          let tc = createCustomElement("div", "blank", tbId.replace(/tb/g, 'ps'));
           td.appendChild(tc);
         }
       }
@@ -823,11 +825,6 @@ function saveData () {
   /** Save data */
   console.log(dataFile);
   // download(JSON.stringify(dataFile), 'data.txt', '"text/csv"');
-}
-
-function getGenTaskConfigs (newFeature, groundTruth) {
-  let genTaskConfigs = [];
-
 }
 
 function getLearnTaskConfigs () {

@@ -1,14 +1,23 @@
 
 /** Settings */
+const colorDict = {
+  "dark_1": 'darkred',
+  "dark_2": 'navy',
+  "dark_3": 'darkolivegreen',
+  "light_1": 'plum',
+  "light_2": 'cornflowerblue',
+  "light_3": 'limegreen',
+}
+
 const basePatterns = [ 'plain', 'lt', 'rt'];
 const allPatterns = [ 'lt', 'rt', 'ht', 'vt', 'plain' ];
 
-const baseColors = [ 'tomato', 'gold', 'royalblue' ];
-const allColors = baseColors.concat(['limegreen']);
+const baseColors = [ "dark_1", "light_1", "dark_2", "light_2" ];
+const allColors = baseColors.concat([ "dark_3", "light_3" ]);
 
 /** Rules are hand-crafted in the setRules(agent, target) function
- * If agent has strips: flip recipient strips or add strips
- * Agent colors get passed onto the recipient
+ * Agent has pattern: flip recipient pattern or color (dark - light);
+ * Agent has no pattern: make recipient color to the same darkness level.
  */
 
 const nLearnTasks = 6;
@@ -28,6 +37,9 @@ let ltData = initDataFile("learn", learningTaskConfigs); // lt := learning tasks
 let gtData = initDataFile("gen", genTaskConfigs); // gt := generalization tasks
 
 /** Main page */
+
+console.log(baseStones);
+console.log(learningTaskConfigs);
 
 document.body.append(createCustomElement("div", "section-page", "show-learning-phase"));
 document.getElementById("show-learning-phase").append(createText("h1", "Learning Phase"))
@@ -208,23 +220,19 @@ function getDiffColors (agentColors, recipientColors) {
   return(diff);
 }
 /** Rules
- * If agent has strips: flip recipient strips or add strips
- * Agent colors get passed onto the recipient
+ * Agent has pattern: flip recipient pattern or color (dark - light);
+ * Agent has no pattern: make recipient color to the same darkness level.
  */
 function setRules (agent, recipient) {
   let result = []
   const agts = agent.split("-");
   const rcps = recipient.split("-");
 
-  let agentPattern = agts.shift();
-  let recipientPattern = rcps.shift();
+  const agentPattern = agts.shift();
+  const recipientPattern = rcps.shift();
 
-  if (agentPattern !== "plain") {
-    if (recipientPattern === 'plain') {
-      result.push(agentPattern)
-      result.push(rcps[0])
-      result.push(getDiffColors(rcps[0], agts))
-    } else {
+  if (agentPattern !== 'plain') {
+    if (recipient !== 'plain') {
       switch(recipientPattern) {
         case 'lt':
           result.push('rt');
@@ -239,18 +247,32 @@ function setRules (agent, recipient) {
           result.push('vt');
           break;
       }
-      result.push(rcps[0])
-      result.push(rcps[1])
+      result.push(rcps[0]);
+      result.push(rcps[1]);
+    } else {
+      result = [ "plain", setDarkness(rcps[0]) ];
     }
   } else {
-    result.push(recipientPattern);
+    result.push(agentPattern);
     result.push(agts[0]);
-    if (recipientPattern !== 'plain') {
-      let c = getDiffColors(agts[0], rcps);
-      result.push(c)
-    }
+    // result.push(recipientPattern);
+    // const agentDarkness = agts[0].split('_')[0];
+    // result.push(setDarkness(rcps[0],agentDarkness ));
+    // (recipientPattern !== "plain")? result.push(setDarkness(rcps[1], agentDarkness)) : null;
   }
   return result.join("-");
+}
+
+function setDarkness (str, opt = "flip") {
+  const darkness = str.split("_")[0];
+  const color = str.split("_")[1];
+  let resultDarkness = darkness;
+  if (opt === 'flip') {
+    resultDarkness = (darkness === "dark")? "light": "dark";
+  } else {
+    resultDarkness = opt;
+  }
+  return(`${resultDarkness}_${color}`)
 }
 
 function createConfigs(counter = 1, type = "training") {
@@ -472,8 +494,8 @@ function getCurrentLocation(id) {
 
 function setStyle (el, styleStr, isSmall = false) {
   const fill = styleStr.split('-')[0];
-  const color1 = styleStr.split('-')[1];
-  const color2 = styleStr.split('-').length > 2 ? styleStr.split('-')[2] : '';
+  const color1 = colorDict[styleStr.split('-')[1]];
+  const color2 = colorDict[styleStr.split('-').length > 2 ? styleStr.split('-')[2] : ''];
 
   const len = isSmall? 5: 15;
 
@@ -532,8 +554,8 @@ function createPanel(config) {
   tbs = [];
 
   stones = (config.type === 'training')? baseStones: allStones;
-  nrow = (config.type === 'training')? 3: 5;
-  ncol = (config.type === 'training')? 3: 6;
+  nrow = (config.type === 'training')? 4: 5;
+  ncol = (config.type === 'training')? 4: 6;
 
   let tbl = createCustomElement("table", 'selection-panel', `${taskId}-panel`);
 

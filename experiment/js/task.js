@@ -110,6 +110,7 @@ function createGeneralizationTask (config, display = "flex") {
       showNext(`genbox-${config.index+1}`)
     } else {
       setTimeout(() => {
+        for(let i = 0; i < nGenTasks; i ++) document.getElementById(`genbox-${i+1}`).style.display = "none";
         document.getElementById("debrief").style.display = "block";
       }, 1000);
     }

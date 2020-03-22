@@ -30,16 +30,14 @@ let allStones = [];
 baseStones = getAllStones(baseStones, basePatterns, baseColors);
 allStones = getAllStones(allStones, allPatterns, allColors);
 
-const learningTaskConfigs = Array.from(Array(nLearnTasks).keys()).map(k => createConfigs(k+1));
+// const learningTaskConfigs = Array.from(Array(nLearnTasks).keys()).map(k => createConfigs(k+1));
+const learningTaskConfigs = getLearnTaskConfigs();
 const genTaskConfigs = Array.from(Array(nGenTasks).keys()).map(k => createConfigs(k+1, "generalization"));
 
 let ltData = initDataFile("learn", learningTaskConfigs); // lt := learning tasks
 let gtData = initDataFile("gen", genTaskConfigs); // gt := generalization tasks
 
 /** Main page */
-
-console.log(baseStones);
-console.log(learningTaskConfigs);
 
 document.body.append(createCustomElement("div", "section-page", "show-learning-phase"));
 document.getElementById("show-learning-phase").append(createText("h1", "Learning Phase"))
@@ -221,7 +219,7 @@ function getDiffColors (agentColors, recipientColors) {
 }
 /** Rules
  * Agent has pattern: flip recipient pattern or color (dark - light);
- * Agent has no pattern: make recipient color to the same darkness level.
+ * Agent has no pattern: nothing changes.
  */
 function setRules (agent, recipient) {
   let result = []
@@ -232,7 +230,7 @@ function setRules (agent, recipient) {
   const recipientPattern = rcps.shift();
 
   if (agentPattern !== 'plain') {
-    if (recipient !== 'plain') {
+    if (recipientPattern !== 'plain') {
       switch(recipientPattern) {
         case 'lt':
           result.push('rt');
@@ -250,11 +248,11 @@ function setRules (agent, recipient) {
       result.push(rcps[0]);
       result.push(rcps[1]);
     } else {
-      result = [ "plain", setDarkness(rcps[0]) ];
+      result.push("plain");
+      result.push(setDarkness(rcps[0]))
     }
   } else {
-    result.push(agentPattern);
-    result.push(agts[0]);
+    result = agent.split("-");
     // result.push(recipientPattern);
     // const agentDarkness = agts[0].split('_')[0];
     // result.push(setDarkness(rcps[0],agentDarkness ));
@@ -812,4 +810,54 @@ function saveData () {
   /** Save data */
   console.log(dataFile);
   // download(JSON.stringify(dataFile), 'data.txt', '"text/csv"');
+}
+
+function getLearnTaskConfigs () {
+  let learningTaskConfigs = [];
+  let configs = [
+    {
+      "agent": "plain-light_1",
+      "recipient" : "plain-light_2"
+    },
+    {
+      "agent": "plain-light_1",
+      "recipient" : "lt-dark_1-dark_2"
+    },
+    {
+      "agent": "lt-light_1-dark_1",
+      "recipient" : "plain-dark_2"
+    },
+    {
+      "agent": "lt-dark_1-dark_2",
+      "recipient" : "plain-light_1"
+    },
+    {
+      "agent": "lt-light_1-light_2",
+      "recipient" : "lt-light_2-dark_2"
+    },
+    {
+      "agent": "lt-dark1-light_2",
+      "recipient" : "vt-light_1-dark_1"
+    },
+  ]
+  configs.forEach((cfg, idx) => {
+    let taskConfig = {};
+    taskConfig["index"] = idx + 1;
+    taskConfig["demo"] = {};
+    taskConfig.demo["taskId"] = "demo" + taskConfig["index"].toString().padStart(2, '0');
+    taskConfig.demo["agent"] = cfg.agent;
+    taskConfig.demo["recipient"] = cfg.recipient;
+    taskConfig.demo["result"] = setRules(taskConfig.demo["agent"], taskConfig.demo["recipient"]);
+
+    taskConfig["task"] = {};
+    taskConfig.task["taskId"] = "task" + taskConfig["index"].toString().padStart(2, '0');
+    taskConfig.task["type"] = "training";
+    taskConfig.task["agent"] = taskConfig.demo["agent"];
+    taskConfig.task["recipient"] = taskConfig.demo["recipient"]
+    taskConfig.task["result"] = taskConfig.demo["result"]
+
+    learningTaskConfigs.push(taskConfig);
+  })
+
+  return(learningTaskConfigs);
 }

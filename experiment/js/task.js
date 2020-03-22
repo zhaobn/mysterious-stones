@@ -2,6 +2,9 @@
 /** Settings */
 const mode = "dev"; // Change to production when done
 
+const useNewFeatures = true;
+const useGroundTruth = false;
+
 const colorDict = {
   "dark_1": 'darkred',
   "dark_2": 'navy',
@@ -15,25 +18,19 @@ const basePatterns = [ 'plain', 'lt', 'rt'];
 const allPatterns = [ 'lt', 'rt', 'ht', 'vt', 'plain' ];
 
 const baseColors = [ "dark_1", "light_1", "dark_2", "light_2" ];
-const allColors = baseColors.concat([ "dark_3", "light_3" ]);
 
-/** Rules are hand-crafted in the setRules(agent, target) function
- * Agent has pattern: flip recipient pattern or color (dark - light);
- * Agent has no pattern: make recipient color to the same darkness level.
- */
-
-const nLearnTasks = 6;
-const nGenTasks = 15; // gen := generalization
+/** Rules are hand-crafted in the setRules(agent, target) function */
 
 /** Global variables */
-let baseStones = [];
-let allStones = [];
 
-baseStones = getAllStones(baseStones, basePatterns, baseColors);
-allStones = getAllStones(allStones, allPatterns, allColors);
+const baseStones = getStones(true);
+const allStones = getStones(false);
 
 // const learningTaskConfigs = Array.from(Array(nLearnTasks).keys()).map(k => createConfigs(k+1));
 const learningTaskConfigs = getLearnTaskConfigs();
+const nLearnTasks = learningTaskConfigs.length;
+
+const nGenTasks = 15; // gen := generalization
 const genTaskConfigs = Array.from(Array(nGenTasks).keys()).map(k => createConfigs(k+1, "generalization"));
 
 let ltData = initDataFile("learn", learningTaskConfigs); // lt := learning tasks
@@ -87,12 +84,12 @@ function createGeneralizationTask (config, display = "flex") {
   let genBox = createCustomElement("div", "box", `genbox-${config.index}`);
 
   genBox.append(createText('h1', `Task ${config.index}/${nGenTasks}`));
-  genBox.append(createTaskBox(config.gen, "flex"));
+  genBox.append(createTaskBox(config.gen, (mode === "dev")? "flex": "flex"));
 
   genBox.append(createFeedbackText(config.gen, true));
   genBox.append(createFeedbackText(config.gen, false));
 
-  genBox.append(createTextInputPanel(config.gen, "none"));
+  genBox.append(createTextInputPanel(config.gen, (mode === "dev")? "flex": "none"));
 
   document.body.append(genBox);
 
@@ -128,11 +125,11 @@ function createLearnTask (config, display = "flex") {
   learnBox.append(createText('h1', `Trial ${config.index}/${nLearnTasks}`))
   learnBox.append(createDemo(config.demo));
 
-  learnBox.append(createTaskBox(config.task, "none"));
+  learnBox.append(createTaskBox(config.task, (mode === "dev")? "flex": "none"));
   learnBox.append(createFeedbackText(config.task, true));
   learnBox.append(createFeedbackText(config.task, false));
 
-  learnBox.append(createTextInputPanel(config.task, "none"));
+  learnBox.append(createTextInputPanel(config.task, (mode === "dev")? "flex": "none"));
 
   document.body.append(learnBox);
 
@@ -185,7 +182,7 @@ function sampleStone (isBase = true) {
   let stoneStyle = '';
 
   patterns = isBase? basePatterns : allPatterns;
-  colors = isBase? baseColors : allColors;
+  colors = baseColors;
   const pt = patterns[Math.floor(Math.random() * patterns.length)];
   const color1 = colors[Math.floor(Math.random() * colors.length)];
 
@@ -199,7 +196,10 @@ function sampleStone (isBase = true) {
   return(stoneStyle);
 }
 
-function getAllStones (stones, patterns, colors) {
+function getStones (isBase) {
+  let stones = []
+  const colors = baseColors;
+  const patterns = isBase? basePatterns: allPatterns;
   patterns.forEach(p => {
     if (p === 'plain') {
       colors.forEach(c => stones.push([p, c].join('-')))
@@ -300,9 +300,10 @@ function createConfigs(counter = 1, type = "training") {
   } else if (type === "generalization") {
     configs["gen"] = {};
     configs.gen["taskId"] = "gen" + idx;
-    configs.gen["agent"] = sampleStone(false);
-    configs.gen["recipient"] = sampleStone(false);
-    configs.gen["result"] = setRules(configs.gen["agent"], configs.gen["recipient"]);
+    configs.gen["agent"] = sampleStone(!useNewFeatures);
+    configs.gen["recipient"] = sampleStone(!useNewFeatures);
+    configs.gen["result"] = useGroundTruth?
+      setRules(configs.gen["agent"], configs.gen["recipient"]): sampleStone(!useNewFeatures);
   }
 
   return(configs);
@@ -553,9 +554,9 @@ function createPanel(config) {
   let clicks = [];
   tbs = [];
 
-  stones = (config.type === 'training')? baseStones: allStones;
-  nrow = (config.type === 'training')? 4: 5;
-  ncol = (config.type === 'training')? 4: 6;
+  stones = (config.type==="training"||!useNewFeatures)? baseStones: allStones;
+  nrow = (config.type==="training"||!useNewFeatures)? 4: 5;
+  ncol = (config.type==="training"||!useNewFeatures)? 4: 6;
 
   let tbl = createCustomElement("table", 'selection-panel', `${taskId}-panel`);
 
@@ -812,6 +813,11 @@ function saveData () {
   /** Save data */
   console.log(dataFile);
   // download(JSON.stringify(dataFile), 'data.txt', '"text/csv"');
+}
+
+function getGenTaskConfigs (newFeature, groundTruth) {
+  let genTaskConfigs = [];
+
 }
 
 function getLearnTaskConfigs () {

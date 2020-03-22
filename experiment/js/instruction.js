@@ -6,8 +6,8 @@ descBtn.onclick = () => {
 
 
 const checkBtn = document.getElementById('check-btn');
-const checks = [ 'check1', 'check2', 'check3', 'check4' ];
-const answers = [ true, true, false, true ];
+const checks = [ 'check1', 'check2', 'check3', 'check4', 'check5' ];
+const answers = [ true, true, false, true, false ];
 
 const passBtn = document.getElementById('pass-btn');
 const retryBtn = document.getElementById('retry-btn');
@@ -45,7 +45,7 @@ function isFilled () {
     for (let i = 0; i < radios.length; i++) {
         checked += radios[i].checked;
     }
-    return (checked > 3)
+    return (checked > 4)
 }
 
 function setStyle (el, styleStr, isSmall = false) {

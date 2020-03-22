@@ -17,6 +17,12 @@ h4 {
   margin: 10px 100px 0px 100px;
   font-weight: 300;
 }
+
+.section-page h1 {
+  margin: 200px;
+  text-align: center;
+}
+
 .frame {
   /* border: solid 1px black; */
   padding: 5px 20px;

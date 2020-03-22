@@ -21,8 +21,6 @@ let allStones = [];
 baseStones = getAllStones(baseStones, basePatterns, baseColors);
 allStones = getAllStones(allStones, allPatterns, allColors);
 
-console.log(baseStones)
-
 const learningTaskConfigs = Array.from(Array(nLearnTasks).keys()).map(k => createConfigs(k+1));
 const genTaskConfigs = Array.from(Array(nGenTasks).keys()).map(k => createConfigs(k+1, "generalization"));
 
@@ -31,8 +29,20 @@ let gtData = initDataFile("gen", genTaskConfigs); // gt := generalization tasks
 
 /** Main page */
 
-for(let i = 0; i < nLearnTasks; i++ ) createLearnTask(learningTaskConfigs[i], (i > 0)? "none": "flex");
-// for(let i = 0; i < nGenTasks; i++ ) createGeneralizationTask(genTaskConfigs[i], (i > 0)? "none": "flex");
+document.body.append(createCustomElement("div", "section-page", "show-learning-phase"));
+document.getElementById("show-learning-phase").append(createText("h1", "Learning Phase"))
+document.body.append(createCustomElement("div", "section-page", "show-gen-phase"));
+document.getElementById("show-gen-phase").append(createText("h1", "Generalization Phase"));
+document.getElementById("show-gen-phase").style.display = "none";
+
+for(let i = 0; i < nLearnTasks; i++ ) createLearnTask(learningTaskConfigs[i], "none");
+for(let i = 0; i < nGenTasks; i++ ) createGeneralizationTask(genTaskConfigs[i], "none");
+
+setTimeout(() => {
+  document.getElementById("show-learning-phase").style.display = "none";
+  document.getElementById("box-1").style.display = "flex";
+}, 2000);
+
 
 /** Functions */
 
@@ -75,14 +85,17 @@ function createGeneralizationTask (config, display = "flex") {
 
   const taskNextBtn = document.getElementById(`${config.gen.taskId}-next-btn`);
   const inputForm = document.getElementById(`${config.gen.taskId}-input-form`);
+  const inputSubmitBtn = document.getElementById(`${config.gen.taskId}-input-submit-btn`);
   const inputNextBtn = document.getElementById(`${config.gen.taskId}-input-next-btn`);
 
   taskNextBtn.onclick = () => showNext(`${config.gen.taskId}-input`);
-  inputForm.onchange = () => isFilled(`${config.gen.taskId}-input-form`)? inputNextBtn.disabled = false: null;
-  inputNextBtn.onclick= () => {
+  inputForm.onchange = () => isFilled(`${config.gen.taskId}-input-form`)? inputSubmitBtn.disabled = false: null;
+  inputSubmitBtn.onclick = () => {
     gtData = saveFormData(config, gtData);
-    (config.index < nGenTasks)? showNext(`genbox-${config.index+1}`) : null;
+    inputNextBtn.disabled = false;
+    disableFormInputs(`${config.gen.taskId}-input-form`);
   }
+  inputNextBtn.onclick= () => (config.index < nGenTasks)? showNext(`genbox-${config.index+1}`) : null;
 
   genBox.style.display = display;
 }
@@ -106,6 +119,7 @@ function createLearnTask (config, display = "flex") {
   const demoNextBtn = document.getElementById(`${config.demo.taskId}-next-btn`);
   const taskNextBtn = document.getElementById(`${config.task.taskId}-next-btn`);
   const inputForm = document.getElementById(`${config.task.taskId}-input-form`);
+  const inputSubmitBtn = document.getElementById(`${config.task.taskId}-input-submit-btn`);
   const inputNextBtn = document.getElementById(`${config.task.taskId}-input-next-btn`);
 
   playBtn.onclick = () => {
@@ -118,13 +132,27 @@ function createLearnTask (config, display = "flex") {
   };
   demoNextBtn.onclick = () => showNext(`${config.task.taskId}`);
   taskNextBtn.onclick = () => showNext(`${config.task.taskId}-input`);
-  inputForm.onchange = () => isFilled(`${config.task.taskId}-input-form`)? inputNextBtn.disabled = false: null;
-  inputNextBtn.onclick= () => {
+  inputForm.onchange = () => isFilled(`${config.task.taskId}-input-form`)? inputSubmitBtn.disabled = false: null;
+  inputSubmitBtn.onclick = () => {
     ltData = saveFormData(config, ltData);
-    (config.index < nLearnTasks)? showNext(`box-${config.index+1}`) : null;
+    inputNextBtn.disabled = false;
+    disableFormInputs(`${config.task.taskId}-input-form`);
+  }
+  inputNextBtn.onclick= () => {
+    if (config.index < nLearnTasks) {
+      showNext(`box-${config.index+1}`)
+    } else {
+      for(let i = 0; i < nLearnTasks; i ++) document.getElementById(`box-${i+1}`).style.display = "none";
+      document.getElementById("show-gen-phase").style.display = "block";
+      setTimeout(() => {
+        document.getElementById("show-gen-phase").style.display = "none";
+        document.getElementById("genbox-1").style.display = "flex";
+      }, 2000);
+    }
   }
   learnBox.style.display = display;
 }
+
 
 function showNext(nextId) {
   let nextDiv = document.getElementById(nextId);
@@ -297,15 +325,14 @@ function createTextInputPanel (config, display = "none") {
   instructionPan.innerHTML = `
     <h1>Make sure you:</h1>
     <ul>
-      <li>Use terms: color, strip, red, orange, blue, left-strip, right-strip.</li>
-      <li>Use a functional format, eg. X makes Y (if Z).</li>
-      <li>Be clear and descriptive.</li>
+      <li>Use the term <b>Agent</b>, <b>Recipient</b>, and <b>Result</b> to refer to the objects.
     </ul>
     `
   const displayBox = createCustomElement("div", "input-box", `${config.taskId}-input-box`);
   displayBox.append(createInputForm(config));
 
   const buttonGroup = createCustomElement("div", "button-group", `${config.taskId}-button-group`);
+  buttonGroup.append(createBtn(`${config.taskId}-input-submit-btn`, "Submit", false));
   buttonGroup.append(createBtn(`${config.taskId}-input-next-btn`, "Next", false));
 
   taskBox.append(instructionPan);
@@ -372,23 +399,23 @@ function createInputForm(config) {
     <option value="0">0 - Not sure at all</option>
   `
   form.innerHTML = `
-    <p>1. What do you think is the most probable magic rule?</p>
+    <p>What do you think is the cause of this observation?</p>
     <textarea name="${config.taskId}-input-1" id="${config.taskId}-input-1" placeholder="Please type here"></textarea>
-    <p>How certain are you with this rule?
+    <p>How certain are you with this?
       <select id="${config.taskId}-input-1-certainty" name="${config.taskId}-input-1-certainty" class="input-rule">
         ${options}
       </select>
     </p>
-    <p>2. What do you think is the second probable magic rule?</p>
+    <p>If applicable. What do you think is the second possible explanation?</p>
     <textarea name="${config.taskId}-input-2" id="${config.taskId}-input-2" placeholder="Please type here"></textarea>
-    <p>How certain are you with this rule?
+    <p>How certain are you with this?
       <select id="${config.taskId}-input-2-certainty" name="${config.taskId}-input-2-certainty" class="input-rule">
         ${options}
       </select>
     </p>
-    <p>3. What do you think is the third probable magic rule?</p>
+    <p>If applicable. What do you think is another possible explanation?</p>
     <textarea name="${config.taskId}-input-3" id="${config.taskId}-input-3" placeholder="Please type here"></textarea>
-    <p>How certain are you with this rule?
+    <p>How certain are you with this?
       <select id="${config.taskId}-input-3-certainty" name="${config.taskId}-input-3-certainty" class="input-rule">
         ${options}
       </select>
@@ -628,4 +655,10 @@ function saveFormData(config, dataObj) {
 
   console.log(dataObj);
   return(dataObj);
+}
+
+function disableFormInputs (formId) {
+  const form = document.getElementById(formId);
+  const inputs = form.elements;
+  (Object.keys(inputs)).forEach((input) => inputs[input].disabled = true);
 }

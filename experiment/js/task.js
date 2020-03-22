@@ -1,5 +1,7 @@
 
 /** Settings */
+const mode = "dev"; // Change to production when done
+
 const colorDict = {
   "dark_1": 'darkred',
   "dark_2": 'navy',
@@ -362,7 +364,7 @@ function createTextInputPanel (config, display = "none") {
 
   const buttonGroup = createCustomElement("div", "button-group", `${config.taskId}-button-group`);
   buttonGroup.append(createBtn(`${config.taskId}-input-submit-btn`, "Submit", false));
-  buttonGroup.append(createBtn(`${config.taskId}-input-next-btn`, "Next", false));
+  buttonGroup.append(createBtn(`${config.taskId}-input-next-btn`, "Next", (mode === "dev")? true: false));
 
   taskBox.append(instructionPan);
   taskBox.append(displayBox);

@@ -1,9 +1,9 @@
 
 /** Settings */
-const mode = "dev"; // Change to production when done
+const mode = ""; // Change to production when done
 
 const useNewFeatures = true;
-const useGroundTruth = false;
+const useGroundTruth = true;
 
 const colorDict = {
   "dark_1": 'darkred',
@@ -38,6 +38,7 @@ let gtData = initDataFile("gen", genTaskConfigs); // gt := generalization tasks
 
 /** Main page */
 
+console.log(learningTaskConfigs);
 document.body.append(createCustomElement("div", "section-page", "show-learning-phase"));
 document.getElementById("show-learning-phase").append(createText("h1", "Learning Phase"))
 document.body.append(createCustomElement("div", "section-page", "show-gen-phase"));
@@ -626,14 +627,22 @@ function hover (tbid, selected) {
 }
 
 function checkSelection (config, selection) {
+  const isTraining = config.type === "training";
   const pass = matchSelections(config.result, selection);
+
   const passTextDiv = document.getElementById(`${config.taskId}-${pass}-text`);
   passTextDiv.style.display = "block";
-  (pass)? document.getElementById(`${config.taskId}-next-btn`).disabled = false :
-          document.getElementById(`${config.taskId}-check-btn`).disabled = true;
 
-  setTimeout(() => passTextDiv.style.display = "none",
-    (config.taskId.indexOf("gen") < 0 || pass)? 3000: 5000)
+  if (pass || (!pass && !isTraining)) {
+    document.getElementById(`${config.taskId}-next-btn`).disabled = false;
+  } else {
+    document.getElementById(`${config.taskId}-check-btn`).disabled = true;
+  }
+
+  if (isTraining || (!isTraining && pass)) {
+    setTimeout(() => passTextDiv.style.display = "none", 3000)
+  }
+
 }
 
 function matchSelections (stone1, stone2) {
@@ -845,8 +854,8 @@ function getLearnTaskConfigs () {
       "recipient" : "lt-light_2-dark_2"
     },
     {
-      "agent": "lt-dark1-light_2",
-      "recipient" : "vt-light_1-dark_1"
+      "agent": "lt-dark_1-light_2",
+      "recipient" : "rt-light_1-dark_1"
     },
   ]
   configs.forEach((cfg, idx) => {

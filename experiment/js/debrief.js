@@ -12,7 +12,7 @@ doneBtn.onclick = () => saveData();
 /** Return TRUE if form is fully filled */
 function isFilled (formID) {
   let notFilled = false;
-  const nulls = [ '', '', 'noresp', '--', '--' ];
+  const nulls = [ '', 'noresp', '--', '--', '' ];
   const form = document.getElementById(formID);
   const inputs = form.elements;
   (Object.keys(inputs)).forEach((input, idx) => {

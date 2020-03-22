@@ -95,7 +95,15 @@ function createGeneralizationTask (config, display = "flex") {
     inputNextBtn.disabled = false;
     disableFormInputs(`${config.gen.taskId}-input-form`);
   }
-  inputNextBtn.onclick= () => (config.index < nGenTasks)? showNext(`genbox-${config.index+1}`) : null;
+  inputNextBtn.onclick= () => {
+    if (config.index < nGenTasks) {
+      showNext(`genbox-${config.index+1}`)
+    } else {
+      setTimeout(() => {
+        location.href='debrief.html';
+      }, 1000);
+    }
+  }
 
   genBox.style.display = display;
 }

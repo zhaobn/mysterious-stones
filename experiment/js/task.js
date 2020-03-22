@@ -37,6 +37,7 @@ document.getElementById("show-gen-phase").style.display = "none";
 
 for(let i = 0; i < nLearnTasks; i++ ) createLearnTask(learningTaskConfigs[i], "none");
 for(let i = 0; i < nGenTasks; i++ ) createGeneralizationTask(genTaskConfigs[i], "none");
+createDebriefPage();
 
 setTimeout(() => {
   document.getElementById("show-learning-phase").style.display = "none";
@@ -100,7 +101,7 @@ function createGeneralizationTask (config, display = "flex") {
       showNext(`genbox-${config.index+1}`)
     } else {
       setTimeout(() => {
-        location.href='debrief.html';
+        document.getElementById("debrief").style.display = "block";
       }, 1000);
     }
   }
@@ -669,4 +670,124 @@ function disableFormInputs (formId) {
   const form = document.getElementById(formId);
   const inputs = form.elements;
   (Object.keys(inputs)).forEach((input) => inputs[input].disabled = true);
+}
+
+function createDebriefPage (display = "none") {
+  const debrief = createCustomElement("div", "", "debrief");
+  debrief.innerHTML = `
+  <h1>Thank you for your contributions to science</h1>
+    <h4>You will be eligible for full payment once you answer the following questions.</h4>
+    <h4><b>Note</b>: To continue, please answer <span style="color:red">all questions</span>.</h4>
+    <form id="postquiz"  class='frame' action="debrief" method="post">
+      <b>1.&nbsp;</b>How old are you?:
+       <input
+          id="age" name="age" class="posttestQ" type="number"
+          maxlength = "3" min="18" max="100"step = "1"
+        > years
+      </p>
+      <p>
+        <b>2.&nbsp;</b>What is your gender?
+        <select id="sex" name="sex" class="posttestQ">
+          <option value="noresp" SELECTED></option>
+          <option value="female">Female</option>
+          <option value="male">Male</option>
+          <option value="other">Other</option>
+          <option value="noresponse">I’d prefer not to respond</option>
+        </select>
+      </p>
+      <p>
+        <b>3.&nbsp;</b>On a scale of 1-10 (where 10 is the most engaged), please rate how <b>ENGAGING</b> you found the learning task:
+        <select id="engagement" name="engagement" class="posttestQ">
+          <option value="--" SELECTED>
+          <option value="10">10 - Very engaging</option>
+          <option value="9">9</option>
+          <option value="8">8</option>
+          <option value="7">7</option>
+          <option value="6">6</option>
+          <option value="5">5 - Moderately</option>
+          <option value="4">4</option>
+          <option value="3">3</option>
+          <option value="2">2</option>
+          <option value="1">1</option>
+          <option value="0">0 - Not engaged</option>
+        </select>
+      </p>
+      <p>
+        <b>4.&nbsp;</b>On a scale of 1-10 (where 10 is the most difficult), please rate how <b>DIFFICULT</b> you found the learning task:
+        <select id="difficulty" name="difficulty" class="posttestQ">
+          <option value="--" SELECTED>
+          <option value="10">10 - Very difficult</option>
+          <option value="9">9</option>
+          <option value="8">8</option>
+          <option value="7">7</option>
+          <option value="6">6</option>
+          <option value="5">5 - Moderately difficult</option>
+          <option value="4">4</option>
+          <option value="3">3</option>
+          <option value="2">2</option>
+          <option value="1">1</option>
+          <option value="0">0 - Not difficult at all</option>
+        </select>
+      </p>
+      <p><b>5.&nbsp;</b>Do you have any comments regarding the experiment?</p>
+      <textarea name="feedback" id="feedback" placeholder="Please type here"></textarea>
+    </form>
+    <div class='button-group-vc'>
+      <button class='big-button' id='done-btn' disabled>Done</button>
+    </div>
+  `
+  debrief.style.display = display;
+  document.body.append(debrief);
+}
+
+
+
+const doneBtn = document.getElementById('done-btn');
+const debriefForm = document.getElementById('postquiz');
+let feedbackData = {};
+
+debriefForm.onchange = () => {
+  isFilled('postquiz')? doneBtn.disabled = false: null;
+}
+doneBtn.onclick = () => saveData();
+
+/** Check if form is filled */
+/** Return TRUE if form is fully filled */
+function isFilled (formID) {
+  let notFilled = false;
+  const nulls = [ '', 'noresp', '--', '--', '' ];
+  const form = document.getElementById(formID);
+  const inputs = form.elements;
+  (Object.keys(inputs)).forEach((input, idx) => {
+    let field = inputs[input];
+    notFilled = (notFilled || (field.value === nulls[idx]));
+    saveFormData(field, feedbackData);
+  });
+  return (!notFilled)
+}
+
+function saveFormData (input, dataObj) {
+  let fieldName = input.name;
+  dataObj[fieldName] = input.value;
+  return dataObj;
+}
+
+/** Auto-download data file for off-line use */
+function download(content, fileName, contentType) {
+  var a = document.createElement("a");
+  var file = new Blob([content], {type: contentType});
+  a.href = URL.createObjectURL(file);
+  a.download = fileName;
+  a.click();
+}
+
+function saveData () {
+  /** Get data */
+  let dataFile = {};
+  dataFile.learn = ltData;
+  dataFile.gen = gtData;
+  dataFile.feedback = feedbackData;
+  /** Save data */
+  console.log(dataFile);
+  // download(JSON.stringify(dataFile), 'data.txt', '"text/csv"');
 }

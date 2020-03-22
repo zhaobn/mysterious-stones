@@ -44,5 +44,6 @@ function saveData () {
   dataFile.task = sessionStorage.taskData;
   dataFile.feedback = feedbackData;
   /** Save data */
-  download(JSON.stringify(dataFile), 'data.txt', '"text/csv"');
+  console.log(dataFile);
+  // download(JSON.stringify(dataFile), 'data.txt', '"text/csv"');
 }

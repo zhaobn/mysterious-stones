@@ -1,6 +1,6 @@
 
 /** Settings */
-const mode = "dev"; // Change to production when done
+const mode = ""; // "dev" enables developing mode
 
 const useNewFeatures = true;
 const useGroundTruth = true;
@@ -26,9 +26,10 @@ const baseColors = [ "dark_1", "light_1", "dark_2", "light_2" ];
 const baseStones = getStones(true);
 const allStones = getStones(false);
 
-// const learningTaskConfigs = Array.from(Array(nLearnTasks).keys()).map(k => createConfigs(k+1));
-const learningTaskConfigs = getLearnTaskConfigs();
-const nLearnTasks = learningTaskConfigs.length;
+const nLearnTasks = 1;
+const learningTaskConfigs = Array.from(Array(nLearnTasks).keys()).map(k => createConfigs(k+1));
+// const learningTaskConfigs = getLearnTaskConfigs();
+// const nLearnTasks = learningTaskConfigs.length;
 
 const nGenTasks = 15; // gen := generalization
 const genTaskConfigs = Array.from(Array(nGenTasks).keys()).map(k => createConfigs(k+1, "generalization"));
@@ -39,9 +40,9 @@ let gtData = initDataFile("gen", genTaskConfigs); // gt := generalization tasks
 /** Main page */
 
 document.body.append(createCustomElement("div", "section-page", "show-learning-phase"));
-document.getElementById("show-learning-phase").append(createText("h1", "Learning Phase"))
+document.getElementById("show-learning-phase").append(createText("h1", "Experiment starts"))
 document.body.append(createCustomElement("div", "section-page", "show-gen-phase"));
-document.getElementById("show-gen-phase").append(createText("h1", "Generalization Phase"));
+document.getElementById("show-gen-phase").append(createText("h1", "Generalization tasks"));
 document.getElementById("show-gen-phase").style.display = "none";
 
 for(let i = 0; i < nLearnTasks; i++ ) createLearnTask(learningTaskConfigs[i], "none");
@@ -83,7 +84,7 @@ function initDataFile (type, configObj) {
 function createGeneralizationTask (config, display = "flex") {
   let genBox = createCustomElement("div", "box", `genbox-${config.index}`);
 
-  genBox.append(createText('h1', `Task ${config.index}/${nGenTasks}`));
+  genBox.append(createText('h1', `${config.index+nLearnTasks}/${nGenTasks+nLearnTasks}`));
   genBox.append(createTaskBox(config.gen, (mode === "dev")? "flex": "flex"));
 
   genBox.append(createFeedbackText(config.gen, true));
@@ -123,7 +124,7 @@ function createGeneralizationTask (config, display = "flex") {
 function createLearnTask (config, display = "flex") {
   let learnBox = createCustomElement("div", "box", `box-${config.index}`);
 
-  learnBox.append(createText('h1', `Trial ${config.index}/${nLearnTasks}`))
+  learnBox.append(createText('h1', `${config.index}/${nLearnTasks+nGenTasks}`))
   learnBox.append(createDemo(config.demo));
 
   learnBox.append(createTaskBox(config.task, (mode === "dev")? "flex": "none"));
@@ -630,7 +631,8 @@ function hover (tbid, selected) {
 
 function checkSelection (config, selection) {
   const isTraining = config.type === "training";
-  const pass = matchSelections(config.result, selection);
+  const selected = selection.split("-").slice(2,).join("-");
+  const pass = matchSelections(config.result, selected);
 
   const passTextDiv = document.getElementById(`${config.taskId}-${pass}-text`);
   passTextDiv.style.display = "block";

@@ -1,0 +1,142 @@
+\documentclass[11pt]{article}
+
+\usepackage[sort]{natbib}
+\usepackage{fancyhdr}
+
+% you may include other packages here (next line)
+\usepackage{enumitem}
+\usepackage[tiny]{titlesec}
+\usepackage{lastpage}
+\usepackage{amsthm}
+\usepackage{amssymb}
+\usepackage{amsmath}
+\usepackage{verbatim}
+%\usepackage{graphicx}
+%\usepackage{wrapfig}
+
+% \theoremstyle{definition}
+% \newtheorem{definition}{Definition}[section]
+% \newtheorem{theorem}{Theorem}
+% \newtheorem{lemma}[theorem]{Lemma}
+
+%\newtheorem{exmp}{Example}[section]
+
+
+%\newcommand{\fa}{f^{\alpha}}
+
+
+
+%----- you must not change this -----------------
+\oddsidemargin 0.2cm
+\topmargin -1.0cm
+\footskip 0cm
+\textheight 24.0cm
+\textwidth 15.25cm
+\parindent=0pt
+\parskip 1ex
+\renewcommand{\baselinestretch}{1.1}
+\pagestyle{fancy}
+%----------------------------------------------------
+
+
+
+% enter your details here----------------------------------
+
+\lhead{\normalsize \textrm{Draft}}
+\chead{}
+\rhead{\normalsize Bonan Zhao}
+\lfoot{}
+\cfoot{Page \thepage \hspace{1pt} of \pageref{LastPage}}
+\rfoot{}
+\setlength{\fboxrule}{4pt}\setlength{\fboxsep}{2ex}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0.4pt}
+
+	
+\begin{document}
+
+
+%----------------your title below -----------------------------
+
+\begin{center}
+{\bf Normative Base }
+
+{\normalsize \today}
+\end{center}
+
+
+%---------------- start of document body------------------
+
+
+\section*{Language}
+
+\begin{itemize}
+
+\item Basic terms
+	
+	\begin{itemize}
+	\item Stripes: no, left, right.
+	\item Colors: red, blue, is\_dark.
+	\end{itemize}
+
+\item Operators: 
+	\begin{itemize}
+	\item \textbf{Basic}: read value: $v(o, m)$. $o$: object, $m$: marker.
+
+	Markers: color\_1, color\_2, darkness\_1, darkness\_2.
+
+	\item \textbf{Relational}: equal, not.
+
+	\item \textbf{Higher-order}: hasPattern, colorCombo, darknessCombo, flipStripes etc.
+	\end{itemize}
+
+\end{itemize}
+
+\section*{Full Bayesian}
+
+\begin{enumerate}
+\item Object + Object $\to$ Object.
+\item $v(A, m) + v(R, m) \to v(R', m)$, for all marker and marker combinations.
+\item Possible theories: delta-based, like the one in our cogsci submission.
+\end{enumerate}
+
+\section*{Parser model}
+
+\begin{enumerate}
+\item Delta-based model for each trial.
+\item Similarity comparison across trials -- order effects.
+\end{enumerate}
+
+\section*{Modeling frameworks to implement}
+
+\begin{itemize}
+\item Adaptor tree
+\item Win stay loose sampling
+\item MCMC
+\end{itemize}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+% ----------------end of document body---------------------
+
+
+
+\end{document}

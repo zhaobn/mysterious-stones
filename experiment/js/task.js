@@ -360,7 +360,7 @@ function createTextInputPanel (config, display = "none") {
     <h1>Make sure you:</h1>
     <ul>
       <li>Refer to objects as <b>Agent</b>, <b>Recipient</b>, and <b>Result</b>.</li>
-      <li>Refer to object properties using dark/pale, red, blue, plain, left stripes, right stripes.</li>
+      <li>Refer to object properties using <b>dark/pale</b>, <b>red</b>, <b>blue</b>, <b>plain</b>, <b>left stripes</b>, <b>right stripes</b>.</li>
     </ul>
     `
   const displayBox = createCustomElement("div", "input-box", `${config.taskId}-input-box`);

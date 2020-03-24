@@ -1,0 +1,20 @@
+
+# OS files
+.DS_store
+
+# R system files
+.RData
+.Rhistory
+
+# LaTeX temp files
+*.aux
+*.log
+*.toc
+*.fdb_latexmk
+*.synctex.gz
+*.snm
+*.vrb
+*.nav
+*.out
+*.bbl
+*.blg

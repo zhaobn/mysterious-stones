@@ -31,7 +31,7 @@ const learningTaskConfigs = Array.from(Array(nLearnTasks).keys()).map(k => creat
 // const learningTaskConfigs = getLearnTaskConfigs();
 // const nLearnTasks = learningTaskConfigs.length;
 
-const nGenTasks = 15; // gen := generalization
+const nGenTasks = 20; // gen := generalization
 const genTaskConfigs = Array.from(Array(nGenTasks).keys()).map(k => createConfigs(k+1, "generalization"));
 
 let ltData = initDataFile("learn", learningTaskConfigs); // lt := learning tasks

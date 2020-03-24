@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <link rel='stylesheet' type="text/css" href='../css/style.css'>
+    <link rel='stylesheet' type="text/css" href='./css/style.css'>
     <title>Magic Stones</title>
   </head>
   <body>
@@ -9,27 +9,18 @@
       <h1>Instructions</h1>
       <div class="frame" id="box-desc">
         <p>This experiment tests how you generalize causal relations.</p>
-        <p>You will go through two phases of the experiment, a learning phase, and a generalization phrase. <b>All objects in this experiment are governed by the same causal relation(s).</b></p>
-        <h3>Learning Phase</h2>
-        <p>In the learning phase, you will see six pairs of colored circles subsequently. Each pair looks like this:</p>
+        <p>In total, there are 21 trials - takes about 5min to finish. Each trial consists of a pair of objects, as illustrated below.</p>
         <div id="instruction-eg">
           <div class="feedback-stone" id="eg-stone-agent"></div>
           <div class="feedback-stone" id="eg-stone-recipient"></div>
         </div>
-        <p>Let’s call the colored circle on the left the <b>Agent</b>, and the one on the right the <b>Recipient</b>.</p>
-        <p>Clicking the play button, Agent will touch the Recipient, and Agent will cause Recipient into a new state - call it the Result. These effects will disappear after 3000ms. We then ask you two questions:</p>
-        <ol>
-          <li>What’s Recipient changed to (i.e what’s the Result)?</li>
-          <li>What do you think is the causal relation inducing such effects?</li>
-        </ol>
-        <p>Note that all objects in this experiment are governed by the same causal relation(s). You can change your mind at any stage of the experiment, or stick with what you had.</p>
-        <p><b>When writing, please use the words Agent, Recipient, Result.</b> Once you clicked the `submit` button, you cannot change what you wrote.</p>
+        <p>Let’s call the colored circle on the left the <b>Agent</b>, and the one on the right the <b>Recipient</b>. When the Agent touches the Recipient, the Recipient will be set into a new state, call it the <b>Result</b>. Click the `play` button to watch a demonstration.</p>
+        <p><b>Your task is to figure out what causes such effects.</b></p>
+        <p>You will first watch one full demonstration, like the one you just played, and try to come up with a causal explanation as good as you can.</p>
+        <p>Later, you will be given 20 more trials, each consisting of a new pair of objects, and we ask you to make a prediction of what the Result will be given such Agent and such Recipient. <b>All the pairs share the same causal relations as those in the demonstration.</b></p>
+        <p>After you make a prediction, we will let you know what the correct answer is, helping you to make a better prediction for the next trial.</p>
+        <p>During each trial, we ask you to write down what in your opinion is the cause of such effects. When writing, please use the words Agent, Recipient, Result. Once you clicked the `submit` button, you cannot change what you wrote.</p>
         <p>You need to provide <b>at least one, and up to three</b> causal explanations.</p>
-        <h3>Generalization Phase</h2>
-        <p>In the generalization phase, you will be given fifteen pairs of objects - each pair is made of an Agent and a Recipient , and you are asked to make a prediction of the Result.</p>
-        <p>After you made a prediction, we will tell you whether you are right, or what the right answer is.</p>
-        <p>You will then be asked to provide the causal relation(s) that cause(s) such effects. Please note that in the generalization phase, while it is still the case that all objects in this experiment are governed by the same causal relation(s), you may see novel features that are not covered by the observations in the learning phase.</p>
-        <br>
         <p>When you feel like understanding the tasks, please proceed to the comprehension questions.</p>
       </div>
       <div class='button-group-vc'>
@@ -86,5 +77,5 @@
       </div>
     </div>
   </body>
-  <script type='text/javascript' src='../js/instruction.js'></script>
+  <script type='text/javascript' src='./js/instruction.js'></script>
 </html>

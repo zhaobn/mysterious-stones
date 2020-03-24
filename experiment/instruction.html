@@ -14,12 +14,31 @@
           <div class="feedback-stone" id="eg-stone-agent"></div>
           <div class="feedback-stone" id="eg-stone-recipient"></div>
         </div>
-        <p>Let’s call the colored circle on the left the <b>Agent</b>, and the one on the right the <b>Recipient</b>. When the Agent touches the Recipient, the Recipient will be set into a new state, call it the <b>Result</b>. Click the `play` button to watch a demonstration.</p>
+        <p>All the objects in the experiment can be of:</p>
+        <ul>
+          <li>Colors:
+            <span style="color: darkred; font-weight: bold;">dark red</span>,
+            <span style="color: plum; font-weight: bold;">pale red (pink)</span>,
+            <span style="color: navy; font-weight: bold;">dark blue</span>, and
+            <span style="color: cornflowerblue; font-weight: bold;">pale blue</span>.
+          </li>
+          <li>Stripes:
+            no stripes (plain) <div class="feedback-stone" style="display: inline-block; height: 20px; width: 20px; margin: 0; background: navy;"></div>,
+            left stripes, <div class="feedback-stone" style="display: inline-block; height: 20px; width: 20px; margin: 0; background: repeating-linear-gradient(45deg, plum, plum 5px, cornflowerblue 5px, cornflowerblue 10px);"> </div> and/or
+            right stripes <div class="feedback-stone" style="display: inline-block; height: 20px; width: 20px; margin: 0; background: repeating-linear-gradient(-45deg, plum, plum 5px, cornflowerblue 5px, cornflowerblue 10px);"></div>.
+          </li>
+        </ul>
+        <p>Let’s call the colored circle on the left the <b>Agent</b>, and the one on the right the <b>Recipient</b>. When the Agent touches the Recipient, the Recipient will be set into a new state, call it the <b>Result</b>.</p>
         <p><b>Your task is to figure out what causes such effects.</b></p>
         <p>You will first watch one full demonstration, like the one you just played, and try to come up with a causal explanation as good as you can.</p>
         <p>Later, you will be given 20 more trials, each consisting of a new pair of objects, and we ask you to make a prediction of what the Result will be given such Agent and such Recipient. <b>All the pairs share the same causal relations as those in the demonstration.</b></p>
         <p>After you make a prediction, we will let you know what the correct answer is, helping you to make a better prediction for the next trial.</p>
-        <p>During each trial, we ask you to write down what in your opinion is the cause of such effects. When writing, please use the words Agent, Recipient, Result. Once you clicked the `submit` button, you cannot change what you wrote.</p>
+        <p>During each trial, we ask you to write down what in your opinion is the cause of such effects. When writing, please</p>
+        <ol>
+          <li>Refer to objects as Agent, Recipient, Result.</li>
+          <li>Refer to object properties as dark/pale, red, blue, plain, left stripes, right stripes.</li>
+        </ol>
+        <p>Once you clicked the `submit` button, you cannot change what you wrote.</p>
         <p>You need to provide <b>at least one, and up to three</b> causal explanations.</p>
         <p>When you feel like understanding the tasks, please proceed to the comprehension questions.</p>
       </div>
@@ -37,25 +56,20 @@
               <input type="radio" name="check1">Correct
               <input type="radio" name="check1">False
             </p>
-            <li>Agent causes the Recipient to change.</li>
+            <li>You have to come up with a new causal explanationn for each trial.</li>
             <p>
               <input type="radio" name="check2">Correct
               <input type="radio" name="check2">False
             </p>
-            <li>You have to come up with a new explanation for each pair of ojects.</li>
+            <li>You will not be given the correct answer after you made a prediction.</li>
             <p>
               <input type="radio" name="check3">Correct
               <input type="radio" name="check3">False
             </p>
-            <li>You have to refer to the objects as Agent, Recipient, and Result.</li>
+            <li>You must provide three causal explanations for each pair of objects.</li>
             <p>
               <input type="radio" name="check4">Correct
               <input type="radio" name="check4">False
-            </p>
-            <li>You must provide three causal explanations for each pair of objects.</li>
-            <p>
-              <input type="radio" name="check5">Correct
-              <input type="radio" name="check5">False
             </p>
           </ol>
         </form>

@@ -1,13 +1,13 @@
+
 const descBtn = document.getElementById('desc-btn');
 descBtn.onclick = () => {
   document.getElementById("instruction").style.display = "none";
   document.getElementById("comprehension").style.display = "block";
 }
 
-
 const checkBtn = document.getElementById('check-btn');
-const checks = [ 'check1', 'check2', 'check3', 'check4', 'check5' ];
-const answers = [ true, true, false, true, false ];
+const checks = [ 'check1', 'check2', 'check3', 'check4' ];
+const answers = [ true, false, false, false ];
 
 const passBtn = document.getElementById('pass-btn');
 const retryBtn = document.getElementById('retry-btn');
@@ -21,6 +21,7 @@ document.getElementById('prequiz').onchange = () => isFilled() ? checkBtn.disabl
 
 setStyle (document.getElementById('eg-stone-agent'), "lt-tomato-gold", true)
 setStyle (document.getElementById('eg-stone-recipient'), "plain-royalblue", true)
+
 
 
 function checkComprehension() {
@@ -45,7 +46,7 @@ function isFilled () {
     for (let i = 0; i < radios.length; i++) {
         checked += radios[i].checked;
     }
-    return (checked > 4)
+    return (checked > checks.length-1)
 }
 
 function setStyle (el, styleStr, isSmall = false) {

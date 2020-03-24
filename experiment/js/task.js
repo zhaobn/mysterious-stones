@@ -359,7 +359,8 @@ function createTextInputPanel (config, display = "none") {
   instructionPan.innerHTML = `
     <h1>Make sure you:</h1>
     <ul>
-      <li>Use the term <b>Agent</b>, <b>Recipient</b>, and <b>Result</b> to refer to the objects.
+      <li>Refer to objects as <b>Agent</b>, <b>Recipient</b>, and <b>Result</b>.</li>
+      <li>Refer to object properties using dark/pale, red, blue, plain, left stripes, right stripes.</li>
     </ul>
     `
   const displayBox = createCustomElement("div", "input-box", `${config.taskId}-input-box`);

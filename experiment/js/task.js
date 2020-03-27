@@ -1,6 +1,6 @@
 
 /** Settings */
-const mode = ""; // "dev" enables developing mode
+const mode = "dev"; // "dev" enables developing mode
 
 const useNewFeatures = true;
 const useGroundTruth = true;
@@ -39,20 +39,20 @@ let gtData = initDataFile("gen", genTaskConfigs); // gt := generalization tasks
 
 /** Main page */
 
-document.body.append(createCustomElement("div", "section-page", "show-learning-phase"));
-document.getElementById("show-learning-phase").append(createText("h1", "Experiment starts"))
-document.body.append(createCustomElement("div", "section-page", "show-gen-phase"));
-document.getElementById("show-gen-phase").append(createText("h1", "Generalization tasks"));
-document.getElementById("show-gen-phase").style.display = "none";
+// document.body.append(createCustomElement("div", "section-page", "show-learning-phase"));
+// document.getElementById("show-learning-phase").append(createText("h1", "Experiment starts"))
+// document.body.append(createCustomElement("div", "section-page", "show-gen-phase"));
+// document.getElementById("show-gen-phase").append(createText("h1", "Generalization tasks"));
+// document.getElementById("show-gen-phase").style.display = "none";
 
-for(let i = 0; i < nLearnTasks; i++ ) createLearnTask(learningTaskConfigs[i], "none");
+for(let i = 0; i < nLearnTasks; i++ ) createLearnTask(learningTaskConfigs[i], (i === 0)? "flex" : "none");
 for(let i = 0; i < nGenTasks; i++ ) createGeneralizationTask(genTaskConfigs[i], "none");
 createDebriefPage();
 
-setTimeout(() => {
-  document.getElementById("show-learning-phase").style.display = "none";
-  document.getElementById("box-1").style.display = "flex";
-}, 2000);
+// setTimeout(() => {
+//   document.getElementById("show-learning-phase").style.display = "none";
+//   document.getElementById("box-1").style.display = "flex";
+// }, 2000);
 
 
 /** Functions */
@@ -162,12 +162,13 @@ function createLearnTask (config, display = "flex") {
     if (config.index < nLearnTasks) {
       showNext(`box-${config.index+1}`)
     } else {
-      for(let i = 0; i < nLearnTasks; i ++) document.getElementById(`box-${i+1}`).style.display = "none";
-      document.getElementById("show-gen-phase").style.display = "block";
-      setTimeout(() => {
-        document.getElementById("show-gen-phase").style.display = "none";
-        document.getElementById("genbox-1").style.display = "flex";
-      }, 2000);
+      showNext("genbox-1")
+      // for(let i = 0; i < nLearnTasks; i ++) document.getElementById(`box-${i+1}`).style.display = "none";
+      // document.getElementById("show-gen-phase").style.display = "block";
+      // setTimeout(() => {
+      //   document.getElementById("show-gen-phase").style.display = "none";
+      //   document.getElementById("genbox-1").style.display = "flex";
+      // }, 2000);
     }
   }
   learnBox.style.display = display;

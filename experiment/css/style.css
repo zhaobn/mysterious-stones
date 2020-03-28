@@ -73,7 +73,6 @@ h4 {
   border-radius: 50%;
 }
 
-
 .task-box {
   /* background-color: #a0a0a0; */
   min-width: 500px;
@@ -206,7 +205,7 @@ h4 {
 }
 
 .input-box {
-  width: 60%;
+  width: 100%;
   padding: 0px;
 }
 

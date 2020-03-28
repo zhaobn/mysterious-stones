@@ -354,7 +354,7 @@ function createTaskBox (config, display = "none") {
 
 function createTextInputPanel (config, display = "none") {
   const taskBox = createCustomElement("div", "task-box", `${config.taskId}-input`);
-  taskBox.setAttribute("style", "height:600px");
+  // taskBox.setAttribute("style", "height:600px");
 
   const instructionPan = createCustomElement("div", "instruction", `${config.taskId}-instruction`);
   instructionPan.innerHTML = `
@@ -371,7 +371,7 @@ function createTextInputPanel (config, display = "none") {
   buttonGroup.append(createBtn(`${config.taskId}-input-submit-btn`, "Submit", false));
   buttonGroup.append(createBtn(`${config.taskId}-input-next-btn`, "Next", (mode === "dev")? true: false));
 
-  taskBox.append(instructionPan);
+  // taskBox.append(instructionPan);
   taskBox.append(displayBox);
   taskBox.append(buttonGroup);
 
@@ -439,20 +439,6 @@ function createInputForm(config) {
     <textarea name="${config.taskId}-input-1" id="${config.taskId}-input-1" placeholder="Please type here"></textarea>
     <p>How certain are you with this?
       <select id="${config.taskId}-input-1-certainty" name="${config.taskId}-input-1-certainty" class="input-rule">
-        ${options}
-      </select>
-    </p>
-    <p>If applicable. What do you think is the second possible explanation?</p>
-    <textarea name="${config.taskId}-input-2" id="${config.taskId}-input-2" placeholder="Please type here"></textarea>
-    <p>How certain are you with this?
-      <select id="${config.taskId}-input-2-certainty" name="${config.taskId}-input-2-certainty" class="input-rule">
-        ${options}
-      </select>
-    </p>
-    <p>If applicable. What do you think is another possible explanation?</p>
-    <textarea name="${config.taskId}-input-3" id="${config.taskId}-input-3" placeholder="Please type here"></textarea>
-    <p>How certain are you with this?
-      <select id="${config.taskId}-input-3-certainty" name="${config.taskId}-input-3-certainty" class="input-rule">
         ${options}
       </select>
     </p>

@@ -1,5 +1,5 @@
 
-const mode = "dev" // set to '' for prod
+const mode = "" // set to '' for prod
 
 /** Configurations */
 const colorDict = {
@@ -25,6 +25,8 @@ const learnTaskConfigs = Array.from(Array(nLearnTasks).keys()).map(k => getTaskC
 const nGenTasks = 20; // gen := generalization
 const genTaskConfigs = Array.from(Array(nGenTasks).keys()).map(k => getTaskConfigs(k+1, "gen"));
 
+let ltData = initDataFile(learnTaskConfigs); // lt := learning tasks
+let gtData = initDataFile(genTaskConfigs); // gt := generalization tasks
 
 /** Main body */
 // createTaskBox(genTaskConfigs[0]);
@@ -32,10 +34,24 @@ for(let i = 0; i < nLearnTasks; i++ ) createTaskBox(learnTaskConfigs[i], (i === 
 for(let i = 0; i < nGenTasks; i++ ) createTaskBox(genTaskConfigs[i], "none");
 
 /** functions */
+function createInitStones(config, parentDiv) {
+  parentDiv.append(createDivWithStyle("stone", `${config.taskId}-agent`, config.agent));
+  parentDiv.append(createDivWithStyle("stone", `${config.taskId}-recipient`, config.recipient));
+  return(parentDiv);
+}
+
+function createSummaryStones(config, parentDiv) {
+  let stoneSets = createCustomElement("div", "stone-sets", `${config.taskId}-stone-sets`);
+
+  stoneSets.append(createDivWithStyle("stone-before", `${config.taskId}-summary-recipient`, config.recipient));
+  stoneSets.append(createDivWithStyle("stone", `${config.taskId}-summary-result`, config.result))
+
+  parentDiv.append(createDivWithStyle("stone", `${config.taskId}-summary-agent`, config.agent));
+  parentDiv.append(stoneSets);
+  return(parentDiv);
+}
 
 function createTaskBox (config, display = "none") {
-  console.log(config);
-
   const isGenTask = config.taskId.split('-')[0] === "gen";
   let taskIdx = parseInt(config.taskId.split('-')[1]);
   taskIdx = isGenTask? fmtTaskIdx(taskIdx + nLearnTasks): fmtTaskIdx(taskIdx);
@@ -44,13 +60,15 @@ function createTaskBox (config, display = "none") {
   box.append(createText('h1', `${taskIdx}/${nLearnTasks+nGenTasks}`));
 
   let taskBox = createCustomElement("div", "task-box", `taskbox-${config.taskId}`);
-  const displayBox = createCustomElement("div", "display-box", `${config.taskId}-display-box`);
-  displayBox.append(createDivWithStyle("stone", `${config.taskId}-agent`, config.agent));
-  displayBox.append(createDivWithStyle("stone", `${config.taskId}-recipient`, config.recipient));
+  let displayBox = createCustomElement("div", "display-box", `${config.taskId}-display-box`);
+  displayBox = createInitStones(config, displayBox);
 
   const buttonGroup = createCustomElement("div", "button-group", `${config.taskId}-button-group`);
-  isGenTask? buttonGroup.append(createBtn(`${config.taskId}-check-btn`, "Check", false)): null;
-  buttonGroup.append(createBtn(`${config.taskId}-next-btn`, "Next", false));
+  if (isGenTask) {
+    buttonGroup.append(createBtn(`${config.taskId}-check-btn`, "Check", false))
+  } else {
+    buttonGroup.append(createBtn(`${config.taskId}-play-btn`, "Play", true))
+  }
 
   if (isGenTask) {
     const recordPan = createCustomElement("div", "record-pan", `${config.taskId}-record-pan`);
@@ -66,15 +84,40 @@ function createTaskBox (config, display = "none") {
   box.append(taskBox);
   box.append(createTextInputPanel(config, (mode === "dev")? "flex": "none"));
 
-
   document.body.append(box);
   box.style.display = display;
 
   /** Button functionalities */
+  const playBtn = document.getElementById(`${config.taskId}-play-btn`) || null;
+  const checkBtn = document.getElementById(`${config.taskId}-check-btn`) || null;
+  const inputForm = document.getElementById(`${config.taskId}-input-form`);
   const inputNextBtn = document.getElementById(`${config.taskId}-input-next-btn`);
-  inputNextBtn.onclick= () => {
-    const taskCount = parseInt(config.taskId.split("-")[1]);
 
+  if (!isGenTask) {
+    playBtn.onclick = () => {
+      playBtn.disabled = true;
+      playEffects(config);
+      setTimeout(() => {
+        clearElements(config);
+        setTimeout(() => {
+          displayBox = createSummaryStones(config, displayBox);
+          showNext(`${config.taskId}-input`);
+        }, 1000);
+      }, 5000);
+    }
+  } else {
+    checkBtn.onclick = () => {
+      console.log("Clicked")
+    }
+  }
+
+  inputForm.onchange = () => isFilled(`${config.taskId}-input-form`)? inputNextBtn.disabled = false: null;
+
+  inputNextBtn.onclick= () => {
+    ltData = saveFormData(config, ltData);
+    disableFormInputs(`${config.taskId}-input-form`);
+
+    const taskCount = parseInt(config.taskId.split("-")[1]);
     if (!isGenTask) {
       if(taskCount < nLearnTasks) {
         showNext(`box-learn-${fmtTaskIdx(taskCount+1)}`)
@@ -83,19 +126,21 @@ function createTaskBox (config, display = "none") {
       }
     } else {
       if(taskCount < nGenTasks) {
-        console.log("hello")
         showNext(`box-gen-${fmtTaskIdx(taskCount+1)}`)
       } else {
-        console.log("Last")
+        alert("This is the last task.")
       }
     }
   }
-
 }
 
 function fmtTaskIdx (counter) {
   return(counter.toString().padStart(2, '0'))
 }
+function readTaskIdx (taskId) {
+  return(parseInt(taskId.split('-')[1]))
+}
+
 function getTaskConfigs(counter = 1, type = "learn") {
   let configs = {};
 
@@ -449,7 +494,6 @@ function isFilled (formID) {
   (Object.keys(inputs)).forEach((input, idx) => {
     let field = inputs[input];
     notFilled = (notFilled || (field.value === nulls[idx]));
-    // saveFormData(field, formID);
   });
   return (!notFilled)
 }
@@ -458,4 +502,96 @@ function showNext(nextId) {
   let nextDiv = document.getElementById(nextId);
   nextDiv.style.display = "flex";
   nextDiv.scrollIntoView(true);
+}
+
+function playEffects (config) {
+  if (!(document.body.contains(document.getElementById(`${config.taskId}-agent`)))) {
+    createStones(config)
+  }
+  moveStone(config);
+  changeStone(config);
+}
+
+function moveStone (config) {
+  const agent = `${config.taskId}-agent`;
+  const recipient = `${config.taskId}-recipient`;
+
+  const agentStone = document.getElementById(agent);
+  const startPos = getCurrentLocation(agent).right;
+  const endPos = getCurrentLocation(recipient).left;
+
+  const delta = Math.round(endPos - startPos);
+  (delta > 0) && (agentStone.style.left = `${delta}px`);
+}
+
+function changeStone (config) {
+  const recipientStone = document.getElementById(`${config.taskId}-recipient`);
+  setTimeout(() => {
+    setStyle(recipientStone, config.result);
+  }, 1500);
+}
+
+function getCurrentLocation(id) {
+  let rect = {top: 0, bottom: 0, left: 0, right: 0};
+  const pos = document.getElementById(id).getBoundingClientRect();
+  rect.top = pos.top;
+  rect.bottom = pos.bottom;
+  rect.left = pos.left;
+  rect.right = pos.right;
+  return rect;
+}
+
+function clearElements (config) {
+  let els = [ "agent", "recipient" ].map(s => `${config.taskId}-${s}`);
+  els.forEach (el => {
+      let clear = document.getElementById(el);
+      if(!(clear === null)) clear.parentNode.removeChild(clear);
+  })
+}
+
+function initDataFile (configs) {
+  let data = {};
+  data["type"] = [];
+  data["task"] = [];
+  data["agent"] = [];
+  data["recipient"] = [];
+  data["result"] = [];
+  data["report"] = [];
+  data["confidence"] = [];
+
+  // for (let i = 1; i < 4; i ++) {
+  //   data[`rule_${i}`] = Array.from('-'.repeat(configObj.length));
+  //   data[`confidence_${i}`] = Array.from('-'.repeat(configObj.length));
+  // }
+
+  configs.forEach(config => {
+    data.type.push(config.taskId.split('-')[0]);
+    data.task.push(readTaskIdx(config.taskId).toString());
+    data.agent.push(config.agent);
+    data.recipient.push(config.recipient);
+    data.result.push(config.result);
+  })
+
+  return(data);
+}
+
+function saveFormData(config, dataObj) {
+  const form = document.getElementById(`${config.taskId}-input-form`);
+  const inputs = form.elements;
+  (Object.keys(inputs)).forEach((input) => {
+    let field = inputs[input];
+    if (field.name.indexOf("certainty") < 0) {
+      dataObj["report"].push(field.value);
+    } else {
+      dataObj["confidence"].push(field.value);
+    }
+  })
+  console.log(dataObj);
+  return(dataObj);
+}
+
+function disableFormInputs (formId) {
+  const form = document.getElementById(formId);
+  const inputs = form.elements;
+  (Object.keys(inputs)).forEach((input) => inputs[input].disabled = true);
 }

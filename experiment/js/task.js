@@ -28,6 +28,8 @@ const genTaskConfigs = Array.from(Array(nGenTasks).keys()).map(k => getTaskConfi
 let ltData = initDataFile(learnTaskConfigs); // lt := learning tasks
 let gtData = initDataFile(genTaskConfigs); // gt := generalization tasks
 
+let textSelection = '';
+
 /** Main body */
 // createTaskBox(genTaskConfigs[0]);
 for(let i = 0; i < nLearnTasks; i++ ) createTaskBox(learnTaskConfigs[i], (i === 0)? "flex" : "none");
@@ -106,7 +108,12 @@ function createTaskBox (config, display = "none") {
   /** Button functionalities */
   const playBtn = document.getElementById(`${config.taskId}-play-btn`) || null;
   const inputForm = document.getElementById(`${config.taskId}-input-form`);
+  const copyBtn = document.getElementById(`${config.taskId}-copy-btn`);
+  const pasteBtn = document.getElementById(`${config.taskId}-paste-btn`);
   const inputNextBtn = document.getElementById(`${config.taskId}-input-next-btn`);
+
+  copyBtn.onclick = () => copyText(`${config.taskId}-input-1`);
+  pasteBtn.onclick = () => pasteText(`${config.taskId}-input-1`);
 
   if (!isGenTask) {
     playBtn.onclick = () => {
@@ -128,6 +135,8 @@ function createTaskBox (config, display = "none") {
     inputNextBtn.disabled = true;
     (isGenTask)? gtData = saveFormData(config, gtData) : ltData = saveFormData(config, ltData);
     disableFormInputs(`${config.taskId}-input-form`);
+    copyBtn.disabled = false;
+    pasteBtn.disabled = true;
 
     const taskCount = parseInt(config.taskId.split("-")[1]);
     if (!isGenTask) {
@@ -182,6 +191,16 @@ function getStones (isBase) {
   return(stones);
 }
 
+function copyText (id) {
+  textSelection = document.getElementById(id).value;
+}
+
+function pasteText (id) {
+  const textArea = document.getElementById(id);
+  let text = textArea.value;
+  text = text + " " + textSelection;
+  textArea.value = text;
+}
 
 function sampleStone (isBase = true) {
   let stoneStyle = '';
@@ -294,6 +313,8 @@ function createTextInputPanel (config, display = "none") {
 
   const buttonGroup = createCustomElement("div", "button-group", `${config.taskId}-button-group`);
   buttonGroup.append(createBtn(`${config.taskId}-input-next-btn`, "Next", (mode === "dev")? true: false));
+  buttonGroup.append(createBtn(`${config.taskId}-copy-btn`, "Copy", false));
+  buttonGroup.append(createBtn(`${config.taskId}-paste-btn`, "Paste", true));
 
   // taskBox.append(instructionPan);
   taskBox.append(displayBox);

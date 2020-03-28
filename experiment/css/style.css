@@ -81,7 +81,7 @@ h4 {
   margin: auto;
   display: flex;
   flex-direction: row;
-  justify-content: center;
+  justify-content: flex-start;
   align-items: center;
 }
 
@@ -215,7 +215,7 @@ h4 {
 }
 
 .input-form textarea {
-  height: 50px;
+  height: 40px;
   width: 90%;
 }
 

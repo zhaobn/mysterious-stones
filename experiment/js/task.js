@@ -73,15 +73,31 @@ function createTaskBox (config, display = "none") {
   if (isGenTask) {
     const recordPan = createCustomElement("div", "record-pan", `${config.taskId}-record-pan`);
     recordPan.append(createPanel(config));
+
     taskBox.append(displayBox);
     taskBox.append(recordPan);
     taskBox.append(buttonGroup);
+
   } else {
     taskBox.append(displayBox);
     taskBox.append(buttonGroup);
   }
 
   box.append(taskBox);
+
+  if (isGenTask) {
+    const feedbackPass = createCustomElement("div", "feedback-true", `${config.taskId}-true-text`);
+    feedbackPass.append(document.createTextNode("Correct! See above for the effects summary."))
+    feedbackPass.style.display = "none";
+
+    const feedbackFail = createCustomElement("div", "feedback-false", `${config.taskId}-false-text`);
+    feedbackFail.append(document.createTextNode("Wrong! See above for the real effects summary."));
+    feedbackFail.style.display = "none";
+
+    box.append(feedbackPass);
+    box.append(feedbackFail);
+  }
+
   box.append(createTextInputPanel(config, (mode === "dev")? "flex": "none"));
 
   document.body.append(box);
@@ -89,7 +105,6 @@ function createTaskBox (config, display = "none") {
 
   /** Button functionalities */
   const playBtn = document.getElementById(`${config.taskId}-play-btn`) || null;
-  const checkBtn = document.getElementById(`${config.taskId}-check-btn`) || null;
   const inputForm = document.getElementById(`${config.taskId}-input-form`);
   const inputNextBtn = document.getElementById(`${config.taskId}-input-next-btn`);
 
@@ -105,16 +120,13 @@ function createTaskBox (config, display = "none") {
         }, 1000);
       }, 5000);
     }
-  } else {
-    checkBtn.onclick = () => {
-      console.log("Clicked")
-    }
   }
 
   inputForm.onchange = () => isFilled(`${config.taskId}-input-form`)? inputNextBtn.disabled = false: null;
 
   inputNextBtn.onclick= () => {
-    ltData = saveFormData(config, ltData);
+    inputNextBtn.disabled = true;
+    (isGenTask)? gtData = saveFormData(config, gtData) : ltData = saveFormData(config, ltData);
     disableFormInputs(`${config.taskId}-input-form`);
 
     const taskCount = parseInt(config.taskId.split("-")[1]);
@@ -397,18 +409,11 @@ function createPanel(config) {
     clicks.push(clicked);
 
     let checkBtn = document.getElementById(`${taskId}-check-btn`);
-    checkBtn.disabled = false;
+    if (document.getElementById(`${config.taskId}-input`).style.display === 'none') {
+      checkBtn.disabled = false;
+    }
     checkBtn.onclick = () => checkSelection(config, clicked.stone);
-    // let idx = parseInt(trial.taskId.slice(5,)) - 1;
-    // //taskData.trial[idx] = idx + 1;
-    // taskData.selection[idx] = readStone(tbId);
-    // taskData.ts[idx] = Date.now();
-    // taskData.clicks[idx] = clicks;
-    // trialData[taskId].selection = clicked;
-    // trialData[taskId].clicks.push(clicked);
-    // sessionStorage.setItem('taskData', JSON.stringify(taskData))
     styleClicked(tbId);
-    //document.getElementById('next-one-btn').disabled = false;
   }
 
   for(let i = 0; i < nrow; i++){
@@ -447,24 +452,19 @@ function hover (tbid, selected) {
 }
 
 function checkSelection (config, selection) {
-  const isTraining = config.taskId.split('-')[0] === "learn";
-  const selected = selection.split("-").slice(2,).join("-");
+  const selected = selection.split("-").slice(3,).join("-");
   const pass = matchSelections(config.result, selected);
 
-  console.log(pass);
+  const passTextDiv = document.getElementById(`${config.taskId}-${pass}-text`);
+  passTextDiv.style.display = "block";
 
-  // const passTextDiv = document.getElementById(`${config.taskId}-${pass}-text`);
-  // passTextDiv.style.display = "block";
-
-  // if (pass || (!pass && !isTraining)) {
-  //   document.getElementById(`${config.taskId}-next-btn`).disabled = false;
-  // } else {
-  //   document.getElementById(`${config.taskId}-check-btn`).disabled = true;
-  // }
-
-  // if (isTraining || (!isTraining && pass)) {
-  //   setTimeout(() => passTextDiv.style.display = "none", 3000)
-  // }
+  document.getElementById(`${config.taskId}-check-btn`).disabled = true;
+  clearElements(config);
+  setTimeout(() => {
+    let displayBox = document.getElementById(`${config.taskId}-display-box`);
+    displayBox = createSummaryStones(config, displayBox);
+    showNext(`${config.taskId}-input`);
+  }, 1000)
 }
 
 function matchSelections (stone1, stone2) {
@@ -586,7 +586,6 @@ function saveFormData(config, dataObj) {
       dataObj["confidence"].push(field.value);
     }
   })
-  console.log(dataObj);
   return(dataObj);
 }
 

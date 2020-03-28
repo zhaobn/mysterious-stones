@@ -1,6 +1,6 @@
 
 /** Settings */
-const mode = "dev"; // "dev" enables developing mode
+const mode = ""; // "dev" enables developing mode
 
 const useNewFeatures = true;
 const useGroundTruth = true;
@@ -14,7 +14,7 @@ const colorDict = {
   "light_3": 'limegreen',
 }
 
-const basePatterns = [ 'plain', 'lt', 'rt'];
+const basePatterns = [ 'plain', 'lt', 'rt' ];
 const allPatterns = [ 'lt', 'rt', 'ht', 'vt', 'plain' ];
 
 const baseColors = [ "dark_1", "light_1", "dark_2", "light_2" ];

@@ -1,14 +1,12 @@
 
-const mode = "" // set to '' for prod
+const mode = "dev" // set to '' for prod
 
 /** Configurations */
 const colorDict = {
-  "dark_1": 'darkred',
-  "dark_2": 'navy',
-  "dark_3": 'darkolivegreen',
-  "light_1": 'plum',
-  "light_2": 'cornflowerblue',
-  "light_3": 'limegreen',
+  "dark_1": '#EF6C00',
+  "dark_2": '#558B2F',
+  "light_1": '#FF9800',
+  "light_2": '#8BC34A',
 }
 
 const basePatterns = [ 'plain', 'lt', 'rt' ];

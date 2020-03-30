@@ -306,13 +306,18 @@ function createTextInputPanel (config, display = "none") {
       <li>Refer to object properties using <b>dark/pale</b>, <b>red</b>, <b>blue</b>, <b>plain</b>, <b>left stripes</b>, <b>right stripes</b>.</li>
     </ul>
     `
+  const editBtns = createCustomElement("div", "edit-buttons", `${config.taskId}-edit-btns`);
+  editBtns.append(createBtn(`${config.taskId}-copy-btn`, "Copy", false));
+  editBtns.append(createBtn(`${config.taskId}-paste-btn`, "Paste", true));
+
   const displayBox = createCustomElement("div", "input-box", `${config.taskId}-input-box`);
   displayBox.append(createInputForm(config));
+  displayBox.append(editBtns);
 
   const buttonGroup = createCustomElement("div", "button-group", `${config.taskId}-button-group`);
   buttonGroup.append(createBtn(`${config.taskId}-input-next-btn`, "Next", (mode === "dev")? true: false));
-  buttonGroup.append(createBtn(`${config.taskId}-copy-btn`, "Copy", false));
-  buttonGroup.append(createBtn(`${config.taskId}-paste-btn`, "Paste", true));
+  // buttonGroup.append(createBtn(`${config.taskId}-copy-btn`, "Copy", false));
+  // buttonGroup.append(createBtn(`${config.taskId}-paste-btn`, "Paste", true));
 
   // taskBox.append(instructionPan);
   taskBox.append(displayBox);
@@ -428,6 +433,7 @@ function createPanel(config) {
     clicks.push(clicked);
 
     let checkBtn = document.getElementById(`${taskId}-check-btn`);
+    console.log(checkBtn.style.display)
     if (document.getElementById(`${config.taskId}-input`).style.display === 'none') {
       checkBtn.disabled = false;
     }

@@ -1,5 +1,5 @@
 
-const mode = ""; // set to '' for prod
+const mode = "dev"; // set to '' for prod
 /** Rules
  * 1. 'rand': random;
  * 2. 'pat': patterned agent makes the recipient the same as the agent.
@@ -24,9 +24,13 @@ const baseStones = getStones(true);
 const allStones = getStones(false);
 
 const nLearnTasks = 1;
-const learnTaskConfigs = Array.from(Array(nLearnTasks).keys()).map(k => getTaskConfigs(k+1), "learn");
+const learnTaskConfigs = Array.from(Array(nLearnTasks).keys()).map(k => getTaskConfigs(k+1, "learn"));
 
-const nGenTasks = 20; // gen := generalization
+const nTestTasks = 3;
+const testTaskConfigs = Array.from(Array(nTestTasks).keys()).map(k => getTaskConfigs(k+1, "test"));
+console.log(testTaskConfigs);
+
+const nGenTasks = 10; // gen := generalization
 const genTaskConfigs = Array.from(Array(nGenTasks).keys()).map(k => getTaskConfigs(k+1, "gen"));
 
 let ltData = initDataFile(learnTaskConfigs); // lt := learning tasks
@@ -36,13 +40,19 @@ let textSelection = '';
 
 /** Main body */
 document.body.append(createCustomElement("div", "section-page", "show-learning-phase"));
-document.getElementById("show-learning-phase").append(createText("h1", "Experiment starts"))
+document.getElementById("show-learning-phase").append(createText("h1", "Experiment starts"));
+
+document.body.append(createCustomElement("div", "section-page", "show-test-phase"));
+document.getElementById("show-test-phase").append(createText("h1", "Tests"));
+document.getElementById("show-test-phase").style.display = "none";
+
 document.body.append(createCustomElement("div", "section-page", "show-gen-phase"));
 document.getElementById("show-gen-phase").append(createText("h1", "Generalization tasks"));
 document.getElementById("show-gen-phase").style.display = "none";
 
 // createTaskBox(genTaskConfigs[0]);
 for(let i = 0; i < nLearnTasks; i++ ) createTaskBox(learnTaskConfigs[i], "none");
+// for(let i = 0; i < nTestTasks; i++ ) createTaskBox(testTaskConfigs[i], "flex");
 for(let i = 0; i < nGenTasks; i++ ) createTaskBox(genTaskConfigs[i], "none");
 
 setTimeout(() => {
@@ -68,27 +78,43 @@ function createSummaryStones(config, parentDiv) {
   return(parentDiv);
 }
 
+
 function createTaskBox (config, display = "none") {
   const isGenTask = config.taskId.split('-')[0] === "gen";
-  let taskIdx = parseInt(config.taskId.split('-')[1]);
-  taskIdx = isGenTask? fmtTaskIdx(taskIdx + nLearnTasks): fmtTaskIdx(taskIdx);
+  const taskType = config.type;
+  const index = config.index;
+  const taskId = config.taskId;
 
-  let box = createCustomElement("div", "box", `box-${config.taskId}`);
-  box.append(createText('h1', `${taskIdx}/${nLearnTasks+nGenTasks}`));
+  let taskIdx = index;
+  switch (taskType) {
+    case 'learn':
+      taskIdx = index;
+      break;
+    case 'test':
+      taskIdx = index + nLearnTasks;
+      break;
+    case 'gen':
+      taskIdx = index + nLearnTasks + nTestTasks;
+      break;
+  }
 
-  let taskBox = createCustomElement("div", "task-box", `taskbox-${config.taskId}`);
-  let displayBox = createCustomElement("div", "display-box", `${config.taskId}-display-box`);
+  let box = createCustomElement("div", "box", `box-${taskId}`);
+  // box.append(createText('h1', `${fmtTaskIdx(taskIdx)}`));
+  box.append(createText('h1', `${fmtTaskIdx(taskIdx)}/${nLearnTasks + nTestTasks + nGenTasks}`));
+
+  let taskBox = createCustomElement("div", "task-box", `taskbox-${taskId}`);
+  let displayBox = createCustomElement("div", "display-box", `${taskId}-display-box`);
   displayBox = createInitStones(config, displayBox);
 
-  const buttonGroup = createCustomElement("div", "button-group", `${config.taskId}-button-group`);
+  const buttonGroup = createCustomElement("div", "button-group", `${taskId}-button-group`);
   if (isGenTask) {
-    buttonGroup.append(createBtn(`${config.taskId}-check-btn`, "Check", false))
+    buttonGroup.append(createBtn(`${taskId}-check-btn`, "Check", false))
   } else {
-    buttonGroup.append(createBtn(`${config.taskId}-play-btn`, "Play", true))
+    buttonGroup.append(createBtn(`${taskId}-play-btn`, "Play", true))
   }
 
   if (isGenTask) {
-    const recordPan = createCustomElement("div", "record-pan", `${config.taskId}-record-pan`);
+    const recordPan = createCustomElement("div", "record-pan", `${taskId}-record-pan`);
     recordPan.append(createPanel(config));
 
     taskBox.append(displayBox);
@@ -103,11 +129,11 @@ function createTaskBox (config, display = "none") {
   box.append(taskBox);
 
   if (isGenTask) {
-    const feedbackPass = createCustomElement("div", "feedback-true", `${config.taskId}-true-text`);
+    const feedbackPass = createCustomElement("div", "feedback-true", `${taskId}-true-text`);
     feedbackPass.append(document.createTextNode("Correct! See above for the effects summary."))
     feedbackPass.style.display = "none";
 
-    const feedbackFail = createCustomElement("div", "feedback-false", `${config.taskId}-false-text`);
+    const feedbackFail = createCustomElement("div", "feedback-false", `${taskId}-false-text`);
     feedbackFail.append(document.createTextNode("Wrong! See above for the real effects summary."));
     feedbackFail.style.display = "none";
 
@@ -121,14 +147,14 @@ function createTaskBox (config, display = "none") {
   box.style.display = display;
 
   /** Button functionalities */
-  const playBtn = document.getElementById(`${config.taskId}-play-btn`) || null;
-  const inputForm = document.getElementById(`${config.taskId}-input-form`);
-  const copyBtn = document.getElementById(`${config.taskId}-copy-btn`);
-  const pasteBtn = document.getElementById(`${config.taskId}-paste-btn`);
-  const inputNextBtn = document.getElementById(`${config.taskId}-input-next-btn`);
+  const playBtn = document.getElementById(`${taskId}-play-btn`) || null;
+  const inputForm = document.getElementById(`${taskId}-input-form`);
+  const copyBtn = document.getElementById(`${taskId}-copy-btn`);
+  const pasteBtn = document.getElementById(`${taskId}-paste-btn`);
+  const inputNextBtn = document.getElementById(`${taskId}-input-next-btn`);
 
-  copyBtn.onclick = () => copyText(`${config.taskId}-input-1`);
-  pasteBtn.onclick = () => pasteText(`${config.taskId}-input-1`);
+  copyBtn.onclick = () => copyText(`${taskId}-input-1`);
+  pasteBtn.onclick = () => pasteText(`${taskId}-input-1`);
 
   if (!isGenTask) {
     playBtn.onclick = () => {
@@ -138,22 +164,22 @@ function createTaskBox (config, display = "none") {
         clearElements(config);
         setTimeout(() => {
           displayBox = createSummaryStones(config, displayBox);
-          showNext(`${config.taskId}-input`);
+          showNext(`${taskId}-input`);
         }, 1000);
       }, 5000);
     }
   }
 
-  inputForm.onchange = () => isFilled(`${config.taskId}-input-form`)? inputNextBtn.disabled = false: null;
+  inputForm.onchange = () => isFilled(`${taskId}-input-form`)? inputNextBtn.disabled = false: null;
 
   inputNextBtn.onclick= () => {
     inputNextBtn.disabled = true;
     (isGenTask)? gtData = saveFormData(config, gtData) : ltData = saveFormData(config, ltData);
-    disableFormInputs(`${config.taskId}-input-form`);
+    disableFormInputs(`${taskId}-input-form`);
     copyBtn.disabled = false;
     pasteBtn.disabled = true;
 
-    const taskCount = parseInt(config.taskId.split("-")[1]);
+    const taskCount = parseInt(taskId.split("-")[1]);
     if (!isGenTask) {
       if(taskCount < nLearnTasks) {
         showNext(`box-learn-${fmtTaskIdx(taskCount+1)}`)
@@ -187,6 +213,8 @@ function getTaskConfigs(counter = 1, type = "learn") {
   let configs = {};
 
   configs["taskId"] = type + "-" + fmtTaskIdx(counter);
+  configs["type"] = type;
+  configs["index"] = counter;
   configs["agent"] = sampleStone();
   configs["recipient"] = sampleStone();
   configs["result"] = setRules(configs["agent"], configs["recipient"], useRule);

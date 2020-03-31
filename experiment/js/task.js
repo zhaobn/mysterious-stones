@@ -505,6 +505,7 @@ function createStones (config) {
 
 function createInputForm(config) {
   let form = createCustomElement("form", "input-form", `${config.taskId}-input-form`);
+  const placeholderText = `Please refer to objects as agent, recipient, result; please refer to properties using plain, stripes, and directions.`
   const options = `
     <option value="--" SELECTED>
     <option value="10">10 - Very certain</option>
@@ -520,9 +521,9 @@ function createInputForm(config) {
     <option value="0">0 - Not sure at all</option>
   `
   form.innerHTML = `
-    <p>What do you think is the cause of this observation?</p>
-    <textarea name="${config.taskId}-input-1" id="${config.taskId}-input-1" placeholder="Please type here"></textarea>
-    <p>How certain are you with this?
+    <p>Such effect is probably because</p>
+    <textarea name="${config.taskId}-input-1" id="${config.taskId}-input-1" placeholder="${placeholderText}"></textarea>
+    <p>How certain are you?
       <select id="${config.taskId}-input-1-certainty" name="${config.taskId}-input-1-certainty" class="input-rule">
         ${options}
       </select>

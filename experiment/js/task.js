@@ -1,11 +1,12 @@
 
-const mode = "debug"; // dev: show all tasks, debug: skip inputs, prod: final
+const mode = "dev"; // dev: show all tasks, debug: skip inputs, prod: final
 /** Rules
  * 1. 'rand': random;
  * 2. 'pat': patterned agent makes the recipient the same as the agent.
  * 3. 'flip': patterned agent flips recipient pattern or darkness (if not patterned).
  */
-const useRule = "pat";
+const rule = "pat";
+const sequence = "near";
 
 /** Configurations */
 const colorDict = {
@@ -20,17 +21,58 @@ const allPatterns = [ 'lt', 'rt', 'ht', 'vt', 'plain' ];
 
 const baseColors = [ "dark_1", "light_1", "dark_2", "light_2" ];
 
+const learningTasks = [
+  [ "lt-light_1-light_2", "lt-light_1-light_2" ],
+  [ "lt-light_2-dark_1", "rt-dark_1-dark_2" ],
+  [ "lt-light_1-dark_1", "plain-light_1" ],
+  [ "rt-light_2-dark_1", "lt-light_1-dark_2" ],
+  [ "rt-light_1-light_2", "rt-light_2-dark_1" ],
+  [ "rt-light_2-dark_1", "plain-dark_2" ],
+  [ "plain-light_1", "lt-light_1-light_2" ],
+  [ "plain-dark_2", "rt-light_1-light_2" ],
+  [ "plain-light_2", "plain-dark_1" ],
+];
+
+const testTasks = [
+  [ "lt-light_2-dark_2", "plain-light_2" ],
+  [ "plain-dark_1", "rt-dark_1-dark_2" ],
+  [ "rt-light_1-light_2", "rt-light_1-dark_1" ],
+];
+
+const genTasks = [
+  [ "vt-light_1-light_2", "vt-dark_1-dark_2" ],
+  [ "ht-light_2-dark_1", "plain-dark_1" ],
+  [ "ht-light_1-dark_1", "ht-light_1-dark_1" ],
+  [ "vt-light_2-dark_1", "lt-light_1-light_2" ],
+  [ "vt-light_1-light_2", "plain-dark_1" ],
+  [ "ht-light_2-dark_1", "vt-dark_2-light_2" ],
+  [ "plain-light_1", "ht-light_2-dark_1" ],
+  [ "plain-dark_2", "vt-light_1-light_2" ],
+  [ "plain-light_2", "vt-dark_1-dark_2" ],
+];
+
+
 const baseStones = getStones(true);
 const allStones = getStones(false);
 
-const nLearnTasks = 10;
-const learnTaskConfigs = Array.from(Array(nLearnTasks).keys()).map(k => getTaskConfigs(k+1, "learn"));
+const learnTaskConfigs = configTaskSequence('learn', rule, sequence, learningTasks);
+const nLearnTasks = learnTaskConfigs.length;
 
-const nTestTasks = 3;
-const testTaskConfigs = Array.from(Array(nTestTasks).keys()).map(k => getTaskConfigs(k+1, "test"));
+const testTaskConfigs = configTaskSequence('test', rule, 'near', testTasks);
+const nTestTasks = testTaskConfigs.length;
 
-const nGenTasks = 10; // gen := generalization
-const genTaskConfigs = Array.from(Array(nGenTasks).keys()).map(k => getTaskConfigs(k+1, "gen"));
+const genTaskConfigs = configTaskSequence('gen', rule, sequence, genTasks);
+const nGenTasks = genTaskConfigs.length;
+
+
+// const nLearnTasks = 2;
+// const learnTaskConfigs = Array.from(Array(nLearnTasks).keys()).map(k => getTaskConfigs(k+1, "learn"));
+
+// const nTestTasks = 3;
+// const testTaskConfigs = Array.from(Array(nTestTasks).keys()).map(k => getTaskConfigs(k+1, "test"));
+
+// const nGenTasks = 4; // gen := generalization
+// const genTaskConfigs = Array.from(Array(nGenTasks).keys()).map(k => getTaskConfigs(k+1, "gen"));
 
 let ltData = initDataFile(learnTaskConfigs); // lt := learning tasks
 let gtData = initDataFile(genTaskConfigs); // gt := generalization tasks
@@ -238,7 +280,7 @@ function getTaskConfigs(counter = 1, type = "learn") {
   configs["index"] = counter;
   configs["agent"] = sampleStone();
   configs["recipient"] = sampleStone();
-  configs["result"] = setRules(configs["agent"], configs["recipient"], useRule);
+  configs["result"] = setRules(configs["agent"], configs["recipient"], rule);
 
   return(configs);
 }
@@ -392,8 +434,7 @@ function createTextInputPanel (config, display = "none") {
     `
   const editBtns = createCustomElement("div", "edit-buttons", `${config.taskId}-edit-btns`);
   editBtns.append(createBtn(`${config.taskId}-copy-btn`, "Copy", false));
-  editBtns.append(createBtn(`${config.taskId}-paste-btn`, "Paste",
-    (config.type === "learn" && config.index === 1)? false : true));
+  editBtns.append(createBtn(`${config.taskId}-paste-btn`, "Paste", (config.index === 1)? false : true));
 
   const displayBox = createCustomElement("div", "input-box", `${config.taskId}-input-box`);
   displayBox.append(createInputForm(config));
@@ -496,9 +537,9 @@ function createPanel(config) {
   let clicks = [];
   let tbs = [];
 
-  stones = baseStones;
-  nrow = 4;
-  ncol = 4;
+  stones = (config.type === 'gen') ? allStones : baseStones;
+  nrow = (config.type === 'gen') ? 5 : 4;
+  ncol = (config.type === 'gen') ? 6 : 4;
 
   let tbl = createCustomElement("table", 'selection-panel', `${taskId}-panel`);
 
@@ -703,4 +744,49 @@ function disableFormInputs (formId) {
   const form = document.getElementById(formId);
   const inputs = form.elements;
   (Object.keys(inputs)).forEach((input) => inputs[input].disabled = true);
+}
+
+// function shuffleArray(array, opt='') {
+//   if (opt === 'random') {
+//       for (let i = array.length - 1; i > 0; i--) {
+//           const j = Math.floor(Math.random() * (i + 1));
+//           [array[i], array[j]] = [array[j], array[i]];
+//       }
+//   } else if (opt === 'reverse') {
+//       array = array.reverse();
+//   }
+//   return array;
+// }
+
+function configTask (pairOfStones, rule = 'rand') {
+  let taskConfig = {};
+  taskConfig['agent'] = pairOfStones[0];
+  taskConfig['recipient'] = pairOfStones[1];
+  taskConfig['result'] = setRules(taskConfig['agent'], taskConfig['recipient'], rule);
+  taskConfig['configId'] = pairOfStones[2];
+  return(taskConfig);
+}
+
+function configTaskSequence (taskType, rule, condition, configs) {
+  let tasks = [];
+  // Add configId before shuffling
+  configs.map((cfg, idx) => cfg.push(`${taskType}-config-${fmtTaskIdx(idx + 1)}`));
+  // Reverse task sequence for far-transfer condition
+  if (condition === 'far') {
+    let reversedTasks = [];
+    reversedTasks.push(configs.shift());
+    left = configs.reverse();
+    reversedTasks = reversedTasks.concat(left);
+    configs = reversedTasks;
+  }
+  // Put into the correct format
+  configs.forEach((cfg, idx) => {
+    let config = {};
+    config = configTask(cfg, rule);
+    config["index"] = idx + 1;
+    config['type'] = taskType;
+    config['taskId'] =  `${config.type}-${fmtTaskIdx(config.index)}`;
+    tasks.push(config);
+  })
+  return(tasks);
 }

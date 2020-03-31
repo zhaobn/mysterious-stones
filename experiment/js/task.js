@@ -39,26 +39,33 @@ let gtData = initDataFile(genTaskConfigs); // gt := generalization tasks
 let textSelection = '';
 
 /** Main body */
-document.body.append(createCustomElement("div", "section-page", "show-learning-phase"));
-document.getElementById("show-learning-phase").append(createText("h1", "Experiment starts"));
+if (mode !== "dev") {
+  document.body.append(createCustomElement("div", "section-page", "show-learning-phase"));
+  document.getElementById("show-learning-phase").append(createText("h1", "Experiment starts"));
 
-document.body.append(createCustomElement("div", "section-page", "show-test-phase"));
-document.getElementById("show-test-phase").append(createText("h1", "Tests"));
-document.getElementById("show-test-phase").style.display = "none";
+  document.body.append(createCustomElement("div", "section-page", "show-test-phase"));
+  document.getElementById("show-test-phase").append(createText("h1", "Tests"));
+  document.getElementById("show-test-phase").style.display = "none";
 
-document.body.append(createCustomElement("div", "section-page", "show-gen-phase"));
-document.getElementById("show-gen-phase").append(createText("h1", "Generalization tasks"));
-document.getElementById("show-gen-phase").style.display = "none";
+  document.body.append(createCustomElement("div", "section-page", "show-gen-phase"));
+  document.getElementById("show-gen-phase").append(createText("h1", "Generalization tasks"));
+  document.getElementById("show-gen-phase").style.display = "none";
+}
 
 // createTaskBox(genTaskConfigs[0]);
-for(let i = 0; i < nLearnTasks; i++ ) createTaskBox(learnTaskConfigs[i], "none");
-// for(let i = 0; i < nTestTasks; i++ ) createTaskBox(testTaskConfigs[i], "flex");
+for(let i = 0; i < nLearnTasks; i++ ) {
+  createTaskBox(learnTaskConfigs[i],
+    (mode === "dev")? ((i < 1)? "flex" : "none") : "none");
+}
+for(let i = 0; i < nTestTasks; i++ ) createTaskBox(testTaskConfigs[i], "flex");
 for(let i = 0; i < nGenTasks; i++ ) createTaskBox(genTaskConfigs[i], "none");
 
-setTimeout(() => {
-  document.getElementById("show-learning-phase").style.display = "none";
-  document.getElementById("box-learn-01").style.display = "flex";
-}, 2000);
+if (mode !== "dev") {
+  setTimeout(() => {
+    document.getElementById("show-learning-phase").style.display = "none";
+    document.getElementById("box-learn-01").style.display = "flex";
+  }, 2000);
+}
 
 /** functions */
 function createInitStones(config, parentDiv) {
@@ -80,40 +87,39 @@ function createSummaryStones(config, parentDiv) {
 
 
 function createTaskBox (config, display = "none") {
-  const isGenTask = config.taskId.split('-')[0] === "gen";
   const taskType = config.type;
-  const index = config.index;
   const taskId = config.taskId;
 
-  let taskIdx = index;
+  let index = config.index;
   switch (taskType) {
     case 'learn':
-      taskIdx = index;
+      index = index;
       break;
     case 'test':
-      taskIdx = index + nLearnTasks;
+      index = index + nLearnTasks;
       break;
     case 'gen':
-      taskIdx = index + nLearnTasks + nTestTasks;
+      index = index + nLearnTasks + nTestTasks;
       break;
   }
 
   let box = createCustomElement("div", "box", `box-${taskId}`);
-  // box.append(createText('h1', `${fmtTaskIdx(taskIdx)}`));
-  box.append(createText('h1', `${fmtTaskIdx(taskIdx)}/${nLearnTasks + nTestTasks + nGenTasks}`));
+  box.append(createText('h1', `
+    ${mode === 'dev'? "["+ taskType + "]": ''}
+    ${fmtTaskIdx(index)}/${nLearnTasks + nTestTasks + nGenTasks}`));
 
   let taskBox = createCustomElement("div", "task-box", `taskbox-${taskId}`);
   let displayBox = createCustomElement("div", "display-box", `${taskId}-display-box`);
   displayBox = createInitStones(config, displayBox);
 
   const buttonGroup = createCustomElement("div", "button-group", `${taskId}-button-group`);
-  if (isGenTask) {
+  if (taskType !== "learn") {
     buttonGroup.append(createBtn(`${taskId}-check-btn`, "Check", false))
   } else {
     buttonGroup.append(createBtn(`${taskId}-play-btn`, "Play", true))
   }
 
-  if (isGenTask) {
+  if (taskType !== "learn") {
     const recordPan = createCustomElement("div", "record-pan", `${taskId}-record-pan`);
     recordPan.append(createPanel(config));
 
@@ -128,7 +134,7 @@ function createTaskBox (config, display = "none") {
 
   box.append(taskBox);
 
-  if (isGenTask) {
+  if (taskType !== "learn") {
     const feedbackPass = createCustomElement("div", "feedback-true", `${taskId}-true-text`);
     feedbackPass.append(document.createTextNode("Correct! See above for the effects summary."))
     feedbackPass.style.display = "none";
@@ -156,7 +162,7 @@ function createTaskBox (config, display = "none") {
   copyBtn.onclick = () => copyText(`${taskId}-input-1`);
   pasteBtn.onclick = () => pasteText(`${taskId}-input-1`);
 
-  if (!isGenTask) {
+  if (taskType === "learn") {
     playBtn.onclick = () => {
       playBtn.disabled = true;
       playEffects(config);
@@ -174,23 +180,26 @@ function createTaskBox (config, display = "none") {
 
   inputNextBtn.onclick= () => {
     inputNextBtn.disabled = true;
-    (isGenTask)? gtData = saveFormData(config, gtData) : ltData = saveFormData(config, ltData);
+    (taskType === "gen")? gtData = saveFormData(config, gtData) : ltData = saveFormData(config, ltData);
     disableFormInputs(`${taskId}-input-form`);
     copyBtn.disabled = false;
     pasteBtn.disabled = true;
 
     const taskCount = parseInt(taskId.split("-")[1]);
-    if (!isGenTask) {
+    if (taskType === "learn") {
       if(taskCount < nLearnTasks) {
         showNext(`box-learn-${fmtTaskIdx(taskCount+1)}`)
       } else {
-        // showNext(`box-gen-01`)
-        for(let i = 0; i < nLearnTasks; i ++) document.getElementById(`box-learn-${fmtTaskIdx(i+1)}`).style.display = "none";
-        document.getElementById("show-gen-phase").style.display = "block";
-        setTimeout(() => {
-          document.getElementById("show-gen-phase").style.display = "none";
-          document.getElementById("box-gen-01").style.display = "flex";
-        }, 2000);
+        if (mode === 'dev') {
+          showNext(`box-gen-01`)
+        } else {
+          for(let i = 0; i < nLearnTasks; i ++) document.getElementById(`box-learn-${fmtTaskIdx(i+1)}`).style.display = "none";
+          document.getElementById("show-gen-phase").style.display = "block";
+          setTimeout(() => {
+            document.getElementById("show-gen-phase").style.display = "none";
+            document.getElementById("box-gen-01").style.display = "flex";
+          }, 2000);
+        }
       }
     } else {
       if(taskCount < nGenTasks) {

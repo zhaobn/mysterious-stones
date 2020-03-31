@@ -1,5 +1,11 @@
 
-const mode = "dev" // set to '' for prod
+const mode = ""; // set to '' for prod
+/** Rules
+ * 1. 'rand': random;
+ * 2. 'pat': patterned agent makes the recipient the same as the agent.
+ * 3. 'flip': patterned agent flips recipient pattern or darkness (if not patterned).
+ */
+const useRule = "pat";
 
 /** Configurations */
 const colorDict = {
@@ -29,9 +35,20 @@ let gtData = initDataFile(genTaskConfigs); // gt := generalization tasks
 let textSelection = '';
 
 /** Main body */
+document.body.append(createCustomElement("div", "section-page", "show-learning-phase"));
+document.getElementById("show-learning-phase").append(createText("h1", "Experiment starts"))
+document.body.append(createCustomElement("div", "section-page", "show-gen-phase"));
+document.getElementById("show-gen-phase").append(createText("h1", "Generalization tasks"));
+document.getElementById("show-gen-phase").style.display = "none";
+
 // createTaskBox(genTaskConfigs[0]);
-for(let i = 0; i < nLearnTasks; i++ ) createTaskBox(learnTaskConfigs[i], (i === 0)? "flex" : "none");
+for(let i = 0; i < nLearnTasks; i++ ) createTaskBox(learnTaskConfigs[i], "none");
 for(let i = 0; i < nGenTasks; i++ ) createTaskBox(genTaskConfigs[i], "none");
+
+setTimeout(() => {
+  document.getElementById("show-learning-phase").style.display = "none";
+  document.getElementById("box-learn-01").style.display = "flex";
+}, 2000);
 
 /** functions */
 function createInitStones(config, parentDiv) {
@@ -141,7 +158,13 @@ function createTaskBox (config, display = "none") {
       if(taskCount < nLearnTasks) {
         showNext(`box-learn-${fmtTaskIdx(taskCount+1)}`)
       } else {
-        showNext(`box-gen-01`)
+        // showNext(`box-gen-01`)
+        for(let i = 0; i < nLearnTasks; i ++) document.getElementById(`box-learn-${fmtTaskIdx(i+1)}`).style.display = "none";
+        document.getElementById("show-gen-phase").style.display = "block";
+        setTimeout(() => {
+          document.getElementById("show-gen-phase").style.display = "none";
+          document.getElementById("box-gen-01").style.display = "flex";
+        }, 2000);
       }
     } else {
       if(taskCount < nGenTasks) {
@@ -166,7 +189,7 @@ function getTaskConfigs(counter = 1, type = "learn") {
   configs["taskId"] = type + "-" + fmtTaskIdx(counter);
   configs["agent"] = sampleStone();
   configs["recipient"] = sampleStone();
-  configs["result"] = setRules(configs["agent"], configs["recipient"])
+  configs["result"] = setRules(configs["agent"], configs["recipient"], useRule);
 
   return(configs);
 }
@@ -219,47 +242,59 @@ function sampleStone (isBase = true) {
 }
 
 /** Rules
- * Agent has pattern: flip recipient pattern or color (dark - light);
- * Agent has no pattern: nothing changes.
+ * 1. 'rand': random;
+ * 2. 'pat': patterned agent makes the recipient the same as the agent.
+ * 3. 'flip': patterned agent flips recipient pattern or darkness (if not patterned).
  */
-function setRules (agent, recipient) {
-  let result = []
+function setRules (agent, recipient, ruleNumber = "rand") {
+  let resultStone = '';
+
   const agts = agent.split("-");
   const rcps = recipient.split("-");
 
   const agentPattern = agts.shift();
   const recipientPattern = rcps.shift();
 
-  if (agentPattern !== 'plain') {
-    if (recipientPattern !== 'plain') {
-      switch(recipientPattern) {
-        case 'lt':
-          result.push('rt');
-          break;
-        case 'rt':
-          result.push('lt');
-          break;
-        case 'vt':
-          result.push('ht');
-          break;
-        case 'ht':
-          result.push('vt');
-          break;
+  if (ruleNumber === 'rand') {
+    resultStone = sampleStone();
+
+  } else if (ruleNumber === 'pat') {
+    resultStone = (agentPattern !== 'plain')? agent : recipient;
+
+  } else if (ruleNumber === 'flip') {
+    let result = [];
+    if (agentPattern !== 'plain') {
+      if (recipientPattern !== 'plain') {
+        switch(recipientPattern) {
+          case 'lt':
+            result.push('rt');
+            break;
+          case 'rt':
+            result.push('lt');
+            break;
+          case 'vt':
+            result.push('ht');
+            break;
+          case 'ht':
+            result.push('vt');
+            break;
+        }
+        result.push(rcps[0]);
+        result.push(rcps[1]);
+      } else {
+        result.push("plain");
+        result.push(setDarkness(rcps[0]))
       }
-      result.push(rcps[0]);
-      result.push(rcps[1]);
     } else {
-      result.push("plain");
-      result.push(setDarkness(rcps[0]))
+      result = agent.split("-");
+      // result.push(recipientPattern);
+      // const agentDarkness = agts[0].split('_')[0];
+      // result.push(setDarkness(rcps[0],agentDarkness ));
+      // (recipientPattern !== "plain")? result.push(setDarkness(rcps[1], agentDarkness)) : null;
     }
-  } else {
-    result = agent.split("-");
-    // result.push(recipientPattern);
-    // const agentDarkness = agts[0].split('_')[0];
-    // result.push(setDarkness(rcps[0],agentDarkness ));
-    // (recipientPattern !== "plain")? result.push(setDarkness(rcps[1], agentDarkness)) : null;
+    resultStone = result.join("-");
   }
-  return result.join("-");
+  return(resultStone);
 }
 
 function setDarkness (str, opt = "flip") {
@@ -433,8 +468,7 @@ function createPanel(config) {
     clicks.push(clicked);
 
     let checkBtn = document.getElementById(`${taskId}-check-btn`);
-    console.log(checkBtn.style.display)
-    if (document.getElementById(`${config.taskId}-input`).style.display === 'none') {
+    if ((document.getElementById(`${config.taskId}-input`).style.display === 'none') || mode === 'dev') {
       checkBtn.disabled = false;
     }
     checkBtn.onclick = () => checkSelection(config, clicked.stone);

@@ -1,5 +1,5 @@
 
-const mode = "dev"; // dev: show all tasks, debug: skip inputs, prod: final
+const mode = "debug"; // dev: show all tasks, debug: skip inputs, prod: final
 /** Rules
  * 1. 'rand': random;
  * 2. 'pat': patterned agent makes the recipient the same as the agent.
@@ -22,8 +22,8 @@ const allPatterns = [ 'lt', 'rt', 'ht', 'vt', 'plain' ];
 const baseColors = [ "dark_1", "light_1", "dark_2", "light_2" ];
 
 const learningTasks = [
-  [ "lt-light_1-light_2", "lt-light_1-light_2" ],
-  [ "lt-light_2-dark_1", "rt-dark_1-dark_2" ],
+  [ "lt-light_1-light_2", "rt-light_1-light_2" ],
+  [ "lt-light_2-dark_1", "lt-dark_1-dark_2" ],
   [ "lt-light_1-dark_1", "plain-light_1" ],
   [ "rt-light_2-dark_1", "lt-light_1-dark_2" ],
   [ "rt-light_1-light_2", "rt-light_2-dark_1" ],
@@ -219,7 +219,7 @@ function createTaskBox (config, display = "none") {
           displayBox = createSummaryStones(config, displayBox);
           showNext(`${taskId}-input`);
         }, 1000);
-      }, 5000);
+      }, 3500);
     }
   }
 

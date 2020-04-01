@@ -10,10 +10,10 @@ const sequence = "near";
 
 /** Configurations */
 const colorDict = {
-  "dark_1": '#EF6C00',
-  "dark_2": '#558B2F',
-  "light_1": '#FF9800',
-  "light_2": '#8BC34A',
+  "dark_1": '#6A1B9A',
+  "dark_2": '#1565C0',
+  "light_1": '#AB47BC',
+  "light_2": '#64B5F6',
 }
 
 const basePatterns = [ 'plain', 'lt', 'rt' ];
@@ -82,14 +82,14 @@ let textSelection = '';
 /** Main body */
 if (mode !== "dev") {
   document.body.append(createCustomElement("div", "section-page", "show-learning-phase"));
-  document.getElementById("show-learning-phase").append(createText("h1", "Experiment starts"));
+  document.getElementById("show-learning-phase").append(createText("h1", "Investigation starts"));
 
   document.body.append(createCustomElement("div", "section-page", "show-test-phase"));
   document.getElementById("show-test-phase").append(createText("h1", "Tests"));
   document.getElementById("show-test-phase").style.display = "none";
 
   document.body.append(createCustomElement("div", "section-page", "show-gen-phase"));
-  document.getElementById("show-gen-phase").append(createText("h1", "Generalization tasks"));
+  document.getElementById("show-gen-phase").append(createText("h1", "With newly-discovered stones"));
   document.getElementById("show-gen-phase").style.display = "none";
 }
 

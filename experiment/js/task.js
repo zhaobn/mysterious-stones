@@ -8,6 +8,10 @@ const mode = "debug"; // dev: show all tasks, debug: skip inputs, prod: final
 const rule = "pat";
 const sequence = "near";
 
+const borderWidth = "8px";
+const mar = 5;
+const len = 80;
+
 /** Configurations */
 const colorDict = {
   "dark_1": '#6A1B9A',
@@ -15,28 +19,27 @@ const colorDict = {
   "light_1": '#AB47BC',
   "light_2": '#64B5F6',
 }
+const allShapes = [
+  "circle",
+  "p_3", // triangular
+  "p_4", // square
+  "p_5", // polygon 5 sides
+  "p_6", // polygon 6 sides
+  "p_7", // 7 sides
+  "p_8", // 8 sides
+]
 
-const basePatterns = [ 'plain', 'lt', 'rt' ];
-const allPatterns = [ 'lt', 'rt', 'ht', 'vt', 'plain' ];
+// const basePatterns = [ 'plain', 'lt', 'rt' ];
+// const allPatterns = [ 'lt', 'rt', 'ht', 'vt', 'plain' ];
 
 const baseColors = [ "dark_1", "light_1", "dark_2", "light_2" ];
 
 const learningTasks = [
   [ "lt-light_1-light_2", "rt-light_1-light_2" ],
-  [ "lt-light_2-dark_1", "lt-dark_1-dark_2" ],
-  [ "lt-light_1-dark_1", "plain-light_1" ],
-  [ "rt-light_2-dark_1", "lt-light_1-dark_2" ],
-  [ "rt-light_1-light_2", "rt-light_2-dark_1" ],
-  [ "rt-light_2-dark_1", "plain-dark_2" ],
-  [ "plain-light_1", "lt-light_1-light_2" ],
-  [ "plain-dark_2", "rt-light_1-light_2" ],
-  [ "plain-light_2", "plain-dark_1" ],
 ];
 
 const testTasks = [
   [ "lt-light_2-dark_2", "plain-light_2" ],
-  [ "plain-dark_1", "rt-dark_1-dark_2" ],
-  [ "rt-light_1-light_2", "rt-light_1-dark_1" ],
 ];
 
 const genTasks = [
@@ -52,17 +55,17 @@ const genTasks = [
 ];
 
 
-const baseStones = getStones(true);
-const allStones = getStones(false);
+const baseStones = getStones();
+// const allStones = getStones(false);
 
-const learnTaskConfigs = configTaskSequence('learn', rule, sequence, learningTasks);
-const nLearnTasks = learnTaskConfigs.length;
+// const learnTaskConfigs = configTaskSequence('learn', rule, sequence, learningTasks);
+// const nLearnTasks = learnTaskConfigs.length;
 
-const testTaskConfigs = configTaskSequence('test', rule, 'near', testTasks);
-const nTestTasks = testTaskConfigs.length;
+// const testTaskConfigs = configTaskSequence('test', rule, 'near', testTasks);
+// const nTestTasks = testTaskConfigs.length;
 
-const genTaskConfigs = configTaskSequence('gen', rule, sequence, genTasks);
-const nGenTasks = genTaskConfigs.length;
+// const genTaskConfigs = configTaskSequence('gen', rule, sequence, genTasks);
+// const nGenTasks = genTaskConfigs.length;
 
 
 // const nLearnTasks = 2;
@@ -74,42 +77,42 @@ const nGenTasks = genTaskConfigs.length;
 // const nGenTasks = 4; // gen := generalization
 // const genTaskConfigs = Array.from(Array(nGenTasks).keys()).map(k => getTaskConfigs(k+1, "gen"));
 
-let ltData = initDataFile(learnTaskConfigs); // lt := learning tasks
-let gtData = initDataFile(genTaskConfigs); // gt := generalization tasks
+// let ltData = initDataFile(learnTaskConfigs); // lt := learning tasks
+// let gtData = initDataFile(genTaskConfigs); // gt := generalization tasks
 
-let textSelection = '';
+// let textSelection = '';
 
 /** Main body */
-if (mode !== "dev") {
-  document.body.append(createCustomElement("div", "section-page", "show-learning-phase"));
-  document.getElementById("show-learning-phase").append(createText("h1", "Investigation starts"));
+// if (mode !== "dev") {
+//   document.body.append(createCustomElement("div", "section-page", "show-learning-phase"));
+//   document.getElementById("show-learning-phase").append(createText("h1", "Investigation starts"));
 
-  document.body.append(createCustomElement("div", "section-page", "show-test-phase"));
-  document.getElementById("show-test-phase").append(createText("h1", "Tests"));
-  document.getElementById("show-test-phase").style.display = "none";
+//   document.body.append(createCustomElement("div", "section-page", "show-test-phase"));
+//   document.getElementById("show-test-phase").append(createText("h1", "Tests"));
+//   document.getElementById("show-test-phase").style.display = "none";
 
-  document.body.append(createCustomElement("div", "section-page", "show-gen-phase"));
-  document.getElementById("show-gen-phase").append(createText("h1", "With newly-discovered stones"));
-  document.getElementById("show-gen-phase").style.display = "none";
-}
+//   document.body.append(createCustomElement("div", "section-page", "show-gen-phase"));
+//   document.getElementById("show-gen-phase").append(createText("h1", "With newly-discovered stones"));
+//   document.getElementById("show-gen-phase").style.display = "none";
+// }
 
-// createTaskBox(genTaskConfigs[0]);
-for(let i = 0; i < nLearnTasks; i++ ) {
-  createTaskBox(learnTaskConfigs[i], (mode === "dev")? "flex" : "none");
-}
-for(let i = 0; i < nTestTasks; i++ ) {
-  createTaskBox(testTaskConfigs[i], (mode === "dev")? "flex" : "none");
-}
-for(let i = 0; i < nGenTasks; i++ ) {
-  createTaskBox(genTaskConfigs[i], (mode === "dev")? "flex" : "none");
-}
+// // createTaskBox(genTaskConfigs[0]);
+// for(let i = 0; i < nLearnTasks; i++ ) {
+//   createTaskBox(learnTaskConfigs[i], (mode === "dev")? "flex" : "none");
+// }
+// for(let i = 0; i < nTestTasks; i++ ) {
+//   createTaskBox(testTaskConfigs[i], (mode === "dev")? "flex" : "none");
+// }
+// for(let i = 0; i < nGenTasks; i++ ) {
+//   createTaskBox(genTaskConfigs[i], (mode === "dev")? "flex" : "none");
+// }
 
-if (mode !== "dev") {
-  setTimeout(() => {
-    document.getElementById("show-learning-phase").style.display = "none";
-    document.getElementById("box-learn-01").style.display = "flex";
-  }, 2000);
-}
+// if (mode !== "dev") {
+//   setTimeout(() => {
+//     document.getElementById("show-learning-phase").style.display = "none";
+//     document.getElementById("box-learn-01").style.display = "flex";
+//   }, 2000);
+// }
 
 /** functions */
 function createInitStones(config, parentDiv) {
@@ -128,7 +131,6 @@ function createSummaryStones(config, parentDiv) {
   parentDiv.append(stoneSets);
   return(parentDiv);
 }
-
 
 function createTaskBox (config, display = "none") {
   const taskType = config.type;
@@ -285,21 +287,25 @@ function getTaskConfigs(counter = 1, type = "learn") {
   return(configs);
 }
 
-function getStones (isBase) {
+function getStones (isBase = true) {
   let stones = []
   const colors = baseColors;
-  const patterns = isBase? basePatterns: allPatterns;
-  patterns.forEach(p => {
-    if (p === 'plain') {
-      colors.forEach(c => stones.push([p, c].join('-')))
-    } else {
-      let colorsToUse = colors;
-      colors.forEach(c => {
-        colorsToUse = colorsToUse.filter(cu => cu != c);
-        colorsToUse.forEach(ct => stones.push([p, c, ct].join("-")))
-      })
-    }
+  const shapes = allShapes;
+  colors.forEach(c => {
+    shapes.forEach(s => stones.push(c + '-' + s))
   })
+  // const patterns = isBase? basePatterns: allPatterns;
+  // patterns.forEach(p => {
+  //   if (p === 'plain') {
+  //     colors.forEach(c => stones.push([p, c].join('-')))
+  //   } else {
+  //     let colorsToUse = colors;
+  //     colors.forEach(c => {
+  //       colorsToUse = colorsToUse.filter(cu => cu != c);
+  //       colorsToUse.forEach(ct => stones.push([p, c, ct].join("-")))
+  //     })
+  //   }
+  // })
   return(stones);
 }
 
@@ -456,37 +462,39 @@ function createTextInputPanel (config, display = "none") {
 }
 
 function setStyle (el, styleStr, isSmall = false) {
-  const fill = styleStr.split('-')[0];
-  const color1 = colorDict[styleStr.split('-')[1]];
-  const color2 = colorDict[styleStr.split('-').length > 2 ? styleStr.split('-')[2] : ''];
+  const fill = colorDict[styleStr.split('-')[0]];
 
-  const len = isSmall? 5: 15;
+  // const fill = styleStr.split('-')[0];
+  // const color1 = colorDict[styleStr.split('-')[1]];
+  // const color2 = colorDict[styleStr.split('-').length > 2 ? styleStr.split('-')[2] : ''];
 
-  switch (fill) {
-    case "plain":
-      el.style.background = color1;
-      break;
-    case "lt":
-      el.style.background = `repeating-linear-gradient(
-        -45deg, ${color1}, ${color1} ${len}px, ${color2} ${len}px, ${color2} ${2 * len}px
-      )`;
-      break;
-    case "rt":
-      el.style.background = `repeating-linear-gradient(
-        45deg, ${color1}, ${color1} ${len}px, ${color2} ${len}px, ${color2} ${2 * len}px
-      )`;
-      break;
-    case "ht":
-      el.style.background = `repeating-linear-gradient(
-        0deg, ${color1}, ${color1} ${len}px, ${color2} ${len}px, ${color2} ${2 * len}px
-      )`;
-      break;
-    case "vt":
-      el.style.background = `repeating-linear-gradient(
-        90deg, ${color1}, ${color1} ${len}px, ${color2} ${len}px, ${color2} ${2 * len}px
-      )`;
-      break;
-  }
+  // const len = isSmall? 5: 15;
+
+  // switch (fill) {
+  //   case "plain":
+  //     el.style.background = color1;
+  //     break;
+  //   case "lt":
+  //     el.style.background = `repeating-linear-gradient(
+  //       -45deg, ${color1}, ${color1} ${len}px, ${color2} ${len}px, ${color2} ${2 * len}px
+  //     )`;
+  //     break;
+  //   case "rt":
+  //     el.style.background = `repeating-linear-gradient(
+  //       45deg, ${color1}, ${color1} ${len}px, ${color2} ${len}px, ${color2} ${2 * len}px
+  //     )`;
+  //     break;
+  //   case "ht":
+  //     el.style.background = `repeating-linear-gradient(
+  //       0deg, ${color1}, ${color1} ${len}px, ${color2} ${len}px, ${color2} ${2 * len}px
+  //     )`;
+  //     break;
+  //   case "vt":
+  //     el.style.background = `repeating-linear-gradient(
+  //       90deg, ${color1}, ${color1} ${len}px, ${color2} ${len}px, ${color2} ${2 * len}px
+  //     )`;
+  //     break;
+  // }
 }
 
 function createBtn (btnId, text = "Button", on = true, className = "task-button") {

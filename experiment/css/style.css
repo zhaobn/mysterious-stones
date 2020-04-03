@@ -254,3 +254,13 @@ h4 {
   justify-content: space-evenly;
   align-items: center;
 }
+
+.test {
+  height: 80px;
+  width: 80px;
+}
+
+.shape {
+  stroke: red;
+  /* stroke: rgba(136, 136, 136, .5); */
+}

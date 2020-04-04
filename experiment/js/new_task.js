@@ -31,7 +31,6 @@ const allStones = getAllStones(allColors, allShapes);
 
 const learnTaskConfigs = sampleTasks('learn', 3);
 const nLearnTasks = Object.keys(learnTaskConfigs).length;
-console.log(learnTaskConfigs)
 
 const testTaskConfigs = sampleTasks('test', 1);
 const nTestTasks = Object.keys(testTaskConfigs).length;
@@ -66,14 +65,14 @@ if (mode !== "dev") {
 
 /** Functions */
 function createInitStones(config, parentDiv) {
-  parentDiv.append(createStone("bonan", `${config.taskId}-agent`, getOpts(config.agent, true)));
-  parentDiv.append(createStone("bonan", `${config.taskId}-recipient`, getOpts(config.recipient, false)));
+  parentDiv.append(createStone("new-stone", `${config.taskId}-agent`, getOpts(config.agent, true)));
+  parentDiv.append(createStone("new-stone", `${config.taskId}-recipient`, getOpts(config.recipient, false)));
   return(parentDiv);
 }
 function createStones (config) {
   let el = document.getElementById(`${config.taskId}-display-box`);
-  el.append(createStone("bonan", `${config.taskId}-agent`, getOpts(config.agent, true)));
-  el.append(createStone("bonan", `${config.taskId}-recipient`, getOpts(config.recipient, false)));
+  el.append(createStone("new-stone", `${config.taskId}-agent`, getOpts(config.agent, true)));
+  el.append(createStone("new-stone", `${config.taskId}-recipient`, getOpts(config.recipient, false)));
   return(el)
 }
 function getOpts (style, isAgent) {
@@ -175,13 +174,13 @@ function createTaskBox (config, display = "none") {
     playBtn.onclick = () => {
       playBtn.disabled = true;
       playEffects(config);
-      // setTimeout(() => {
-      //   clearStones(config);
-      //   setTimeout(() => {
-      //     displayBox = createSummaryStones(config, displayBox);
-      //     showNext(`${taskId}-input`);
-      //   }, 1000);
-      // }, 3500);
+      setTimeout(() => {
+        clearStones(config);
+        setTimeout(() => {
+          displayBox = createSummaryStones(config, displayBox);
+          showNext(`${taskId}-input`);
+        }, 1000);
+      }, 3500);
     }
   }
 
@@ -453,7 +452,6 @@ function playEffects (config) {
     let svg = document.getElementById(`${config.taskId}-recipient-svg`);
     clearElement(`${config.taskId}-recipient-stone`);
     svg = attachStone(svg, `${config.taskId}-recipient-stone`, getOpts(config.result, false));
-
   }, 1500);
 }
 function getCurrentLocation(id) {
@@ -472,4 +470,37 @@ function clearStones (config) {
 function clearElement (id) {
   let clear = document.getElementById(id);
   if(!(clear === null)) clear.parentNode.removeChild(clear);
+}
+function createSummaryStones(config, parentDiv) {
+  createSumBox = (sumBox, type) => {
+    let textDiv = createCustomElement("div", "sum-text", `${config.taskId}-sumbox-${type}-text`);
+    textDiv.append(createText("h2", capFirstLetter(type)));
+    let sumDiv = createCustomElement("div", "sum-display", `${config.taskId}-sumbox-${type}-display`);
+    if (type === "before") {
+      sumDiv.append(createStone("new-stone", `${config.taskId}-agent`, getOpts(config.agent, true)));
+      sumDiv.append(createStone("new-stone", `${config.taskId}-recipient`, getOpts(config.recipient, false)));
+      sumDiv.style.justifyContent = "space-between";
+    } else if (type === "after") {
+      sumDiv.append(createStone("new-stone", `${config.taskId}-agent`, getOpts(config.agent, true)));
+      sumDiv.append(createStone("new-stone", `${config.taskId}-result`, getOpts(config.recipient, false)));
+      sumDiv.style.justifyContent = "center";
+    } else {
+      console.log("Summary type not match @createSummaryStones()")
+    }
+    sumBox.append(textDiv);
+    sumBox.append(sumDiv);
+    return sumBox;
+  }
+  let beforeBox = createCustomElement("div", "sum-box", `${config.taskId}-sumbox-before`);
+  let afterBox = createCustomElement("div", "sum-box", `${config.taskId}-sumbox-after`);
+
+  beforeBox = createSumBox(beforeBox, "before");
+  afterBox = createSumBox(afterBox, "after");
+
+  parentDiv.append(beforeBox);
+  parentDiv.append(afterBox);
+}
+function capFirstLetter (str) {
+  let fl = str[0].toUpperCase();
+  return(fl + str.slice(1,));
 }

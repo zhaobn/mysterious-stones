@@ -6,6 +6,7 @@ const svgElements = [ "svg", "circle", "polygon", "rect" ];
 const borderWidth = "8px";
 const mar = 5;
 const len = 80;
+let textSelection = "";
 
 /** Configurations */
 const colorDict = {
@@ -39,18 +40,22 @@ const genTaskConfigs = sampleTasks('gen', 2);
 const nGenTasks = Object.keys(genTaskConfigs).length;
 
 /** Main body */
-// document.body.append(createCustomElement("div", "section-page", "show-learning-phase"));
-// document.getElementById("show-learning-phase").append(createText("h1", "Investigation starts"));
+if (mode !== "dev") {
+  document.body.append(createCustomElement("div", "section-page", "show-learning-phase"));
+  document.getElementById("show-learning-phase").append(createText("h1", "Investigation starts"));
 
-// document.body.append(createCustomElement("div", "section-page", "show-test-phase"));
-// document.getElementById("show-test-phase").append(createText("h1", "Tests"));
-// document.getElementById("show-test-phase").style.display = "none";
+  document.body.append(createCustomElement("div", "section-page", "show-test-phase"));
+  document.getElementById("show-test-phase").append(createText("h1", "Tests"));
+  document.getElementById("show-test-phase").style.display = "none";
 
-// document.body.append(createCustomElement("div", "section-page", "show-gen-phase"));
-// document.getElementById("show-gen-phase").append(createText("h1", "With newly-discovered stones"));
-// document.getElementById("show-gen-phase").style.display = "none";
+  document.body.append(createCustomElement("div", "section-page", "show-gen-phase"));
+  document.getElementById("show-gen-phase").append(createText("h1", "With newly-discovered stones"));
+  document.getElementById("show-gen-phase").style.display = "none";
+}
 
-createTaskBox(learnTaskConfigs[0], "flex");
+for(let i = 0; i < nLearnTasks; i++ ) {
+  createTaskBox(learnTaskConfigs[i], (mode === "dev")? "flex" : "none");
+}
 
 
 /** Functions */
@@ -104,25 +109,25 @@ function createTaskBox (config, display = "none") {
   let displayBox = createCustomElement("div", "display-box", `${taskId}-display-box`);
   displayBox = createInitStones(config, displayBox);
 
-  // const buttonGroup = createCustomElement("div", "button-group", `${taskId}-button-group`);
-  // if (taskType !== "learn") {
-  //   buttonGroup.append(createBtn(`${taskId}-check-btn`, "Check", false))
-  // } else {
-  //   buttonGroup.append(createBtn(`${taskId}-play-btn`, "Play", true))
-  // }
+  const buttonGroup = createCustomElement("div", "button-group", `${taskId}-button-group`);
+  if (taskType !== "learn") {
+    buttonGroup.append(createBtn(`${taskId}-check-btn`, "Check", false))
+  } else {
+    buttonGroup.append(createBtn(`${taskId}-play-btn`, "Play", true))
+  }
 
-  // if (taskType !== "learn") {
-  //   const recordPan = createCustomElement("div", "record-pan", `${taskId}-record-pan`);
-  //   recordPan.append(createPanel(config));
+  if (taskType !== "learn") {
+    const recordPan = createCustomElement("div", "record-pan", `${taskId}-record-pan`);
+    recordPan.append(createPanel(config));
 
-  //   taskBox.append(displayBox);
-  //   taskBox.append(recordPan);
-  //   taskBox.append(buttonGroup);
-
-  // } else {
     taskBox.append(displayBox);
-  //   taskBox.append(buttonGroup);
-  // }
+    taskBox.append(recordPan);
+    taskBox.append(buttonGroup);
+
+  } else {
+    taskBox.append(displayBox);
+    taskBox.append(buttonGroup);
+  }
 
   box.append(taskBox);
 
@@ -139,75 +144,75 @@ function createTaskBox (config, display = "none") {
   //   box.append(feedbackFail);
   // }
 
-  // box.append(createTextInputPanel(config, (mode === "dev" || mode === "debug")? "flex": "none"));
+  box.append(createTextInputPanel(config, (mode === "dev" || mode === "debug")? "flex": "none"));
 
   document.body.append(box);
   box.style.display = display;
 
   // /** Button functionalities */
-  // const playBtn = document.getElementById(`${taskId}-play-btn`) || null;
-  // const inputForm = document.getElementById(`${taskId}-input-form`);
-  // const copyBtn = document.getElementById(`${taskId}-copy-btn`);
-  // const pasteBtn = document.getElementById(`${taskId}-paste-btn`);
-  // const inputNextBtn = document.getElementById(`${taskId}-input-next-btn`);
+  const playBtn = document.getElementById(`${taskId}-play-btn`) || null;
+  const inputForm = document.getElementById(`${taskId}-input-form`);
+  const copyBtn = document.getElementById(`${taskId}-copy-btn`);
+  const pasteBtn = document.getElementById(`${taskId}-paste-btn`);
+  const inputNextBtn = document.getElementById(`${taskId}-input-next-btn`);
 
-  // copyBtn.onclick = () => copyText(`${taskId}-input-1`);
-  // pasteBtn.onclick = () => pasteText(`${taskId}-input-1`);
+  copyBtn.onclick = () => copyText(`${taskId}-input-1`);
+  pasteBtn.onclick = () => pasteText(`${taskId}-input-1`);
 
-  // if (taskType === "learn") {
-  //   playBtn.onclick = () => {
-  //     playBtn.disabled = true;
-  //     playEffects(config);
-  //     setTimeout(() => {
-  //       clearElements(config);
-  //       setTimeout(() => {
-  //         displayBox = createSummaryStones(config, displayBox);
-  //         showNext(`${taskId}-input`);
-  //       }, 1000);
-  //     }, 3500);
-  //   }
-  // }
+  if (taskType === "learn") {
+    playBtn.onclick = () => {
+      playBtn.disabled = true;
+      playEffects(config);
+      setTimeout(() => {
+        clearElements(config);
+        setTimeout(() => {
+          displayBox = createSummaryStones(config, displayBox);
+          showNext(`${taskId}-input`);
+        }, 1000);
+      }, 3500);
+    }
+  }
 
-  // inputForm.onchange = () => isFilled(`${taskId}-input-form`)? inputNextBtn.disabled = false: null;
+  inputForm.onchange = () => isFilled(`${taskId}-input-form`)? inputNextBtn.disabled = false: null;
 
-  // inputNextBtn.onclick= () => {
-  //   inputNextBtn.disabled = true;
-  //   (taskType === "gen")? gtData = saveFormData(config, gtData) : ltData = saveFormData(config, ltData);
-  //   disableFormInputs(`${taskId}-input-form`);
-  //   copyBtn.disabled = false;
-  //   pasteBtn.disabled = true;
+  inputNextBtn.onclick= () => {
+    inputNextBtn.disabled = true;
+    // (taskType === "gen")? gtData = saveFormData(config, gtData) : ltData = saveFormData(config, ltData);
+    disableFormInputs(`${taskId}-input-form`);
+    copyBtn.disabled = false;
+    pasteBtn.disabled = true;
 
-  //   const taskCount = parseInt(taskId.split("-")[1]);
-  //   if (taskType === "learn") {
-  //     if(taskCount < nLearnTasks) {
-  //       showNext(`box-learn-${fmtTaskIdx(taskCount+1)}`)
-  //     } else {
-  //       for(let i = 0; i < nLearnTasks; i ++) document.getElementById(`box-learn-${fmtTaskIdx(i+1)}`).style.display = "none";
-  //       document.getElementById("show-test-phase").style.display = "block";
-  //       setTimeout(() => {
-  //         document.getElementById("show-test-phase").style.display = "none";
-  //         document.getElementById("box-test-01").style.display = "flex";
-  //       }, 2000);
-  //     }
-  //   } else if (taskType === "test") {
-  //     if(taskCount < nTestTasks) {
-  //       showNext(`box-test-${fmtTaskIdx(taskCount+1)}`)
-  //     } else {
-  //       for(let i = 0; i < nTestTasks; i ++) document.getElementById(`box-test-${fmtTaskIdx(i+1)}`).style.display = "none";
-  //       document.getElementById("show-gen-phase").style.display = "block";
-  //       setTimeout(() => {
-  //         document.getElementById("show-gen-phase").style.display = "none";
-  //         document.getElementById("box-gen-01").style.display = "flex";
-  //       }, 2000);
-  //     }
-  //   } else {
-  //     if(taskCount < nGenTasks) {
-  //       showNext(`box-gen-${fmtTaskIdx(taskCount+1)}`)
-  //     } else {
-  //       alert("This is the last task.")
-  //     }
-  //   }
-  // }
+    const taskCount = parseInt(taskId.split("-")[1]);
+    if (taskType === "learn") {
+      if(taskCount < nLearnTasks) {
+        showNext(`box-learn-${fmtTaskIdx(taskCount+1)}`)
+      } else {
+        for(let i = 0; i < nLearnTasks; i ++) document.getElementById(`box-learn-${fmtTaskIdx(i+1)}`).style.display = "none";
+        document.getElementById("show-test-phase").style.display = "block";
+        setTimeout(() => {
+          document.getElementById("show-test-phase").style.display = "none";
+          document.getElementById("box-test-01").style.display = "flex";
+        }, 2000);
+      }
+    } else if (taskType === "test") {
+      if(taskCount < nTestTasks) {
+        showNext(`box-test-${fmtTaskIdx(taskCount+1)}`)
+      } else {
+        for(let i = 0; i < nTestTasks; i ++) document.getElementById(`box-test-${fmtTaskIdx(i+1)}`).style.display = "none";
+        document.getElementById("show-gen-phase").style.display = "block";
+        setTimeout(() => {
+          document.getElementById("show-gen-phase").style.display = "none";
+          document.getElementById("box-gen-01").style.display = "flex";
+        }, 2000);
+      }
+    } else {
+      if(taskCount < nGenTasks) {
+        showNext(`box-gen-${fmtTaskIdx(taskCount+1)}`)
+      } else {
+        alert("This is the last task.")
+      }
+    }
+  }
 }
 function fmtTaskIdx (counter) {
   return(counter.toString().padStart(2, '0'))
@@ -235,6 +240,12 @@ function getAllStones (colors, shapes) {
 }
 function sampleObj (objs) {
   return(objs[Math.floor(Math.random() * objs.length)]);
+}
+function createBtn (btnId, text = "Button", on = true, className = "task-button") {
+  let btn = createCustomElement("button", className, btnId);
+  btn.disabled = !on;
+  (text.length > 0) ? btn.append(document.createTextNode(text)): null;
+  return(btn)
 }
 function createStone (svgClass, shapeClass, id, opts) {
   let svg = createCustomElement("svg", svgClass, `${id}-svg`);
@@ -299,4 +310,110 @@ function setAttributes(el, attrs) {
   for(var key in attrs) {
     el.setAttribute(key, attrs[key]);
   }
+}
+function createTextInputPanel (config, display = "none") {
+  const taskBox = createCustomElement("div", "task-box", `${config.taskId}-input`);
+  // taskBox.setAttribute("style", "height:600px");
+
+  const instructionPan = createCustomElement("div", "instruction", `${config.taskId}-instruction`);
+  instructionPan.innerHTML = `
+    <h1>Make sure you:</h1>
+    <ul>
+      <li>Refer to objects as <b>Agent</b>, <b>Recipient</b>, and <b>Result</b>.</li>
+      <li>Refer to object properties using <b>dark/pale</b>, <b>red</b>, <b>blue</b>, <b>plain</b>, <b>left stripes</b>, <b>right stripes</b>.</li>
+    </ul>
+    `
+  const editBtns = createCustomElement("div", "edit-buttons", `${config.taskId}-edit-btns`);
+  editBtns.append(createBtn(`${config.taskId}-copy-btn`, "Copy", false));
+  editBtns.append(createBtn(`${config.taskId}-paste-btn`, "Paste", (config.index === 1)? false : true));
+
+  const displayBox = createCustomElement("div", "input-box", `${config.taskId}-input-box`);
+  displayBox.append(createInputForm(config));
+  displayBox.append(editBtns);
+
+  const buttonGroup = createCustomElement("div", "button-group", `${config.taskId}-button-group`);
+  buttonGroup.append(createBtn(`${config.taskId}-input-next-btn`, "Next",
+    (mode === "dev" || mode === "debug")? true: false));
+  // buttonGroup.append(createBtn(`${config.taskId}-copy-btn`, "Copy", false));
+  // buttonGroup.append(createBtn(`${config.taskId}-paste-btn`, "Paste", true));
+
+  // taskBox.append(instructionPan);
+  taskBox.append(displayBox);
+  taskBox.append(buttonGroup);
+
+  taskBox.style.display = display;
+
+  return(taskBox);
+}
+function createInputForm(config) {
+  let form = createCustomElement("form", "input-form", `${config.taskId}-input-form`);
+  const placeholderText = `Please refer to objects as agent, recipient, result; please refer to properties using plain, stripes, and directions.`
+  const options = `
+    <option value="--" SELECTED>
+    <option value="10">10 - Very certain</option>
+    <option value="9">9</option>
+    <option value="8">8</option>
+    <option value="7">7</option>
+    <option value="6">6</option>
+    <option value="5">5 - Moderately</option>
+    <option value="4">4</option>
+    <option value="3">3</option>
+    <option value="2">2</option>
+    <option value="1">1</option>
+    <option value="0">0 - Not sure at all</option>
+  `
+  form.innerHTML = `
+    <p>Such effect is probably because</p>
+    <textarea name="${config.taskId}-input-1" id="${config.taskId}-input-1" placeholder="${placeholderText}"></textarea>
+    <p>How certain are you?
+      <select id="${config.taskId}-input-1-certainty" name="${config.taskId}-input-1-certainty" class="input-rule">
+        ${options}
+      </select>
+    </p>
+    `
+  return(form);
+}
+function copyText (id) {
+  textSelection = document.getElementById(id).value;
+}
+
+function pasteText (id) {
+  const textArea = document.getElementById(id);
+  let text = textArea.value;
+  text = text + " " + textSelection;
+  textArea.value = text;
+}
+// function saveFormData(config, dataObj) {
+//   const form = document.getElementById(`${config.taskId}-input-form`);
+//   const inputs = form.elements;
+//   (Object.keys(inputs)).forEach((input) => {
+//     let field = inputs[input];
+//     if (field.name.indexOf("certainty") < 0) {
+//       dataObj["report"].push(field.value);
+//     } else {
+//       dataObj["confidence"].push(field.value);
+//     }
+//   })
+//   return(dataObj);
+// }
+function disableFormInputs (formId) {
+  const form = document.getElementById(formId);
+  const inputs = form.elements;
+  (Object.keys(inputs)).forEach((input) => inputs[input].disabled = true);
+}
+function showNext(nextId) {
+  let nextDiv = document.getElementById(nextId);
+  nextDiv.style.display = "flex";
+  nextDiv.scrollIntoView(mode === 'dev'? false: true);
+}
+function isFilled (formID) {
+  let notFilled = false;
+  const nulls = [ '', '--', '', '--', '', '--' ];
+  const form = document.getElementById(formID);
+  const inputs = form.elements;
+  (Object.keys(inputs)).forEach((input, idx) => {
+    let field = inputs[input];
+    notFilled = (notFilled || (field.value === nulls[idx]));
+  });
+  return (!notFilled)
 }

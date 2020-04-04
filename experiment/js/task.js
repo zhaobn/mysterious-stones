@@ -44,14 +44,6 @@ const testTasks = [
 
 const genTasks = [
   [ "vt-light_1-light_2", "vt-dark_1-dark_2" ],
-  [ "ht-light_2-dark_1", "plain-dark_1" ],
-  [ "ht-light_1-dark_1", "ht-light_1-dark_1" ],
-  [ "vt-light_2-dark_1", "lt-light_1-light_2" ],
-  [ "vt-light_1-light_2", "plain-dark_1" ],
-  [ "ht-light_2-dark_1", "vt-dark_2-light_2" ],
-  [ "plain-light_1", "ht-light_2-dark_1" ],
-  [ "plain-dark_2", "vt-light_1-light_2" ],
-  [ "plain-light_2", "vt-dark_1-dark_2" ],
 ];
 
 
@@ -96,7 +88,7 @@ const baseStones = getStones();
 //   document.getElementById("show-gen-phase").style.display = "none";
 // }
 
-// // createTaskBox(genTaskConfigs[0]);
+// // createTaskBox(learnTaskConfigs[0]);
 // for(let i = 0; i < nLearnTasks; i++ ) {
 //   createTaskBox(learnTaskConfigs[i], (mode === "dev")? "flex" : "none");
 // }

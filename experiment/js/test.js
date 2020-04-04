@@ -54,6 +54,21 @@ document.body.append(t3);
 document.body.append(t4);
 
 
+// let t = createStone("test", "shape", 'ttt', {
+//   color: "black",
+//   cx: "40", cy: "40", r: "35",
+//   hasBorder: true,
+// });
+// let t2 = createStone("test", "shape", 'tt2', {
+//   color: "limegreen",
+//   points: calcPolygon({n:6,r:40,a:0}),
+//   hasBorder: false,
+// });
+
+// document.body.append(t)
+// document.body.append(t2)
+
+
 
 function createPolygon(className, id, opts) {
   let polygon = createSvgElement("polygon");

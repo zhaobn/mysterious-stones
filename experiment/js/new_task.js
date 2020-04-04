@@ -57,12 +57,24 @@ for(let i = 0; i < nLearnTasks; i++ ) {
   createTaskBox(learnTaskConfigs[i], (mode === "dev")? "flex" : "none");
 }
 
+if (mode !== "dev") {
+  setTimeout(() => {
+    document.getElementById("show-learning-phase").style.display = "none";
+    document.getElementById("box-learn-01").style.display = "flex";
+  }, 2000);
+}
 
 /** Functions */
 function createInitStones(config, parentDiv) {
-  parentDiv.append(createStone("test", "shape", `${config.taskId}-agent`, getOpts(config.agent, true)));
-  parentDiv.append(createStone("test", "shape", `${config.taskId}-recipient`, getOpts(config.recipient, false)));
+  parentDiv.append(createStone("bonan", `${config.taskId}-agent`, getOpts(config.agent, true)));
+  parentDiv.append(createStone("bonan", `${config.taskId}-recipient`, getOpts(config.recipient, false)));
   return(parentDiv);
+}
+function createStones (config) {
+  let el = document.getElementById(`${config.taskId}-display-box`);
+  el.append(createStone("bonan", `${config.taskId}-agent`, getOpts(config.agent, true)));
+  el.append(createStone("bonan", `${config.taskId}-recipient`, getOpts(config.recipient, false)));
+  return(el)
 }
 function getOpts (style, isAgent) {
   const color = style.split(";")[0];
@@ -163,13 +175,13 @@ function createTaskBox (config, display = "none") {
     playBtn.onclick = () => {
       playBtn.disabled = true;
       playEffects(config);
-      setTimeout(() => {
-        clearElements(config);
-        setTimeout(() => {
-          displayBox = createSummaryStones(config, displayBox);
-          showNext(`${taskId}-input`);
-        }, 1000);
-      }, 3500);
+      // setTimeout(() => {
+      //   clearStones(config);
+      //   setTimeout(() => {
+      //     displayBox = createSummaryStones(config, displayBox);
+      //     showNext(`${taskId}-input`);
+      //   }, 1000);
+      // }, 3500);
     }
   }
 
@@ -247,14 +259,20 @@ function createBtn (btnId, text = "Button", on = true, className = "task-button"
   (text.length > 0) ? btn.append(document.createTextNode(text)): null;
   return(btn)
 }
-function createStone (svgClass, shapeClass, id, opts) {
-  let svg = createCustomElement("svg", svgClass, `${id}-svg`);
+function attachStone (svg, id, opts, shapeClass = 'shape') {
   if (Object.keys(opts).indexOf("points") < 0) {
-    svg.append(createCircle(shapeClass, `${id}-stone`, opts))
+    svg.append(createCircle(shapeClass, `${id}`, opts));
   } else {
-    svg.append(createPolygon(shapeClass, `${id}-stone`, opts))
+    svg.append(createPolygon(shapeClass, `${id}`, opts))
   }
-  return(svg);
+  return svg
+}
+function createStone (stoneClass, id, opts, svgClass = 'test', shapeClass = 'shape') {
+  let div = createCustomElement("div", stoneClass, id);
+  let svg = createCustomElement("svg", svgClass, `${id}-svg`);
+  svg = attachStone(svg, `${id}-stone`, opts);
+  div.append(svg)
+  return(div);
 }
 function createPolygon(className, id, opts) {
   let polygon = createCustomElement("polygon", className, id);
@@ -416,4 +434,42 @@ function isFilled (formID) {
     notFilled = (notFilled || (field.value === nulls[idx]));
   });
   return (!notFilled)
+}
+function playEffects (config) {
+  if (!(document.body.contains(document.getElementById(`${config.taskId}-agent`)))) {
+    createStones(config)
+  }
+  const agent = `${config.taskId}-agent`;
+  const recipient = `${config.taskId}-recipient`;
+
+  const agentStone = document.getElementById(agent);
+  const startPos = getCurrentLocation(agent).right;
+  const endPos = getCurrentLocation(recipient).left;
+
+  const delta = Math.round(endPos - startPos) + 5;
+  (delta > 0) && (agentStone.style.left = `${delta}px`);
+
+  setTimeout(() => {
+    let svg = document.getElementById(`${config.taskId}-recipient-svg`);
+    clearElement(`${config.taskId}-recipient-stone`);
+    svg = attachStone(svg, `${config.taskId}-recipient-stone`, getOpts(config.result, false));
+
+  }, 1500);
+}
+function getCurrentLocation(id) {
+  let rect = {top: 0, bottom: 0, left: 0, right: 0};
+  const pos = document.getElementById(id).getBoundingClientRect();
+  rect.top = pos.top;
+  rect.bottom = pos.bottom;
+  rect.left = pos.left;
+  rect.right = pos.right;
+  return rect;
+}
+function clearStones (config) {
+  let els = [ "agent", "recipient" ].map(s => `${config.taskId}-${s}`);
+  els.forEach (el => clearElement(el));
+}
+function clearElement (id) {
+  let clear = document.getElementById(id);
+  if(!(clear === null)) clear.parentNode.removeChild(clear);
 }

@@ -264,3 +264,9 @@ h4 {
   stroke: red;
   /* stroke: rgba(136, 136, 136, .5); */
 }
+
+.bonan {
+  transition: all 1s cubic-bezier(0, 0, 1, 1);
+  position: relative;
+  left: 0;
+}

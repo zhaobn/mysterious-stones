@@ -85,22 +85,16 @@ h4 {
   justify-content: flex-start;
   align-items: center;
 }
-.selection-box {
-  height: 200px;
-  width: 300px;
-  background-color: navajowhite;
-}
+
 .selection-composer {
   height: 90%;
   width: 100%;
-  background-color: #116466;
   display: flex;
   flex-direction: row;
 }
 .selection-form-div {
   height: 100%;
   width: 25%;
-  background-color: aqua;
 }
 .selection-form p {
   margin: 0;
@@ -108,10 +102,13 @@ h4 {
 .selection-svg-div {
   height: 100%;
   width: 75%;
-  background-color: red;
   display: flex;
   justify-content: center;
   align-items: center;
+}
+.selection-object {
+  height: 70px;
+  width: 70px;
 }
 
 .display-box, .record-pan,
@@ -122,9 +119,33 @@ h4 {
   display: flex;
 }
 
-.display-box, .record-pan, .input-box, .task-button,
+.display-box, .record-pan, .input-box, .selection-box
+.task-button,
 .instruction, .instruction h1 {
   background-color: #f4f4f4;
+}
+
+.selection-box {
+  height: 100%;
+  width: 100%;
+}
+
+.record-pan, .instruction {
+  width: 25%;
+}
+
+.record-pan {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-evenly;
+  align-items: center;
+  overflow: scroll;
+}
+
+.record-pan p {
+  margin: 5px;
+  text-align: left;
+  width: 100%;
 }
 
 .button-group {
@@ -145,9 +166,7 @@ h4 {
   align-items: center;
 }
 
-.record-pan, .instruction {
-  width: 25%;
-}
+
 
 .instruction {
   flex-direction: column;
@@ -205,14 +224,6 @@ h4 {
 .big-button {
   font-size: 15px;
   padding: 10px 30px;
-}
-
-.record-pan {
-  display: flex;
-  flex-direction: column;
-  justify-content: space-evenly;
-  align-items: center;
-  overflow: scroll;
 }
 
 /* Stones attributes */

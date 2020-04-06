@@ -1,16 +1,12 @@
 
-const mode = "debug"; // dev: show all tasks, debug: skip inputs, prod: final
-/** Rules
- * 1. 'rand': random;
- * 2. 'pat': patterned agent makes the recipient the same as the agent.
- * 3. 'flip': patterned agent flips recipient pattern or darkness (if not patterned).
- */
-const rule = "pat";
-const sequence = "near";
+let mode = 'dev';
 
+/** Global variables */
+const svgElements = [ "svg", "circle", "polygon", "rect" ];
 const borderWidth = "8px";
 const mar = 5;
-const len = 80;
+const len = 60;
+let textSelection = "";
 
 /** Configurations */
 const colorDict = {
@@ -18,7 +14,13 @@ const colorDict = {
   "dark_2": '#1565C0',
   "light_1": '#AB47BC',
   "light_2": '#64B5F6',
+  "dark": "navy",
+  "medium": "blue",
+  "light": "lightblue",
+  "--": "white",
 }
+const allColors = Object.keys(colorDict);
+
 const allShapes = [
   "circle",
   "p_3", // triangular
@@ -29,75 +31,37 @@ const allShapes = [
   "p_8", // 8 sides
 ]
 
-// const basePatterns = [ 'plain', 'lt', 'rt' ];
-// const allPatterns = [ 'lt', 'rt', 'ht', 'vt', 'plain' ];
+const allStones = getAllStones(allColors, allShapes);
 
-const baseColors = [ "dark_1", "light_1", "dark_2", "light_2" ];
+const learnTaskConfigs = sampleTasks('learn', 3);
+const nLearnTasks = Object.keys(learnTaskConfigs).length;
 
-const learningTasks = [
-  [ "lt-light_1-light_2", "rt-light_1-light_2" ],
-];
+const testTaskConfigs = sampleTasks('test', 1);
+const nTestTasks = Object.keys(testTaskConfigs).length;
 
-const testTasks = [
-  [ "lt-light_2-dark_2", "plain-light_2" ],
-];
-
-const genTasks = [
-  [ "vt-light_1-light_2", "vt-dark_1-dark_2" ],
-];
-
-
-const baseStones = getStones();
-// const allStones = getStones(false);
-
-// const learnTaskConfigs = configTaskSequence('learn', rule, sequence, learningTasks);
-// const nLearnTasks = learnTaskConfigs.length;
-
-// const testTaskConfigs = configTaskSequence('test', rule, 'near', testTasks);
-// const nTestTasks = testTaskConfigs.length;
-
-// const genTaskConfigs = configTaskSequence('gen', rule, sequence, genTasks);
-// const nGenTasks = genTaskConfigs.length;
-
-
-// const nLearnTasks = 2;
-// const learnTaskConfigs = Array.from(Array(nLearnTasks).keys()).map(k => getTaskConfigs(k+1, "learn"));
-
-// const nTestTasks = 3;
-// const testTaskConfigs = Array.from(Array(nTestTasks).keys()).map(k => getTaskConfigs(k+1, "test"));
-
-// const nGenTasks = 4; // gen := generalization
-// const genTaskConfigs = Array.from(Array(nGenTasks).keys()).map(k => getTaskConfigs(k+1, "gen"));
-
-// let ltData = initDataFile(learnTaskConfigs); // lt := learning tasks
-// let gtData = initDataFile(genTaskConfigs); // gt := generalization tasks
-
-// let textSelection = '';
+const genTaskConfigs = sampleTasks('gen', 2);
+const nGenTasks = Object.keys(genTaskConfigs).length;
 
 /** Main body */
-// if (mode !== "dev") {
-//   document.body.append(createCustomElement("div", "section-page", "show-learning-phase"));
-//   document.getElementById("show-learning-phase").append(createText("h1", "Investigation starts"));
+if (mode !== "dev") {
+  document.body.append(createCustomElement("div", "section-page", "show-learning-phase"));
+  document.getElementById("show-learning-phase").append(createText("h1", "Investigation starts"));
 
-//   document.body.append(createCustomElement("div", "section-page", "show-test-phase"));
-//   document.getElementById("show-test-phase").append(createText("h1", "Tests"));
-//   document.getElementById("show-test-phase").style.display = "none";
+  document.body.append(createCustomElement("div", "section-page", "show-test-phase"));
+  document.getElementById("show-test-phase").append(createText("h1", "Tests"));
+  document.getElementById("show-test-phase").style.display = "none";
 
-//   document.body.append(createCustomElement("div", "section-page", "show-gen-phase"));
-//   document.getElementById("show-gen-phase").append(createText("h1", "With newly-discovered stones"));
-//   document.getElementById("show-gen-phase").style.display = "none";
-// }
+  document.body.append(createCustomElement("div", "section-page", "show-gen-phase"));
+  document.getElementById("show-gen-phase").append(createText("h1", "With newly-discovered stones"));
+  document.getElementById("show-gen-phase").style.display = "none";
+}
 
-// // createTaskBox(learnTaskConfigs[0]);
 // for(let i = 0; i < nLearnTasks; i++ ) {
 //   createTaskBox(learnTaskConfigs[i], (mode === "dev")? "flex" : "none");
 // }
-// for(let i = 0; i < nTestTasks; i++ ) {
-//   createTaskBox(testTaskConfigs[i], (mode === "dev")? "flex" : "none");
-// }
-// for(let i = 0; i < nGenTasks; i++ ) {
-//   createTaskBox(genTaskConfigs[i], (mode === "dev")? "flex" : "none");
-// }
+for(let i = 0; i < nGenTasks; i++ ) {
+  createTaskBox(genTaskConfigs[i], (mode === "dev")? "flex" : "none");
+}
 
 // if (mode !== "dev") {
 //   setTimeout(() => {
@@ -106,24 +70,34 @@ const baseStones = getStones();
 //   }, 2000);
 // }
 
-/** functions */
+/** Functions */
 function createInitStones(config, parentDiv) {
-  parentDiv.append(createDivWithStyle("stone", `${config.taskId}-agent`, config.agent));
-  parentDiv.append(createDivWithStyle("stone", `${config.taskId}-recipient`, config.recipient));
+  parentDiv.append(createStone("new-stone", `${config.taskId}-agent`, getOpts(config.agent, true)));
+  parentDiv.append(createStone("new-stone", `${config.taskId}-recipient`, getOpts(config.recipient, false)));
   return(parentDiv);
 }
-
-function createSummaryStones(config, parentDiv) {
-  let stoneSets = createCustomElement("div", "stone-sets", `${config.taskId}-stone-sets`);
-
-  stoneSets.append(createDivWithStyle("stone-before", `${config.taskId}-summary-recipient`, config.recipient));
-  stoneSets.append(createDivWithStyle("stone", `${config.taskId}-summary-result`, config.result))
-
-  parentDiv.append(createDivWithStyle("stone", `${config.taskId}-summary-agent`, config.agent));
-  parentDiv.append(stoneSets);
-  return(parentDiv);
+function createStones (config) {
+  let el = document.getElementById(`${config.taskId}-display-box`);
+  el.append(createStone("new-stone", `${config.taskId}-agent`, getOpts(config.agent, true)));
+  el.append(createStone("new-stone", `${config.taskId}-recipient`, getOpts(config.recipient, false)));
+  return(el)
 }
-
+function getOpts (style, isAgent) {
+  const color = style.split(";")[0];
+  const shape = style.split(";")[1];
+  let opts = {};
+  opts["color"] = colorDict[color];
+  opts["hasBorder"] = isAgent;
+  if (shape[0] === "p") {
+    const n = shape.split("_")[1];
+    opts["points"] = calcPolygon({n:n,r:len/2,a:0})
+  } else {
+    opts["cx"] = len/2;
+    opts["cy"] = len/2;
+    opts["r"] = len/2-mar;
+  }
+  return opts;
+}
 function createTaskBox (config, display = "none") {
   const taskType = config.type;
   const taskId = config.taskId;
@@ -162,7 +136,7 @@ function createTaskBox (config, display = "none") {
 
   if (taskType !== "learn") {
     const recordPan = createCustomElement("div", "record-pan", `${taskId}-record-pan`);
-    recordPan.append(createPanel(config));
+    recordPan.append(createAnswerComposer(config));
 
     taskBox.append(displayBox);
     taskBox.append(recordPan);
@@ -193,8 +167,9 @@ function createTaskBox (config, display = "none") {
   document.body.append(box);
   box.style.display = display;
 
-  /** Button functionalities */
+  // /** Button functionalities */
   const playBtn = document.getElementById(`${taskId}-play-btn`) || null;
+  const selectionForm = document.getElementById(`${taskId}-selection-form` || null);
   const inputForm = document.getElementById(`${taskId}-input-form`);
   const copyBtn = document.getElementById(`${taskId}-copy-btn`);
   const pasteBtn = document.getElementById(`${taskId}-paste-btn`);
@@ -208,7 +183,7 @@ function createTaskBox (config, display = "none") {
       playBtn.disabled = true;
       playEffects(config);
       setTimeout(() => {
-        clearElements(config);
+        clearStones(config);
         setTimeout(() => {
           displayBox = createSummaryStones(config, displayBox);
           showNext(`${taskId}-input`);
@@ -217,11 +192,15 @@ function createTaskBox (config, display = "none") {
     }
   }
 
+  if (taskType !== "learn") {
+    selectionForm.onchange = () =>
+      composeSelection(`${taskId}-selection-svg`, `${taskId}-selection-form`, `${taskId}-check-btn`);
+  }
   inputForm.onchange = () => isFilled(`${taskId}-input-form`)? inputNextBtn.disabled = false: null;
 
   inputNextBtn.onclick= () => {
     inputNextBtn.disabled = true;
-    (taskType === "gen")? gtData = saveFormData(config, gtData) : ltData = saveFormData(config, ltData);
+    // (taskType === "gen")? gtData = saveFormData(config, gtData) : ltData = saveFormData(config, ltData);
     disableFormInputs(`${taskId}-input-form`);
     copyBtn.disabled = false;
     pasteBtn.disabled = true;
@@ -258,166 +237,143 @@ function createTaskBox (config, display = "none") {
     }
   }
 }
+function createAnswerComposer(config) {
+  const taskId = config.taskId;
+  let box = createCustomElement("div", "selection-box", `${taskId}-selection-box`);
+  box.innerHTML = `
+    <div class="selection-composer">
+      <div class="selection-form-div">
+        <form class="selection-form" id="${taskId}-selection-form">
+          <p>Shape</p>
+          <select id="color" name="color" class="selection-input">
+            <option value="--" SELECTED>--</option>
+            <option value="circle">Circle</option>
+            <option value="p_3">Triangle</option>
+            <option value="p_4">Square</option>
+            <option value="p_4">Square</option>
+            <option value="p_5">Pentagon</option>
+            <option value="p_6">Hexagon</option>
+            <option value="p_7">Heptagon</option>
+          </select>
+          <p>Shading</p>
+          <select id="color" name="color" class="selection-input">
+            <option value="--" SELECTED>--</option>
+            <option value="dark">Dark</option>
+            <option value="medium">Medium</option>
+            <option value="light">Light</option>
+          </select>
+        </form>
+      </div>
+      <div class="selection-svg-div">
+        <svg class="selection-object" id='${taskId}-selection-svg'></svg>
+      </div>
+    </div>`
+  return box;
+}
 
 function fmtTaskIdx (counter) {
   return(counter.toString().padStart(2, '0'))
 }
-function readTaskIdx (taskId) {
-  return(parseInt(taskId.split('-')[1]))
+function sampleTasks (type, count) {
+  let tasks = [];
+  for(let i = 1; i <= count; i++) {
+    taskConfig = {};
+    taskConfig["taskId"] = type+"-"+fmtTaskIdx(i);
+    taskConfig["type"] = type;
+    taskConfig["index"] = i;
+    taskConfig["agent"] = sampleObj(allStones);
+    taskConfig["recipient"] = sampleObj(allStones);
+    taskConfig["result"] = sampleObj(allStones);
+    tasks.push(taskConfig);
+  }
+  return tasks;
 }
-
-function getTaskConfigs(counter = 1, type = "learn") {
-  let configs = {};
-
-  configs["taskId"] = type + "-" + fmtTaskIdx(counter);
-  configs["type"] = type;
-  configs["index"] = counter;
-  configs["agent"] = sampleStone();
-  configs["recipient"] = sampleStone();
-  configs["result"] = setRules(configs["agent"], configs["recipient"], rule);
-
-  return(configs);
-}
-
-function getStones (isBase = true) {
+function getAllStones (colors, shapes) {
   let stones = []
-  const colors = baseColors;
-  const shapes = allShapes;
   colors.forEach(c => {
-    shapes.forEach(s => stones.push(c + '-' + s))
+    shapes.forEach(s => stones.push(c + ';' + s))
   })
-  // const patterns = isBase? basePatterns: allPatterns;
-  // patterns.forEach(p => {
-  //   if (p === 'plain') {
-  //     colors.forEach(c => stones.push([p, c].join('-')))
-  //   } else {
-  //     let colorsToUse = colors;
-  //     colors.forEach(c => {
-  //       colorsToUse = colorsToUse.filter(cu => cu != c);
-  //       colorsToUse.forEach(ct => stones.push([p, c, ct].join("-")))
-  //     })
-  //   }
-  // })
   return(stones);
 }
-
-function copyText (id) {
-  textSelection = document.getElementById(id).value;
+function sampleObj (objs) {
+  return(objs[Math.floor(Math.random() * objs.length)]);
 }
-
-function pasteText (id) {
-  const textArea = document.getElementById(id);
-  let text = textArea.value;
-  text = text + " " + textSelection;
-  textArea.value = text;
+function createBtn (btnId, text = "Button", on = true, className = "task-button") {
+  let btn = createCustomElement("button", className, btnId);
+  btn.disabled = !on;
+  (text.length > 0) ? btn.append(document.createTextNode(text)): null;
+  return(btn)
 }
-
-function sampleStone (isBase = true) {
-  let stoneStyle = '';
-
-  patterns = isBase? basePatterns : allPatterns;
-  colors = baseColors;
-  const pt = patterns[Math.floor(Math.random() * patterns.length)];
-  const color1 = colors[Math.floor(Math.random() * colors.length)];
-
-  if (pt === 'plain') {
-    stoneStyle = pt + "-" + color1
+function attachStone (svg, id, opts, shapeClass = 'shape') {
+  if (Object.keys(opts).indexOf("points") < 0) {
+    svg.append(createCircle(shapeClass, `${id}`, opts));
   } else {
-    const colorsLeft = colors.filter(c => c != color1);
-    const color2 = colorsLeft[Math.floor(Math.random() * colorsLeft.length)];
-    stoneStyle = pt + "-" + color1 + "-" + color2;
+    svg.append(createPolygon(shapeClass, `${id}`, opts))
   }
-  return(stoneStyle);
+  return svg
 }
-
-/** Rules
- * 1. 'rand': random;
- * 2. 'pat': patterned agent makes the recipient the same as the agent.
- * 3. 'flip': patterned agent flips recipient pattern or darkness (if not patterned).
- */
-function setRules (agent, recipient, ruleNumber = "rand") {
-  let resultStone = '';
-
-  const agts = agent.split("-");
-  const rcps = recipient.split("-");
-
-  const agentPattern = agts.shift();
-  const recipientPattern = rcps.shift();
-
-  if (ruleNumber === 'rand') {
-    resultStone = sampleStone();
-
-  } else if (ruleNumber === 'pat') {
-    resultStone = (agentPattern !== 'plain')? agent : recipient;
-
-  } else if (ruleNumber === 'flip') {
-    let result = [];
-    if (agentPattern !== 'plain') {
-      if (recipientPattern !== 'plain') {
-        switch(recipientPattern) {
-          case 'lt':
-            result.push('rt');
-            break;
-          case 'rt':
-            result.push('lt');
-            break;
-          case 'vt':
-            result.push('ht');
-            break;
-          case 'ht':
-            result.push('vt');
-            break;
-        }
-        result.push(rcps[0]);
-        result.push(rcps[1]);
-      } else {
-        result.push("plain");
-        result.push(setDarkness(rcps[0]))
-      }
-    } else {
-      result = agent.split("-");
-      // result.push(recipientPattern);
-      // const agentDarkness = agts[0].split('_')[0];
-      // result.push(setDarkness(rcps[0],agentDarkness ));
-      // (recipientPattern !== "plain")? result.push(setDarkness(rcps[1], agentDarkness)) : null;
-    }
-    resultStone = result.join("-");
+function createStone (stoneClass, id, opts, svgClass = 'test', shapeClass = 'shape') {
+  let div = createCustomElement("div", stoneClass, id);
+  let svg = createCustomElement("svg", svgClass, `${id}-svg`);
+  svg = attachStone(svg, `${id}-stone`, opts);
+  div.append(svg)
+  return(div);
+}
+function createPolygon(className, id, opts) {
+  let polygon = createCustomElement("polygon", className, id);
+  setAttributes(polygon, {
+    "fill": opts.color,
+    "points": opts.points,
+    "stroke-width": opts.hasBorder? borderWidth : "0px",
+  })
+  return(polygon);
+}
+function createCircle (className, id, opts) {
+  let circle = createCustomElement("circle", className, id);
+  setAttributes(circle, {
+    "cx": opts.cx,
+    "cy": opts.cy,
+    "r": opts.r,
+    "fill": opts.color,
+    "stroke-width": opts.hasBorder? borderWidth : "0px",
+  })
+  return(circle);
+}
+function calcPolygon(input) {
+  // Adapted from https://gist.github.com/jonthesquirrel/e2807811d58a6627ded4
+  let output = [];
+  for (let i = 1; i <= input.n; i++) {
+    output.push(
+      ((input.r * Math.cos(input.a + 2 * i * Math.PI / input.n)) + len/2).toFixed(0).toString() + "," +
+      ((input.r * Math.sin(input.a + 2 * i * Math.PI / input.n)) + len/2).toFixed(0).toString()
+    )
   }
-  return(resultStone);
+  return output.join(" ")
 }
-
-function setDarkness (str, opt = "flip") {
-  const darkness = str.split("_")[0];
-  const color = str.split("_")[1];
-  let resultDarkness = darkness;
-  if (opt === 'flip') {
-    resultDarkness = (darkness === "dark")? "light": "dark";
-  } else {
-    resultDarkness = opt;
-  }
-  return(`${resultDarkness}_${color}`)
-}
-
 function createCustomElement (type = 'div', className, id) {
-  let element = document.createElement(type);
+  let element = (svgElements.indexOf(type) < 0)?
+    document.createElement(type):
+    document.createElementNS("http://www.w3.org/2000/svg", type);
   if (className.length > 0) element.setAttribute("class", className);
   element.setAttribute("id", id);
   return element;
 }
-
 function createDivWithStyle (className = "div", id = "", style = "") {
   let element = createCustomElement('div', className, id);
   setStyle(element, style);
   return element;
 }
-
 function createText(h = "h1", text = 'hello') {
   let element = document.createElement(h);
   let tx = document.createTextNode(text);
   element.append(tx);
   return(element)
 }
-
+function setAttributes(el, attrs) {
+  for(var key in attrs) {
+    el.setAttribute(key, attrs[key]);
+  }
+}
 function createTextInputPanel (config, display = "none") {
   const taskBox = createCustomElement("div", "task-box", `${config.taskId}-input`);
   // taskBox.setAttribute("style", "height:600px");
@@ -452,57 +408,6 @@ function createTextInputPanel (config, display = "none") {
 
   return(taskBox);
 }
-
-function setStyle (el, styleStr, isSmall = false) {
-  const fill = colorDict[styleStr.split('-')[0]];
-
-  // const fill = styleStr.split('-')[0];
-  // const color1 = colorDict[styleStr.split('-')[1]];
-  // const color2 = colorDict[styleStr.split('-').length > 2 ? styleStr.split('-')[2] : ''];
-
-  // const len = isSmall? 5: 15;
-
-  // switch (fill) {
-  //   case "plain":
-  //     el.style.background = color1;
-  //     break;
-  //   case "lt":
-  //     el.style.background = `repeating-linear-gradient(
-  //       -45deg, ${color1}, ${color1} ${len}px, ${color2} ${len}px, ${color2} ${2 * len}px
-  //     )`;
-  //     break;
-  //   case "rt":
-  //     el.style.background = `repeating-linear-gradient(
-  //       45deg, ${color1}, ${color1} ${len}px, ${color2} ${len}px, ${color2} ${2 * len}px
-  //     )`;
-  //     break;
-  //   case "ht":
-  //     el.style.background = `repeating-linear-gradient(
-  //       0deg, ${color1}, ${color1} ${len}px, ${color2} ${len}px, ${color2} ${2 * len}px
-  //     )`;
-  //     break;
-  //   case "vt":
-  //     el.style.background = `repeating-linear-gradient(
-  //       90deg, ${color1}, ${color1} ${len}px, ${color2} ${len}px, ${color2} ${2 * len}px
-  //     )`;
-  //     break;
-  // }
-}
-
-function createBtn (btnId, text = "Button", on = true, className = "task-button") {
-  let btn = createCustomElement("button", className, btnId);
-  btn.disabled = !on;
-  (text.length > 0) ? btn.append(document.createTextNode(text)): null;
-  return(btn)
-}
-
-function createStones (config) {
-  let el = document.getElementById(`${config.taskId}-display-box`);
-  el.append(createDivWithStyle("stone", `${config.taskId}-agent`, config.agent));
-  el.append(createDivWithStyle("stone", `${config.taskId}-recipient`, config.recipient));
-  return(el)
-}
-
 function createInputForm(config) {
   let form = createCustomElement("form", "input-form", `${config.taskId}-input-form`);
   const placeholderText = `Please refer to objects as agent, recipient, result; please refer to properties using plain, stripes, and directions.`
@@ -531,113 +436,39 @@ function createInputForm(config) {
     `
   return(form);
 }
-
-
-function createPanel(config) {
-  const taskId = config.taskId;
-  let clicks = [];
-  let tbs = [];
-
-  stones = (config.type === 'gen') ? allStones : baseStones;
-  nrow = (config.type === 'gen') ? 5 : 4;
-  ncol = (config.type === 'gen') ? 6 : 4;
-
-  let tbl = createCustomElement("table", 'selection-panel', `${taskId}-panel`);
-
-  const styleClicked = (id) => {
-    const selectedTb = id.replace(/ps/g, 'tb');
-    tbs.forEach(tbid => {
-      hover (tbid, selectedTb);
-      const tb = document.getElementById(tbid);
-      tb.style.border = (tbid === selectedTb)? '4px solid #e0e0e0' : '0px';
-    })
-  }
-
-  const recordClick = (e) => {
-    const tbId = e.target.id;
-    let clicked = {};
-    clicked.stone = tbId.slice(3,);
-    clicked.timestamp = Date.now();
-    clicks.push(clicked);
-
-    let checkBtn = document.getElementById(`${taskId}-check-btn`);
-    if ((document.getElementById(`${config.taskId}-input`).style.display === 'none') || mode === 'dev') {
-      checkBtn.disabled = false;
-    }
-    checkBtn.onclick = () => checkSelection(config, clicked.stone);
-    styleClicked(tbId);
-  }
-
-  for(let i = 0; i < nrow; i++){
-    let tr = tbl.insertRow();
-    for(let j = 0; j < ncol; j++){
-      let idx = j + i * ncol;
-      let tbId = (idx < stones.length)? `${taskId}-tb-${stones[idx]}` : `${taskId}-tb-blank-${idx - stones.length}`;
-      tbs.push(tbId)
-      let td = tr.insertCell();
-      td.setAttribute("id", tbId)
-
-      if(idx < stones.length) {
-        let tc = createCustomElement("div", "panel-stone", tbId.replace(/tb/g, 'ps'));
-        const tcStyle = tc.id.split('-').slice(3,).join('-')
-        setStyle(tc, tcStyle, true)
-
-        tc.addEventListener('click', recordClick);
-        td.appendChild(tc);
-      } else {
-        let tc = createCustomElement("div", "blank", tbId.replace(/tb/g, 'ps'));
-        td.appendChild(tc);
-      }
-    }
-  }
-  return tbl;
+function copyText (id) {
+  textSelection = document.getElementById(id).value;
 }
 
-function hover (tbid, selected) {
-  const tb = document.getElementById(tbid);
-  tb.onmouseover = function() {
-      (tbid !== selected)? this.style.border = '3px solid #e0e0e0' : null;
-  };
-  tb.onmouseleave = function() {
-      (tbid !== selected)? this.style.border = '0px' : null;
-  };
+function pasteText (id) {
+  const textArea = document.getElementById(id);
+  let text = textArea.value;
+  text = text + " " + textSelection;
+  textArea.value = text;
 }
-
-function checkSelection (config, selection) {
-  const selected = selection.split("-").slice(3,).join("-");
-  const pass = matchSelections(config.result, selected);
-
-  const passTextDiv = document.getElementById(`${config.taskId}-${pass}-text`);
-  passTextDiv.style.display = "block";
-
-  document.getElementById(`${config.taskId}-check-btn`).disabled = true;
-  clearElements(config);
-  setTimeout(() => {
-    let displayBox = document.getElementById(`${config.taskId}-display-box`);
-    displayBox = createSummaryStones(config, displayBox);
-    showNext(`${config.taskId}-input`);
-  }, 1000)
+// function saveFormData(config, dataObj) {
+//   const form = document.getElementById(`${config.taskId}-input-form`);
+//   const inputs = form.elements;
+//   (Object.keys(inputs)).forEach((input) => {
+//     let field = inputs[input];
+//     if (field.name.indexOf("certainty") < 0) {
+//       dataObj["report"].push(field.value);
+//     } else {
+//       dataObj["confidence"].push(field.value);
+//     }
+//   })
+//   return(dataObj);
+// }
+function disableFormInputs (formId) {
+  const form = document.getElementById(formId);
+  const inputs = form.elements;
+  (Object.keys(inputs)).forEach((input) => inputs[input].disabled = true);
 }
-
-function matchSelections (stone1, stone2) {
-  let s1 = stone1.split("-");
-  let s2 = stone2.split("-");
-
-  s1Pattern = s1.shift();
-  s2Pattern = s2.shift();
-
-  let patternMatch = (s1Pattern === s2Pattern);
-  let colorMatch = true;
-  if (s1.length > 1) {
-    s1.forEach(s1c => colorMatch && (s2.indexOf(s1c) > -1))
-  } else {
-    colorMatch = (s1[0] === s2[0])
-  }
-
-  return(patternMatch && colorMatch)
+function showNext(nextId) {
+  let nextDiv = document.getElementById(nextId);
+  nextDiv.style.display = "flex";
+  nextDiv.scrollIntoView(mode === 'dev'? false: true);
 }
-
-
 function isFilled (formID) {
   let notFilled = false;
   const nulls = [ '', '--', '', '--', '', '--' ];
@@ -649,22 +480,10 @@ function isFilled (formID) {
   });
   return (!notFilled)
 }
-
-function showNext(nextId) {
-  let nextDiv = document.getElementById(nextId);
-  nextDiv.style.display = "flex";
-  nextDiv.scrollIntoView(mode === 'dev'? false: true);
-}
-
 function playEffects (config) {
   if (!(document.body.contains(document.getElementById(`${config.taskId}-agent`)))) {
     createStones(config)
   }
-  moveStone(config);
-  changeStone(config);
-}
-
-function moveStone (config) {
   const agent = `${config.taskId}-agent`;
   const recipient = `${config.taskId}-recipient`;
 
@@ -672,17 +491,15 @@ function moveStone (config) {
   const startPos = getCurrentLocation(agent).right;
   const endPos = getCurrentLocation(recipient).left;
 
-  const delta = Math.round(endPos - startPos);
+  const delta = Math.round(endPos - startPos) + 5;
   (delta > 0) && (agentStone.style.left = `${delta}px`);
-}
 
-function changeStone (config) {
-  const recipientStone = document.getElementById(`${config.taskId}-recipient`);
   setTimeout(() => {
-    setStyle(recipientStone, config.result);
+    let svg = document.getElementById(`${config.taskId}-recipient-svg`);
+    clearElement(`${config.taskId}-recipient-stone`);
+    svg = attachStone(svg, `${config.taskId}-recipient-stone`, getOpts(config.result, false));
   }, 1500);
 }
-
 function getCurrentLocation(id) {
   let rect = {top: 0, bottom: 0, left: 0, right: 0};
   const pos = document.getElementById(id).getBoundingClientRect();
@@ -692,102 +509,65 @@ function getCurrentLocation(id) {
   rect.right = pos.right;
   return rect;
 }
-
-function clearElements (config) {
+function clearStones (config) {
   let els = [ "agent", "recipient" ].map(s => `${config.taskId}-${s}`);
-  els.forEach (el => {
-      let clear = document.getElementById(el);
-      if(!(clear === null)) clear.parentNode.removeChild(clear);
-  })
+  els.forEach (el => clearElement(el));
 }
-
-function initDataFile (configs) {
-  let data = {};
-  data["type"] = [];
-  data["task"] = [];
-  data["agent"] = [];
-  data["recipient"] = [];
-  data["result"] = [];
-  data["report"] = [];
-  data["confidence"] = [];
-
-  // for (let i = 1; i < 4; i ++) {
-  //   data[`rule_${i}`] = Array.from('-'.repeat(configObj.length));
-  //   data[`confidence_${i}`] = Array.from('-'.repeat(configObj.length));
-  // }
-
-  configs.forEach(config => {
-    data.type.push(config.taskId.split('-')[0]);
-    data.task.push(readTaskIdx(config.taskId).toString());
-    data.agent.push(config.agent);
-    data.recipient.push(config.recipient);
-    data.result.push(config.result);
-  })
-
-  return(data);
+function clearElement (id) {
+  let clear = document.getElementById(id);
+  if(!(clear === null)) clear.parentNode.removeChild(clear);
 }
-
-function saveFormData(config, dataObj) {
-  const form = document.getElementById(`${config.taskId}-input-form`);
-  const inputs = form.elements;
-  (Object.keys(inputs)).forEach((input) => {
-    let field = inputs[input];
-    if (field.name.indexOf("certainty") < 0) {
-      dataObj["report"].push(field.value);
+function createSummaryStones(config, parentDiv) {
+  createSumBox = (sumBox, type) => {
+    let textDiv = createCustomElement("div", "sum-text", `${config.taskId}-sumbox-${type}-text`);
+    textDiv.append(createText("h2", capFirstLetter(type)));
+    let sumDiv = createCustomElement("div", "sum-display", `${config.taskId}-sumbox-${type}-display`);
+    if (type === "before") {
+      sumDiv.append(createStone("new-stone", `${config.taskId}-agent`, getOpts(config.agent, true)));
+      sumDiv.append(createStone("new-stone", `${config.taskId}-recipient`, getOpts(config.recipient, false)));
+      sumDiv.style.justifyContent = "space-between";
+    } else if (type === "after") {
+      sumDiv.append(createStone("new-stone", `${config.taskId}-agent`, getOpts(config.agent, true)));
+      sumDiv.append(createStone("new-stone", `${config.taskId}-result`, getOpts(config.recipient, false)));
+      sumDiv.style.justifyContent = "center";
     } else {
-      dataObj["confidence"].push(field.value);
+      console.log("Summary type not match @createSummaryStones()")
     }
-  })
-  return(dataObj);
-}
-
-function disableFormInputs (formId) {
-  const form = document.getElementById(formId);
-  const inputs = form.elements;
-  (Object.keys(inputs)).forEach((input) => inputs[input].disabled = true);
-}
-
-// function shuffleArray(array, opt='') {
-//   if (opt === 'random') {
-//       for (let i = array.length - 1; i > 0; i--) {
-//           const j = Math.floor(Math.random() * (i + 1));
-//           [array[i], array[j]] = [array[j], array[i]];
-//       }
-//   } else if (opt === 'reverse') {
-//       array = array.reverse();
-//   }
-//   return array;
-// }
-
-function configTask (pairOfStones, rule = 'rand') {
-  let taskConfig = {};
-  taskConfig['agent'] = pairOfStones[0];
-  taskConfig['recipient'] = pairOfStones[1];
-  taskConfig['result'] = setRules(taskConfig['agent'], taskConfig['recipient'], rule);
-  taskConfig['configId'] = pairOfStones[2];
-  return(taskConfig);
-}
-
-function configTaskSequence (taskType, rule, condition, configs) {
-  let tasks = [];
-  // Add configId before shuffling
-  configs.map((cfg, idx) => cfg.push(`${taskType}-config-${fmtTaskIdx(idx + 1)}`));
-  // Reverse task sequence for far-transfer condition
-  if (condition === 'far') {
-    let reversedTasks = [];
-    reversedTasks.push(configs.shift());
-    left = configs.reverse();
-    reversedTasks = reversedTasks.concat(left);
-    configs = reversedTasks;
+    sumBox.append(textDiv);
+    sumBox.append(sumDiv);
+    return sumBox;
   }
-  // Put into the correct format
-  configs.forEach((cfg, idx) => {
-    let config = {};
-    config = configTask(cfg, rule);
-    config["index"] = idx + 1;
-    config['type'] = taskType;
-    config['taskId'] =  `${config.type}-${fmtTaskIdx(config.index)}`;
-    tasks.push(config);
-  })
-  return(tasks);
+  let beforeBox = createCustomElement("div", "sum-box", `${config.taskId}-sumbox-before`);
+  let afterBox = createCustomElement("div", "sum-box", `${config.taskId}-sumbox-after`);
+
+  beforeBox = createSumBox(beforeBox, "before");
+  afterBox = createSumBox(afterBox, "after");
+
+  parentDiv.append(beforeBox);
+  parentDiv.append(afterBox);
+}
+function capFirstLetter (str) {
+  let fl = str[0].toUpperCase();
+  return(fl + str.slice(1,));
+}
+function currentSelection (formId) {
+  let selections = [];
+  const inputs = document.getElementById(formId).elements;
+  (Object.keys(inputs)).forEach((input) => {
+    selections.push(inputs[input].value)
+  });
+  return selections.reverse().join(";")
+}
+
+function composeSelection (svgid, formid, checkBtnId) {
+  const selection = currentSelection(formid);
+  const checkBtn = document.getElementById(checkBtnId);
+  if (!(selection.split(";")[0] === "--" || selection.split(";")[1] === "--")) {
+    checkBtn.disabled = false;
+    let svg = document.getElementById(svgid);
+    if (svg.childNodes.length > 0) {
+      clearElement("test-stone")
+    };
+    svg = attachStone(svg, "test-stone", getOpts(selection));
+  }
 }

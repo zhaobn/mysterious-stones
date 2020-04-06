@@ -5,7 +5,7 @@ let mode = 'dev';
 const svgElements = [ "svg", "circle", "polygon", "rect" ];
 const borderWidth = "8px";
 const mar = 5;
-const len = 80;
+const len = 60;
 let textSelection = "";
 
 /** Configurations */
@@ -14,6 +14,10 @@ const colorDict = {
   "dark_2": '#1565C0',
   "light_1": '#AB47BC',
   "light_2": '#64B5F6',
+  "dark": "navy",
+  "medium": "blue",
+  "light": "lightblue",
+  "--": "white",
 }
 const allColors = Object.keys(colorDict);
 
@@ -52,16 +56,16 @@ if (mode !== "dev") {
   document.getElementById("show-gen-phase").style.display = "none";
 }
 
-for(let i = 0; i < nLearnTasks; i++ ) {
-  createTaskBox(learnTaskConfigs[i], (mode === "dev")? "flex" : "none");
-}
+// for(let i = 0; i < nLearnTasks; i++ ) {
+//   createTaskBox(learnTaskConfigs[i], (mode === "dev")? "flex" : "none");
+// }
 
-if (mode !== "dev") {
-  setTimeout(() => {
-    document.getElementById("show-learning-phase").style.display = "none";
-    document.getElementById("box-learn-01").style.display = "flex";
-  }, 2000);
-}
+// if (mode !== "dev") {
+//   setTimeout(() => {
+//     document.getElementById("show-learning-phase").style.display = "none";
+//     document.getElementById("box-learn-01").style.display = "flex";
+//   }, 2000);
+// }
 
 /** Functions */
 function createInitStones(config, parentDiv) {
@@ -83,11 +87,11 @@ function getOpts (style, isAgent) {
   opts["hasBorder"] = isAgent;
   if (shape[0] === "p") {
     const n = shape.split("_")[1];
-    opts["points"] = calcPolygon({n:n,r:40,a:0})
+    opts["points"] = calcPolygon({n:n,r:len/2,a:0})
   } else {
-    opts["cx"] = "40";
-    opts["cy"] = "40";
-    opts["r"] = "35";
+    opts["cx"] = len/2;
+    opts["cy"] = len/2;
+    opts["r"] = len/2-mar;
   }
   return opts;
 }

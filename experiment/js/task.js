@@ -3,7 +3,7 @@ let mode = 'dev';
 
 /** Global variables */
 const svgElements = [ "svg", "circle", "polygon", "rect" ];
-const borderWidth = "8px";
+const borderWidth = "5px";
 const mar = 5;
 const len = 60;
 let textSelection = "";
@@ -14,9 +14,9 @@ const colorDict = {
   // "dark_2": '#1565C0',
   // "light_1": '#AB47BC',
   // "light_2": '#64B5F6',
-  "dark": "navy",
-  "medium": "blue",
-  "light": "lightblue",
+  "dark": "#01579B",
+  "medium": "#0288D1",
+  "light": "#80D8FF",
 }
 const allColors = Object.keys(colorDict);
 const allShapes = [
@@ -54,21 +54,22 @@ if (mode !== "dev") {
   document.getElementById("show-gen-phase").style.display = "none";
 }
 
-createTaskBox(testTaskConfigs[0], (mode === "dev")? "flex" : "none");
+for(let i = 0; i < nLearnTasks; i++ ) {
+  createTaskBox(learnTaskConfigs[i], (mode === "dev")? "flex" : "none");
+}
+for(let i = 0; i < nTestTasks; i++ ) {
+  createTaskBox(testTaskConfigs[i], (mode === "dev")? "flex" : "none");
+}
+for(let i = 0; i < nGenTasks; i++ ) {
+  createTaskBox(genTaskConfigs[i], (mode === "dev")? "flex" : "none");
+}
 
-// for(let i = 0; i < nLearnTasks; i++ ) {
-//   createTaskBox(learnTaskConfigs[i], (mode === "dev")? "flex" : "none");
-// }
-// for(let i = 0; i < nGenTasks; i++ ) {
-//   createTaskBox(genTaskConfigs[i], (mode === "dev")? "flex" : "none");
-// }
-
-// if (mode !== "dev") {
-//   setTimeout(() => {
-//     document.getElementById("show-learning-phase").style.display = "none";
-//     document.getElementById("box-learn-01").style.display = "flex";
-//   }, 2000);
-// }
+if (mode !== "dev") {
+  setTimeout(() => {
+    document.getElementById("show-learning-phase").style.display = "none";
+    document.getElementById("box-learn-01").style.display = "flex";
+  }, 2000);
+}
 
 /** Functions */
 function createInitStones(config, parentDiv) {
@@ -499,7 +500,7 @@ function playEffects (config) {
   const startPos = getCurrentLocation(agent).right;
   const endPos = getCurrentLocation(recipient).left;
 
-  const delta = Math.round(endPos - startPos) + 5;
+  const delta = Math.round(endPos - startPos) + 15;
   (delta > 0) && (agentStone.style.left = `${delta}px`);
 
   setTimeout(() => {

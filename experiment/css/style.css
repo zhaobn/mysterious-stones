@@ -45,8 +45,8 @@ h4 {
 
 .box h1 {
   margin: 0 10%;
-  background-color: #263238;
-  color: #e0e0e0;
+  background-color: #bbbbbb;
+  color: black;
   padding: 5px;
   font-size: 24px;
 }
@@ -305,7 +305,7 @@ h4 {
 }
 
 .shape {
-  stroke: gold;
+  stroke: #BDBDBD;
   /* stroke: rgba(136, 136, 136, .5); */
 }
 

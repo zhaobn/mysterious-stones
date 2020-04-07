@@ -243,6 +243,10 @@ function createAnswerComposer(config) {
   const taskId = config.taskId;
   let box = createCustomElement("div", "display-box", `${taskId}-selection-box`);
   box.style.width = "40%";
+
+  // let composer = createCustomElement("div", "selection-composer", `${taskId}-selection-composer`);
+  // let svg
+
   box.innerHTML = `
     <div class="selection-composer">
       <div class="selection-svg-div">
@@ -270,9 +274,8 @@ function createAnswerComposer(config) {
           </select>
         </form>
         <br />
-        <button class="task-button id="${taskId}-check-btn">Check</button>
+        <button class="task-button" id="${taskId}-check-btn" disabled>Check</button>
       </div>
-
     </div>`
   return box;
 }
@@ -568,7 +571,7 @@ function composeSelection (svgid, formid, checkBtnId) {
   const selection = currentSelection(formid);
   const checkBtn = document.getElementById(checkBtnId);
   if (!(selection.split(";")[0] === "--" || selection.split(";")[1] === "--")) {
-    checkBtn? checkBtn.disabled = false: null;
+    checkBtn.disabled = false;
     let svg = document.getElementById(svgid);
     if (svg.childNodes.length > 0) {
       clearElement("test-stone")

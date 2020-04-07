@@ -56,12 +56,14 @@ if (mode !== "dev") {
   document.getElementById("show-gen-phase").style.display = "none";
 }
 
+createTaskBox(testTaskConfigs[0], (mode === "dev")? "flex" : "none");
+
 // for(let i = 0; i < nLearnTasks; i++ ) {
 //   createTaskBox(learnTaskConfigs[i], (mode === "dev")? "flex" : "none");
 // }
-for(let i = 0; i < nGenTasks; i++ ) {
-  createTaskBox(genTaskConfigs[i], (mode === "dev")? "flex" : "none");
-}
+// for(let i = 0; i < nGenTasks; i++ ) {
+//   createTaskBox(genTaskConfigs[i], (mode === "dev")? "flex" : "none");
+// }
 
 // if (mode !== "dev") {
 //   setTimeout(() => {
@@ -134,22 +136,16 @@ function createTaskBox (config, display = "none") {
     buttonGroup.append(createBtn(`${taskId}-play-btn`, "Play", true))
   }
 
+  taskBox.append(displayBox);
+  taskBox.append(buttonGroup);
+
+  box.append(taskBox);
+
+  let box2 = createCustomElement("div", "task-box", `taskbox-2-${taskId}`);
   if (taskType !== "learn") {
     const recordPan = createCustomElement("div", "record-pan", `${taskId}-record-pan`);
     recordPan.append(createAnswerComposer(config));
 
-    taskBox.append(displayBox);
-    taskBox.append(recordPan);
-    taskBox.append(buttonGroup);
-
-  } else {
-    taskBox.append(displayBox);
-    taskBox.append(buttonGroup);
-  }
-
-  box.append(taskBox);
-
-  if (taskType !== "learn") {
     const feedbackPass = createCustomElement("div", "feedback-true", `${taskId}-true-text`);
     feedbackPass.append(document.createTextNode("Correct! See above for the effects summary."))
     feedbackPass.style.display = "none";
@@ -160,9 +156,18 @@ function createTaskBox (config, display = "none") {
 
     box.append(feedbackPass);
     box.append(feedbackFail);
+
+    box2.append(createAnswerComposer(config));
   }
 
-  box.append(createTextInputPanel(config, (mode === "dev" || mode === "debug")? "flex": "none"));
+  const buttonGroup2 = createCustomElement("div", "button-group", `${config.taskId}-button-group`);
+  buttonGroup2.append(createBtn(`${config.taskId}-input-next-btn`, "Next",
+    (mode === "dev" || mode === "debug")? true: false));
+
+  box2.append(createTextInputPanel(config, (mode === "dev" || mode === "debug")? "flex": "none"));
+  box2.append(buttonGroup2);
+
+  box.append(box2);
 
   document.body.append(box);
   box.style.display = display;
@@ -239,7 +244,8 @@ function createTaskBox (config, display = "none") {
 }
 function createAnswerComposer(config) {
   const taskId = config.taskId;
-  let box = createCustomElement("div", "selection-box", `${taskId}-selection-box`);
+  let box = createCustomElement("div", "input-div", `${taskId}-selection-box`);
+  box.style.width = "35%";
   box.innerHTML = `
     <div class="selection-composer">
       <div class="selection-form-div">
@@ -263,6 +269,8 @@ function createAnswerComposer(config) {
             <option value="light">Light</option>
           </select>
         </form>
+        <br />
+        <button class="task-button id="${taskId}-composer-check-btn">Check</button>
       </div>
       <div class="selection-svg-div">
         <svg class="selection-object" id='${taskId}-selection-svg'></svg>
@@ -375,8 +383,8 @@ function setAttributes(el, attrs) {
   }
 }
 function createTextInputPanel (config, display = "none") {
-  const taskBox = createCustomElement("div", "task-box", `${config.taskId}-input`);
-  // taskBox.setAttribute("style", "height:600px");
+  const taskBox = createCustomElement("div", "input-div", `${config.taskId}-input`);
+  (config.type === 'learn')? taskBox.style.width = "100%": null;
 
   const instructionPan = createCustomElement("div", "instruction", `${config.taskId}-instruction`);
   instructionPan.innerHTML = `
@@ -394,15 +402,14 @@ function createTextInputPanel (config, display = "none") {
   displayBox.append(createInputForm(config));
   displayBox.append(editBtns);
 
-  const buttonGroup = createCustomElement("div", "button-group", `${config.taskId}-button-group`);
-  buttonGroup.append(createBtn(`${config.taskId}-input-next-btn`, "Next",
-    (mode === "dev" || mode === "debug")? true: false));
-  // buttonGroup.append(createBtn(`${config.taskId}-copy-btn`, "Copy", false));
-  // buttonGroup.append(createBtn(`${config.taskId}-paste-btn`, "Paste", true));
+
+  // const buttonGroup = createCustomElement("div", "button-group", `${config.taskId}-button-group`);
+  // buttonGroup.append(createBtn(`${config.taskId}-input-next-btn`, "Next",
+  //   (mode === "dev" || mode === "debug")? true: false));
 
   // taskBox.append(instructionPan);
   taskBox.append(displayBox);
-  taskBox.append(buttonGroup);
+  // taskBox.append(buttonGroup);
 
   taskBox.style.display = display;
 

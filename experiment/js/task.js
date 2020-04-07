@@ -10,14 +10,13 @@ let textSelection = "";
 
 /** Configurations */
 const colorDict = {
-  "dark_1": '#6A1B9A',
-  "dark_2": '#1565C0',
-  "light_1": '#AB47BC',
-  "light_2": '#64B5F6',
+  // "dark_1": '#6A1B9A',
+  // "dark_2": '#1565C0',
+  // "light_1": '#AB47BC',
+  // "light_2": '#64B5F6',
   "dark": "navy",
   "medium": "blue",
   "light": "lightblue",
-  "--": "white",
 }
 const allColors = Object.keys(colorDict);
 const allShapes = [

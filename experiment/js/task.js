@@ -20,7 +20,6 @@ const colorDict = {
   "--": "white",
 }
 const allColors = Object.keys(colorDict);
-
 const allShapes = [
   "circle",
   "p_3", // triangular
@@ -129,15 +128,15 @@ function createTaskBox (config, display = "none") {
   let displayBox = createCustomElement("div", "display-box", `${taskId}-display-box`);
   displayBox = createInitStones(config, displayBox);
 
-  const buttonGroup = createCustomElement("div", "button-group", `${taskId}-button-group`);
-  if (taskType !== "learn") {
-    buttonGroup.append(createBtn(`${taskId}-check-btn`, "Check", false))
+  if (taskType == "learn") {
+    const buttonGroup = createCustomElement("div", "button-group", `${taskId}-button-group`);
+    buttonGroup.append(createBtn(`${taskId}-play-btn`, "Play", true));
+    taskBox.append(displayBox);
+    taskBox.append(buttonGroup);
   } else {
-    buttonGroup.append(createBtn(`${taskId}-play-btn`, "Play", true))
+    taskBox.append(displayBox);
+    taskBox.append(createAnswerComposer(config));
   }
-
-  taskBox.append(displayBox);
-  taskBox.append(buttonGroup);
 
   box.append(taskBox);
 
@@ -157,7 +156,6 @@ function createTaskBox (config, display = "none") {
     box.append(feedbackPass);
     box.append(feedbackFail);
 
-    box2.append(createAnswerComposer(config));
   }
 
   const buttonGroup2 = createCustomElement("div", "button-group", `${config.taskId}-button-group`);
@@ -244,10 +242,13 @@ function createTaskBox (config, display = "none") {
 }
 function createAnswerComposer(config) {
   const taskId = config.taskId;
-  let box = createCustomElement("div", "input-div", `${taskId}-selection-box`);
-  box.style.width = "35%";
+  let box = createCustomElement("div", "display-box", `${taskId}-selection-box`);
+  box.style.width = "40%";
   box.innerHTML = `
     <div class="selection-composer">
+      <div class="selection-svg-div">
+        <svg class="selection-object" id='${taskId}-selection-svg'></svg>
+      </div>
       <div class="selection-form-div">
         <form class="selection-form" id="${taskId}-selection-form">
           <p>Shape</p>
@@ -270,11 +271,9 @@ function createAnswerComposer(config) {
           </select>
         </form>
         <br />
-        <button class="task-button id="${taskId}-composer-check-btn">Check</button>
+        <button class="task-button id="${taskId}-check-btn">Check</button>
       </div>
-      <div class="selection-svg-div">
-        <svg class="selection-object" id='${taskId}-selection-svg'></svg>
-      </div>
+
     </div>`
   return box;
 }
@@ -384,7 +383,7 @@ function setAttributes(el, attrs) {
 }
 function createTextInputPanel (config, display = "none") {
   const taskBox = createCustomElement("div", "input-div", `${config.taskId}-input`);
-  (config.type === 'learn')? taskBox.style.width = "100%": null;
+  taskBox.style.width = "100%";
 
   const instructionPan = createCustomElement("div", "instruction", `${config.taskId}-instruction`);
   instructionPan.innerHTML = `
@@ -536,7 +535,7 @@ function createSummaryStones(config, parentDiv) {
     } else if (type === "after") {
       sumDiv.append(createStone("new-stone", `${config.taskId}-agent`, getOpts(config.agent, true)));
       sumDiv.append(createStone("new-stone", `${config.taskId}-result`, getOpts(config.recipient, false)));
-      sumDiv.style.justifyContent = "center";
+      sumDiv.style.justifyContent = "flex-end";
     } else {
       console.log("Summary type not match @createSummaryStones()")
     }
@@ -570,7 +569,7 @@ function composeSelection (svgid, formid, checkBtnId) {
   const selection = currentSelection(formid);
   const checkBtn = document.getElementById(checkBtnId);
   if (!(selection.split(";")[0] === "--" || selection.split(";")[1] === "--")) {
-    checkBtn.disabled = false;
+    checkBtn? checkBtn.disabled = false: null;
     let svg = document.getElementById(svgid);
     if (svg.childNodes.length > 0) {
       clearElement("test-stone")

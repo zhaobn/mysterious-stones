@@ -145,8 +145,7 @@ h4 {
   margin: 0px;
 }
 .selection-composer {
-  margin: 10px;
-  height: 80%;
+  height: 95%;
   width: 95%;
   display: flex;
   flex-direction: row;
@@ -160,9 +159,9 @@ h4 {
   margin: 0;
 }
 .selection-svg-div {
-  margin-top: 6%;
+  margin: 6% 2%;
   height: 80%;
-  width: 60%;
+  width: 55%;
   background-color: #e0e0e0;
   display: flex;
   justify-content: center;

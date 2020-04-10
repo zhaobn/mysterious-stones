@@ -1,8 +1,9 @@
 
 let mode = 'dev';
+let cond = "A1";
 
 /** Global variables */
-const svgElements = [ "svg", "circle", "polygon", "rect" ];
+const svgElements = [ "svg", "polygon", "circle", "rect" ];
 const borderWidth = "5px";
 const mar = 5;
 const len = 60;
@@ -10,10 +11,7 @@ let textSelection = "";
 
 /** Configurations */
 const colorDict = {
-  // "dark_1": '#6A1B9A',
-  // "dark_2": '#1565C0',
-  // "light_1": '#AB47BC',
-  // "light_2": '#64B5F6',
+  "very_dark": "#1A237E",
   "dark": "#01579B",
   "medium": "#0288D1",
   "light": "#80D8FF",
@@ -29,15 +27,41 @@ const allShapes = [
   "p_8", // 8 sides
 ]
 
+const taskConfigs = {
+  "A1": {
+    "learn": [
+      [ "l3", "m4", "d4" ],
+      [ "l3", "m3", "d4" ],
+      [ "l3", "l5", "m4" ],
+      [ "l3", "d3", "v4" ],
+    ],
+    "gen": [
+      [ "l3", "d4" ],
+      [ "d3", "l7" ],
+      [ "m6", "m3" ],
+    ]
+  },
+  "A2": {
+    "learn": [
+      [ "l3", "m4", "d4" ],
+      [ "d6", "m4", "d7" ],
+      [ "v5", "m4", "d6" ],
+      [ "l4", "m4", "d5" ],
+    ],
+    "gen": [
+      [ "l3", "m4" ],
+      [ "d3", "l4" ],
+      [ "m6", "m6" ],
+    ]
+  }
+}
+
 const allStones = getAllStones(allColors, allShapes);
 
-const learnTaskConfigs = sampleTasks('learn', 3);
+const learnTaskConfigs = getTaskConfigs(taskConfigs[cond].learn);
 const nLearnTasks = Object.keys(learnTaskConfigs).length;
 
-const testTaskConfigs = sampleTasks('test', 1);
-const nTestTasks = Object.keys(testTaskConfigs).length;
-
-const genTaskConfigs = sampleTasks('gen', 2);
+const genTaskConfigs = getTaskConfigs(taskConfigs[cond].gen);
 const nGenTasks = Object.keys(genTaskConfigs).length;
 
 /** Main body */
@@ -56,9 +80,6 @@ if (mode !== "dev") {
 
 for(let i = 0; i < nLearnTasks; i++ ) {
   createTaskBox(learnTaskConfigs[i], (mode === "dev")? "flex" : "none");
-}
-for(let i = 0; i < nTestTasks; i++ ) {
-  createTaskBox(testTaskConfigs[i], (mode === "dev")? "flex" : "none");
 }
 for(let i = 0; i < nGenTasks; i++ ) {
   createTaskBox(genTaskConfigs[i], (mode === "dev")? "flex" : "none");
@@ -98,147 +119,6 @@ function getOpts (style, isAgent) {
     opts["r"] = len/2-mar;
   }
   return opts;
-}
-function createTaskBox (config, display = "none") {
-  const taskType = config.type;
-  const taskId = config.taskId;
-
-  let index = config.index;
-  let total = 0;
-  // const total = nLearnTasks + nTestTasks + nGenTasks;
-
-  switch (taskType) {
-    case 'learn':
-      total = nLearnTasks;
-      break;
-    case 'test':
-      total = nTestTasks;
-      break;
-    case 'gen':
-      total = nGenTasks;
-      break;
-  }
-
-  let box = createCustomElement("div", "box", `box-${taskId}`);
-  box.append(createText('h1', `
-    ${mode === 'dev'? "["+ taskType + "]": ''}
-    ${index}/${total}`));
-
-  let taskBox = createCustomElement("div", "task-box", `taskbox-${taskId}`);
-  let displayBox = createCustomElement("div", "display-box", `${taskId}-display-box`);
-  displayBox = createInitStones(config, displayBox);
-
-  if (taskType == "learn") {
-    const buttonGroup = createCustomElement("div", "button-group", `${taskId}-button-group`);
-    buttonGroup.append(createBtn(`${taskId}-play-btn`, "Play", true));
-    taskBox.append(displayBox);
-    taskBox.append(buttonGroup);
-  } else {
-    taskBox.append(displayBox);
-    taskBox.append(createAnswerComposer(config));
-  }
-
-  box.append(taskBox);
-
-  let box2 = createCustomElement("div", "task-box", `taskbox-2-${taskId}`);
-  if (taskType !== "learn") {
-    const recordPan = createCustomElement("div", "record-pan", `${taskId}-record-pan`);
-    recordPan.append(createAnswerComposer(config));
-
-    const feedbackPass = createCustomElement("div", "feedback-true", `${taskId}-true-text`);
-    feedbackPass.append(document.createTextNode("Correct! See above for the effects summary."))
-    feedbackPass.style.display = "none";
-
-    const feedbackFail = createCustomElement("div", "feedback-false", `${taskId}-false-text`);
-    feedbackFail.append(document.createTextNode("Wrong! See above for the real effects summary."));
-    feedbackFail.style.display = "none";
-
-    box.append(feedbackPass);
-    box.append(feedbackFail);
-
-  }
-
-  const buttonGroup2 = createCustomElement("div", "button-group", `${config.taskId}-button-group`);
-  buttonGroup2.append(createBtn(`${config.taskId}-input-next-btn`, "Next",
-    (mode === "dev" || mode === "debug")? true: false));
-
-  box2.append(createTextInputPanel(config, (mode === "dev" || mode === "debug")? "flex": "none"));
-  box2.append(buttonGroup2);
-
-  box.append(box2);
-
-  document.body.append(box);
-  box.style.display = display;
-
-  // /** Button functionalities */
-  const playBtn = document.getElementById(`${taskId}-play-btn`) || null;
-  const selectionForm = document.getElementById(`${taskId}-selection-form` || null);
-  const inputForm = document.getElementById(`${taskId}-input-form`);
-  const copyBtn = document.getElementById(`${taskId}-copy-btn`);
-  const pasteBtn = document.getElementById(`${taskId}-paste-btn`);
-  const inputNextBtn = document.getElementById(`${taskId}-input-next-btn`);
-
-  copyBtn.onclick = () => copyText(`${taskId}-input-1`);
-  pasteBtn.onclick = () => pasteText(`${taskId}-input-1`);
-
-  if (taskType === "learn") {
-    playBtn.onclick = () => {
-      playBtn.disabled = true;
-      playEffects(config);
-      setTimeout(() => {
-        clearStones(config);
-        setTimeout(() => {
-          displayBox = createSummaryStones(config, displayBox);
-          showNext(`${taskId}-input`);
-        }, 1000);
-      }, 3500);
-    }
-  }
-
-  if (taskType !== "learn") {
-    selectionForm.onchange = () =>
-      composeSelection(`${taskId}-selection-svg`, `${taskId}-selection-form`, `${taskId}-check-btn`);
-  }
-  inputForm.onchange = () => isFilled(`${taskId}-input-form`)? inputNextBtn.disabled = false: null;
-
-  inputNextBtn.onclick= () => {
-    inputNextBtn.disabled = true;
-    // (taskType === "gen")? gtData = saveFormData(config, gtData) : ltData = saveFormData(config, ltData);
-    disableFormInputs(`${taskId}-input-form`);
-    copyBtn.disabled = false;
-    pasteBtn.disabled = true;
-
-    const taskCount = parseInt(taskId.split("-")[1]);
-    if (taskType === "learn") {
-      if(taskCount < nLearnTasks) {
-        showNext(`box-learn-${fmtTaskIdx(taskCount+1)}`)
-      } else {
-        for(let i = 0; i < nLearnTasks; i ++) document.getElementById(`box-learn-${fmtTaskIdx(i+1)}`).style.display = "none";
-        document.getElementById("show-test-phase").style.display = "block";
-        setTimeout(() => {
-          document.getElementById("show-test-phase").style.display = "none";
-          document.getElementById("box-test-01").style.display = "flex";
-        }, 2000);
-      }
-    } else if (taskType === "test") {
-      if(taskCount < nTestTasks) {
-        showNext(`box-test-${fmtTaskIdx(taskCount+1)}`)
-      } else {
-        for(let i = 0; i < nTestTasks; i ++) document.getElementById(`box-test-${fmtTaskIdx(i+1)}`).style.display = "none";
-        document.getElementById("show-gen-phase").style.display = "block";
-        setTimeout(() => {
-          document.getElementById("show-gen-phase").style.display = "none";
-          document.getElementById("box-gen-01").style.display = "flex";
-        }, 2000);
-      }
-    } else {
-      if(taskCount < nGenTasks) {
-        showNext(`box-gen-${fmtTaskIdx(taskCount+1)}`)
-      } else {
-        alert("This is the last task.")
-      }
-    }
-  }
 }
 function createAnswerComposer(config) {
   const taskId = config.taskId;
@@ -404,7 +284,6 @@ function createTextInputPanel (config, display = "none") {
   displayBox.append(createInputForm(config));
   displayBox.append(editBtns);
 
-
   // const buttonGroup = createCustomElement("div", "button-group", `${config.taskId}-button-group`);
   // buttonGroup.append(createBtn(`${config.taskId}-input-next-btn`, "Next",
   //   (mode === "dev" || mode === "debug")? true: false));
@@ -445,29 +324,6 @@ function createInputForm(config) {
     `
   return(form);
 }
-function copyText (id) {
-  textSelection = document.getElementById(id).value;
-}
-
-function pasteText (id) {
-  const textArea = document.getElementById(id);
-  let text = textArea.value;
-  text = text + " " + textSelection;
-  textArea.value = text;
-}
-// function saveFormData(config, dataObj) {
-//   const form = document.getElementById(`${config.taskId}-input-form`);
-//   const inputs = form.elements;
-//   (Object.keys(inputs)).forEach((input) => {
-//     let field = inputs[input];
-//     if (field.name.indexOf("certainty") < 0) {
-//       dataObj["report"].push(field.value);
-//     } else {
-//       dataObj["confidence"].push(field.value);
-//     }
-//   })
-//   return(dataObj);
-// }
 function disableFormInputs (formId) {
   const form = document.getElementById(formId);
   const inputs = form.elements;
@@ -490,6 +346,15 @@ function isFilled (formID) {
   return (!notFilled)
 }
 function playEffects (config) {
+  const getCurrentLocation = (id) => {
+    let rect = {top: 0, bottom: 0, left: 0, right: 0};
+    const pos = document.getElementById(id).getBoundingClientRect();
+    rect.top = pos.top;
+    rect.bottom = pos.bottom;
+    rect.left = pos.left;
+    rect.right = pos.right;
+    return rect;
+  }
   if (!(document.body.contains(document.getElementById(`${config.taskId}-agent`)))) {
     createStones(config)
   }
@@ -508,15 +373,6 @@ function playEffects (config) {
     clearElement(`${config.taskId}-recipient-stone`);
     svg = attachStone(svg, `${config.taskId}-recipient-stone`, getOpts(config.result, false));
   }, 1500);
-}
-function getCurrentLocation(id) {
-  let rect = {top: 0, bottom: 0, left: 0, right: 0};
-  const pos = document.getElementById(id).getBoundingClientRect();
-  rect.top = pos.top;
-  rect.bottom = pos.bottom;
-  rect.left = pos.left;
-  rect.right = pos.right;
-  return rect;
 }
 function clearStones (config) {
   let els = [ "agent", "recipient" ].map(s => `${config.taskId}-${s}`);
@@ -567,7 +423,6 @@ function currentSelection (formId) {
   });
   return selections.reverse().join(";")
 }
-
 function composeSelection (svgid, formid, checkBtnId) {
   const selection = currentSelection(formid);
   const checkBtn = document.getElementById(checkBtnId);
@@ -579,4 +434,118 @@ function composeSelection (svgid, formid, checkBtnId) {
     };
     svg = attachStone(svg, "test-stone", getOpts(selection));
   }
+}
+function createTaskBox (config, display = "none") {
+  const taskType = config.type;
+  const taskId = config.taskId;
+
+  let index = config.index;
+  let total = 0;
+  // const total = nLearnTasks + nTestTasks + nGenTasks;
+
+  switch (taskType) {
+    case 'learn':
+      total = nLearnTasks;
+      break;
+    case 'test':
+      total = nTestTasks;
+      break;
+    case 'gen':
+      total = nGenTasks;
+      break;
+  }
+
+  let box = createCustomElement("div", "box", `box-${taskId}`);
+  box.append(createText('h1', `
+    ${mode === 'dev'? "["+ taskType + "]": ''}
+    ${index}/${total}`));
+
+  let taskBox = createCustomElement("div", "task-box", `taskbox-${taskId}`);
+  let displayBox = createCustomElement("div", "display-box", `${taskId}-display-box`);
+  displayBox = createInitStones(config, displayBox);
+
+  if (taskType == "learn") {
+    const buttonGroup = createCustomElement("div", "button-group", `${taskId}-button-group`);
+    buttonGroup.append(createBtn(`${taskId}-play-btn`, "Play", true));
+    taskBox.append(displayBox);
+    taskBox.append(buttonGroup);
+  } else {
+    taskBox.append(displayBox);
+    taskBox.append(createAnswerComposer(config));
+  }
+
+  box.append(taskBox);
+
+  document.body.append(box);
+  box.style.display = display;
+
+  // /** Button functionalities */
+  const playBtn = document.getElementById(`${taskId}-play-btn`) || null;
+
+  if (taskType === "learn") {
+    playBtn.onclick = () => {
+      playBtn.disabled = true;
+      playEffects(config);
+      setTimeout(() => {
+        clearStones(config);
+        setTimeout(() => {
+          displayBox = createSummaryStones(config, displayBox);
+          showNext(`${taskId}-input`);
+        }, 1000);
+      }, 3500);
+    }
+  }
+}
+
+// const taskConfigs = {
+//   "A1": {
+//     "learn": [
+//       [ "l3", "m4", "d4" ],
+//       [ "l3", "m3", "d4" ],
+//       [ "l3", "l5", "m4" ],
+//       [ "l3", "d3", "v4" ],
+//     ],
+//     "gen": [
+//       [ "l3", "d4" ],
+//       [ "d3", "l7" ],
+//       [ "m6", "m3" ],
+//     ]
+//   },
+// }
+
+function getTaskConfigs (settings) {
+  const taskType = (settings[0].length > 2)? "learn" : "gen";
+  const readStone = (str) => {
+    let color = "";
+    let shape = "p_" + str[1];
+    switch (str[0]) {
+      case "l":
+        color = "light";
+        break;
+      case "m":
+        color = "medium";
+        break;
+      case "d":
+        color = "dark";
+        break;
+      case "v":
+        color = "very_dark";
+        break;
+    }
+    return color + ";" + shape;
+  }
+  const configureTask = (setting, index) => {
+    let task = {};
+    task["taskId"] = taskType + "-" + fmtTaskIdx(index);
+    task["type"] = taskType;
+    task["index"] = index;
+    task["agent"] = readStone(setting[0]);
+    task["recipient"] = readStone(setting[1]);
+    (taskType === "learn")? task["result"] = readStone(setting[2]) : null;
+    return task;
+  }
+  let configs = [];
+  settings.forEach((s, i) => configs.push(configureTask(s, i + 1)));
+
+  return configs;
 }

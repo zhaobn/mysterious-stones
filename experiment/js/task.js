@@ -11,10 +11,10 @@ let textSelection = "";
 
 /** Configurations */
 const colorDict = {
-  "very_dark": "#1A237E",
-  "dark": "#01579B",
-  "medium": "#0288D1",
-  "light": "#80D8FF",
+  "very_dark": "#1c4587",
+  "dark": "#1155cc",
+  "medium": "#6d9eeb",
+  "light": "#c9daf8",
 }
 const allColors = Object.keys(colorDict);
 const allShapes = [
@@ -230,13 +230,19 @@ function createCircle (className, id, opts) {
   return(circle);
 }
 function calcPolygon(input) {
-  // Adapted from https://gist.github.com/jonthesquirrel/e2807811d58a6627ded4
   let output = [];
-  for (let i = 1; i <= input.n; i++) {
-    output.push(
-      ((input.r * Math.cos(input.a + 2 * i * Math.PI / input.n)) + len/2).toFixed(0).toString() + "," +
-      ((input.r * Math.sin(input.a + 2 * i * Math.PI / input.n)) + len/2).toFixed(0).toString()
-    )
+  if (input.n === "3") {
+    output.push(`${len/2},${mar}`);
+    output.push(`${len-mar},${len-mar}`);
+    output.push(`${mar},${len-mar}`);
+  } else {
+    // Adapted from https://gist.github.com/jonthesquirrel/e2807811d58a6627ded4
+    for (let i = 1; i <= input.n; i++) {
+      output.push(
+        ((input.r * Math.cos(input.a + 2 * i * Math.PI / input.n)) + len/2).toFixed(0).toString() + "," +
+        ((input.r * Math.sin(input.a + 2 * i * Math.PI / input.n)) + len/2).toFixed(0).toString()
+      )
+    }
   }
   return output.join(" ")
 }

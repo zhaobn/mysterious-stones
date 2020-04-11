@@ -1,5 +1,5 @@
 
-let mode = 'debug';
+let mode = 'prod';
 let cond = "A1";
 
 /** Global variables */
@@ -31,9 +31,9 @@ const taskConfigs = {
   "A1": {
     "learn": [
       [ "l3", "m4", "d4" ],
-      [ "l3", "m3", "d4" ],
-      [ "l3", "l5", "m4" ],
-      [ "l3", "d3", "v4" ],
+      // [ "l3", "m3", "d4" ],
+      // [ "l3", "l5", "m4" ],
+      // [ "l3", "d3", "v4" ],
     ],
     "gen": [
       [ "l3", "d4" ],
@@ -69,10 +69,6 @@ if (mode !== "dev") {
   document.body.append(createCustomElement("div", "section-page", "show-learning-phase"));
   document.getElementById("show-learning-phase").append(createText("h1", "Investigation starts"));
 
-  document.body.append(createCustomElement("div", "section-page", "show-test-phase"));
-  document.getElementById("show-test-phase").append(createText("h1", "Tests"));
-  document.getElementById("show-test-phase").style.display = "none";
-
   document.body.append(createCustomElement("div", "section-page", "show-gen-phase"));
   document.getElementById("show-gen-phase").append(createText("h1", "With newly-discovered stones"));
   document.getElementById("show-gen-phase").style.display = "none";
@@ -81,6 +77,9 @@ if (mode !== "dev") {
 for(let i = 0; i < nLearnTasks; i++ ) {
   createTaskBox(learnTaskConfigs[i], (mode === "dev")? "flex" : "none");
 }
+
+createTextInputPanel("learn", "none");
+
 for(let i = 0; i < nGenTasks; i++ ) {
   createTaskBox(genTaskConfigs[i], (mode === "dev")? "flex" : "none");
 }
@@ -270,11 +269,10 @@ function setAttributes(el, attrs) {
     el.setAttribute(key, attrs[key]);
   }
 }
-function createTextInputPanel (config, display = "none") {
-  const taskBox = createCustomElement("div", "input-div", `${config.taskId}-input`);
-  taskBox.style.width = "100%";
-
-  const instructionPan = createCustomElement("div", "instruction", `${config.taskId}-instruction`);
+function createTextInputPanel (taskId, display = "none") {
+  let box = createCustomElement("div", "box", `box-${taskId}-input`);
+  let taskBox = createCustomElement("div", "input-div", `${taskId}-input`);
+  const instructionPan = createCustomElement("div", "instruction", `${taskId}-instruction`);
   instructionPan.innerHTML = `
     <h1>Make sure you:</h1>
     <ul>
@@ -282,28 +280,46 @@ function createTextInputPanel (config, display = "none") {
       <li>Refer to object properties using <b>dark/pale</b>, <b>red</b>, <b>blue</b>, <b>plain</b>, <b>left stripes</b>, <b>right stripes</b>.</li>
     </ul>
     `
-  const editBtns = createCustomElement("div", "edit-buttons", `${config.taskId}-edit-btns`);
-  editBtns.append(createBtn(`${config.taskId}-copy-btn`, "Copy", false));
-  editBtns.append(createBtn(`${config.taskId}-paste-btn`, "Paste", (config.index === 1)? false : true));
+  const displayBox = createCustomElement("div", "input-box", `${taskId}-input-box`);
+  displayBox.append(createInputForm(taskId));
 
-  const displayBox = createCustomElement("div", "input-box", `${config.taskId}-input-box`);
-  displayBox.append(createInputForm(config));
-  displayBox.append(editBtns);
-
-  // const buttonGroup = createCustomElement("div", "button-group", `${config.taskId}-button-group`);
-  // buttonGroup.append(createBtn(`${config.taskId}-input-next-btn`, "Next",
-  //   (mode === "dev" || mode === "debug")? true: false));
+  const buttonGroup = createCustomElement("div", "button-group", `${taskId}-button-group`);
+  buttonGroup.append(createBtn(`${taskId}-input-submit-btn`, "Submit", false));
+  buttonGroup.append(createBtn(`${taskId}-input-next-btn`, "Next",
+    (mode === "dev" || mode === "debug")? true: false));
 
   // taskBox.append(instructionPan);
   taskBox.append(displayBox);
-  // taskBox.append(buttonGroup);
+  taskBox.append(buttonGroup);
 
-  taskBox.style.display = display;
+  box.append(taskBox);
+  document.body.append(box);
+  box.style.display = (mode === "dev")? "flex": display;
 
-  return(taskBox);
+  /** Button functionalities */
+  const submitBtn = document.getElementById(`${taskId}-input-submit-btn`);
+  const inputNextBtn = document.getElementById(`${taskId}-input-next-btn`);
+  const inputForm = document.getElementById(`${taskId}-input-form`);
+
+  inputForm.onchange = () => isFilled(`${taskId}-input-form`)? submitBtn.disabled = false: null;
+  submitBtn.onclick = () => {
+    console.log("submit form!");
+    submitBtn.disabled = true;
+    disableFormInputs(`${taskId}-input-form`);
+    inputNextBtn.disabled = false;
+  }
+  inputNextBtn.onclick = () => {
+    for(let i = 0; i < nLearnTasks; i ++) document.getElementById(`box-learn-${fmtTaskIdx(i+1)}`).style.display = "none";
+    document.getElementById("box-learn-input").style.display = "none";
+    document.getElementById("show-gen-phase").style.display = "block";
+    setTimeout(() => {
+      document.getElementById("show-gen-phase").style.display = "none";
+      document.getElementById("box-gen-01").style.display = "flex";
+    }, 2000);
+  }
 }
-function createInputForm(config) {
-  let form = createCustomElement("form", "input-form", `${config.taskId}-input-form`);
+function createInputForm(taskId) {
+  let form = createCustomElement("form", "input-form", `${taskId}-input-form`);
   const placeholderText = `Please refer to objects as agent, recipient, result; please refer to properties using plain, stripes, and directions.`
   const options = `
     <option value="--" SELECTED>
@@ -321,9 +337,9 @@ function createInputForm(config) {
   `
   form.innerHTML = `
     <p>Such effect is probably because</p>
-    <textarea name="${config.taskId}-input-1" id="${config.taskId}-input-1" placeholder="${placeholderText}"></textarea>
+    <textarea name="${taskId}-input-1" id="${taskId}-input-1" placeholder="${placeholderText}"></textarea>
     <p>How certain are you?
-      <select id="${config.taskId}-input-1-certainty" name="${config.taskId}-input-1-certainty" class="input-rule">
+      <select id="${taskId}-input-1-certainty" name="${taskId}-input-1-certainty" class="input-rule">
         ${options}
       </select>
     </p>
@@ -529,10 +545,14 @@ function createTaskBox (config, display = "none") {
       }, 3500);
     }
     nextBtn.onclick = () => {
+      nextBtn.disabled = true;
       document.getElementById(`taskbox-${taskId}`).style.height = '200px';
       document.getElementById(`${taskId}-display-box`).style.backgroundColor = '#e0e0e0';
-      nextBtn.disabled = true;
-      showNext(`box-${taskType}-${fmtTaskIdx(index + 1)}`);
+      if (index < nLearnTasks) {
+        showNext(`box-${taskType}-${fmtTaskIdx(index + 1)}`);
+      } else {
+        showNext("box-learn-input");
+      }
     }
   }
 }

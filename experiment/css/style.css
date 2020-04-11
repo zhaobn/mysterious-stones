@@ -66,7 +66,7 @@ h4 {
   border-radius: 50%;
 }
 
-.task-box {
+.task-box, .input-div {
   /* background-color: #a0a0a0; */
   min-width: 500px;
   width: 90%;
@@ -79,7 +79,7 @@ h4 {
 }
 
 .display-box, .task-num, .button-group,
-.button-group-vc, .input-box
+.button-group-vc, .input-box,
 .instruction, .record-pan {
   height: 90%;
   margin: 10px;
@@ -87,7 +87,8 @@ h4 {
 }
 
 .display-box, .sum-box,
-.record-pan, .input-box, .selection-composer,
+.input-box,
+.record-pan,  .selection-composer,
 .task-button,
 .instruction, .instruction h1 {
   background-color: #f4f4f4;
@@ -103,7 +104,9 @@ h4 {
   padding: 5px;
   font-size: 24px;
 }
-
+.task-box {
+  background-color: #e0e0e0;
+}
 .record-pan, .instruction {
   width: 25%;
 }
@@ -138,10 +141,6 @@ h4 {
   width: 90%;
   justify-content: space-evenly;
   align-items: center;
-}
-.input-div {
-  height: 100%;
-  width: 55%;
 }
 .selection-box {
   height: 100%;
@@ -258,19 +257,22 @@ h4 {
 }
 
 .input-box {
-  width: 100%;
+  height: 90%;
+  width: 90%;
   padding: 0px;
 }
 
 .input-form {
   padding: 0px 10px;
-  width: 100%;
+  width: 90%;
+  height: 80%;
 }
 
 .input-form textarea {
-  height: 40px;
+  height: 80%;
   width: 100%;
   border: 0px;
+  background-color: #fff ;
 }
 
 .edit-buttons {

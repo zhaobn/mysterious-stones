@@ -78,8 +78,8 @@ h4 {
   align-items: center;
 }
 
-.display-box, .task-num, .button-group,
-.button-group-vc, .input-box,
+.display-box, .task-num, .task-div,
+.button-group, .input-box,
 .instruction, .record-pan {
   height: 90%;
   margin: 10px;
@@ -98,15 +98,26 @@ h4 {
   align-items: flex-start;
   width: 4%;
 }
-.task-num h1 {
+.task-num h1,
+.task-div h1 {
   margin: 0px;
   color: black;
   padding: 5px;
-  font-size: 24px;
-}
+  font-size: 24px;}
 .task-box {
   background-color: #e0e0e0;
 }
+.task-div {
+  flex-direction: column;
+  width: 100%;
+}
+.display-div {
+  height: 90%;
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+}
+
 .record-pan, .instruction {
   width: 25%;
 }
@@ -151,20 +162,24 @@ h4 {
   height: 95%;
   width: 95%;
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
 }
-.selection-form-div {
-  height: 100%;
-  width: 32%;
-  margin: 15px 5px;
+.selection-form-div,
+.selection-svg-div,
+.selection-buttons {
+  width: 90%;
+  margin: 2% 6%;
 }
 .selection-form p {
-  margin: 0;
+  margin: 0px;
+}
+.selection-form select {
+  width: 50%;
 }
 .selection-svg-div {
-  margin: 6% 2%;
-  height: 90%;
-  width: 55%;
+  /* margin: 6% 2%; */
+  height: 80%;
+  width: 80%;
   background-color: #e0e0e0;
   display: flex;
   justify-content: center;
@@ -203,8 +218,6 @@ h4 {
 .selection-panel td:hover {
   border: 3px solid #e0e0e0;
 }
-
-
 
 .task-button, .big-button {
   border: #e0e0e0 1px solid;

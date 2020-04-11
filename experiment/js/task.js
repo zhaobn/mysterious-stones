@@ -1,5 +1,5 @@
 
-let mode = 'prod';
+let mode = 'dev';
 let cond = "A1";
 
 /** Global variables */
@@ -31,9 +31,9 @@ const taskConfigs = {
   "A1": {
     "learn": [
       [ "l3", "m4", "d4" ],
-      // [ "l3", "m3", "d4" ],
-      // [ "l3", "l5", "m4" ],
-      // [ "l3", "d3", "v4" ],
+      [ "l3", "m3", "d4" ],
+      [ "l3", "l5", "m4" ],
+      [ "l3", "d3", "v4" ],
     ],
     "gen": [
       [ "l3", "d4" ],
@@ -74,15 +74,16 @@ if (mode !== "dev") {
   document.getElementById("show-gen-phase").style.display = "none";
 }
 
-for(let i = 0; i < nLearnTasks; i++ ) {
-  createTaskBox(learnTaskConfigs[i], (mode === "dev")? "flex" : "none");
-}
+createGenTaskBox(genTaskConfigs[0], "flex");
+// for(let i = 0; i < nLearnTasks; i++ ) {
+//   createTaskBox(learnTaskConfigs[i], (mode === "dev")? "flex" : "none");
+// }
 
-createTextInputPanel("learn", "none");
+// createTextInputPanel("learn", "none");
 
-for(let i = 0; i < nGenTasks; i++ ) {
-  createTaskBox(genTaskConfigs[i], (mode === "dev")? "flex" : "none");
-}
+// for(let i = 0; i < nGenTasks; i++ ) {
+//   createTaskBox(genTaskConfigs[i], (mode === "dev")? "flex" : "none");
+// }
 
 if (mode !== "dev") {
   setTimeout(() => {
@@ -129,15 +130,11 @@ function createAnswerComposer(config) {
 
   box.innerHTML = `
     <div class="selection-composer">
-      <div class="selection-svg-div">
-        <svg class="selection-object" id='${taskId}-selection-svg'></svg>
-      </div>
       <div class="selection-form-div">
         <form class="selection-form" id="${taskId}-selection-form">
-          <p>Shape</p>
-          <select id="color" name="color" class="selection-input">
+          <p>Shape:&nbsp;&nbsp;&nbsp;
+          <select id="shape" name="shape" class="selection-input">
             <option value="--" SELECTED>--</option>
-            <option value="circle">Circle</option>
             <option value="p_3">Triangle</option>
             <option value="p_4">Square</option>
             <option value="p_4">Square</option>
@@ -145,16 +142,23 @@ function createAnswerComposer(config) {
             <option value="p_6">Hexagon</option>
             <option value="p_7">Heptagon</option>
           </select>
-          <p>Shading</p>
+          </p>
+          <p>Shading:
           <select id="color" name="color" class="selection-input">
             <option value="--" SELECTED>--</option>
-            <option value="dark">Dark</option>
-            <option value="medium">Medium</option>
             <option value="light">Light</option>
+            <option value="medium">Medium</option>
+            <option value="dark">Dark</option>
+            <option value="very_dark">Very dark</option>
           </select>
+          <p>
         </form>
-        <br />
-        <button class="task-button" id="${taskId}-check-btn" disabled>Check</button>
+      </div>
+      <div class="selection-svg-div">
+        <svg class="selection-object" id='${taskId}-selection-svg'></svg>
+      </div>
+      <div class="selection-buttons">
+        <button class="task-button" id="${taskId}-confirm-btn" disabled>Confirm</button>
       </div>
     </div>`
   return box;
@@ -314,6 +318,7 @@ function createTextInputPanel (taskId, display = "none") {
     document.getElementById("show-gen-phase").style.display = "block";
     setTimeout(() => {
       document.getElementById("show-gen-phase").style.display = "none";
+      // for(let i = 0; i < nLearnTasks; i ++) document.getElementById(`box-learn-${fmtTaskIdx(i+1)}`).style.display = "flex";
       document.getElementById("box-gen-01").style.display = "flex";
     }, 2000);
   }
@@ -555,4 +560,41 @@ function createTaskBox (config, display = "none") {
       }
     }
   }
+}
+
+function createGenTaskBox (config, display = "none") {
+  const taskType = config.type;
+  const taskId = config.taskId;
+
+  let index = config.index;
+
+  let box = createCustomElement("div", "box", `box-${taskId}`);
+  let taskNum = createCustomElement("div", "task-num", `${taskId}-num`);
+  taskNum.append(createText('h1', index + '/' + nGenTasks));
+
+  let textDiv = createCustomElement("div", "text-div", `${taskId}-text-div`);
+  textDiv.append(createText("h1", "This agent will turn this recipient into ...?"));
+
+  let taskDiv = createCustomElement("div", "task-div", `${taskId}-task-div`);
+  let displayDiv = createCustomElement("div", "display-div", `${taskId}-display-div`);
+
+  let taskBox = createCustomElement("div", "task-box", `taskbox-${taskId}`);
+  taskBox.append(taskNum);
+  let displayBox = createCustomElement("div", "display-box", `${taskId}-display-box`);
+  displayBox = createInitStones(config, displayBox);
+
+  displayDiv.append(displayBox);
+  displayDiv.append(createAnswerComposer(config));
+
+  taskDiv.append(textDiv);
+  taskDiv.append(displayDiv);
+
+  taskBox.append(taskNum);
+  taskBox.append(taskDiv);
+
+  box.append(taskBox);
+
+  document.body.append(box);
+  box.style.display = display;
+
 }

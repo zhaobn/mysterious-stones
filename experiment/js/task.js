@@ -1,5 +1,5 @@
 
-let mode = 'dev';
+let mode = 'debug';
 let cond = "A1";
 
 /** Global variables */
@@ -441,84 +441,6 @@ function composeSelection (svgid, formid, checkBtnId) {
     svg = attachStone(svg, "test-stone", getOpts(selection));
   }
 }
-function createTaskBox (config, display = "none") {
-  const taskType = config.type;
-  const taskId = config.taskId;
-
-  let index = config.index;
-  let total = 0;
-  // const total = nLearnTasks + nTestTasks + nGenTasks;
-
-  switch (taskType) {
-    case 'learn':
-      total = nLearnTasks;
-      break;
-    case 'test':
-      total = nTestTasks;
-      break;
-    case 'gen':
-      total = nGenTasks;
-      break;
-  }
-
-  let box = createCustomElement("div", "box", `box-${taskId}`);
-  box.append(createText('h1', `
-    ${mode === 'dev'? "["+ taskType + "]": ''}
-    ${index}/${total}`));
-
-  let taskBox = createCustomElement("div", "task-box", `taskbox-${taskId}`);
-  let displayBox = createCustomElement("div", "display-box", `${taskId}-display-box`);
-  displayBox = createInitStones(config, displayBox);
-
-  if (taskType == "learn") {
-    const buttonGroup = createCustomElement("div", "button-group", `${taskId}-button-group`);
-    buttonGroup.append(createBtn(`${taskId}-play-btn`, "Play", true));
-    taskBox.append(displayBox);
-    taskBox.append(buttonGroup);
-  } else {
-    taskBox.append(displayBox);
-    taskBox.append(createAnswerComposer(config));
-  }
-
-  box.append(taskBox);
-
-  document.body.append(box);
-  box.style.display = display;
-
-  // /** Button functionalities */
-  const playBtn = document.getElementById(`${taskId}-play-btn`) || null;
-
-  if (taskType === "learn") {
-    playBtn.onclick = () => {
-      playBtn.disabled = true;
-      playEffects(config);
-      setTimeout(() => {
-        clearStones(config);
-        setTimeout(() => {
-          displayBox = createSummaryStones(config, displayBox);
-          showNext(`${taskId}-input`);
-        }, 1000);
-      }, 3500);
-    }
-  }
-}
-
-// const taskConfigs = {
-//   "A1": {
-//     "learn": [
-//       [ "l3", "m4", "d4" ],
-//       [ "l3", "m3", "d4" ],
-//       [ "l3", "l5", "m4" ],
-//       [ "l3", "d3", "v4" ],
-//     ],
-//     "gen": [
-//       [ "l3", "d4" ],
-//       [ "d3", "l7" ],
-//       [ "m6", "m3" ],
-//     ]
-//   },
-// }
-
 function getTaskConfigs (settings) {
   const taskType = (settings[0].length > 2)? "learn" : "gen";
   const readStone = (str) => {
@@ -554,4 +476,62 @@ function getTaskConfigs (settings) {
   settings.forEach((s, i) => configs.push(configureTask(s, i + 1)));
 
   return configs;
+}
+function createTaskBox (config, display = "none") {
+  const taskType = config.type;
+  const taskId = config.taskId;
+
+  let index = config.index;
+  const total = (taskType === "learn")? nLearnTasks : nGenTasks;
+
+  let box = createCustomElement("div", "box", `box-${taskId}`);
+  let taskNum = createCustomElement("div", "task-num", `${taskId}-num`);
+  taskNum.append(createText('h1', index + '/' + total));
+
+  let taskBox = createCustomElement("div", "task-box", `taskbox-${taskId}`);
+  taskBox.append(taskNum);
+  let displayBox = createCustomElement("div", "display-box", `${taskId}-display-box`);
+  displayBox = createInitStones(config, displayBox);
+
+  if (taskType === "learn") {
+    const buttonGroup = createCustomElement("div", "button-group", `${taskId}-button-group`);
+    buttonGroup.append(createBtn(`${taskId}-play-btn`, "Play", true));
+    buttonGroup.append(createBtn(`${taskId}-next-btn`, "Next", false));
+
+    taskBox.append(displayBox);
+    taskBox.append(buttonGroup);
+  } else if (taskType === "gen") {
+    taskBox.append(displayBox);
+    taskBox.append(createAnswerComposer(config));
+  } else {
+    console.log("Task type not match")
+  }
+
+  box.append(taskBox);
+
+  document.body.append(box);
+  box.style.display = display;
+
+  // /** Button functionalities */
+  if (taskType === "learn") {
+    const playBtn = document.getElementById(`${taskId}-play-btn`);
+    const nextBtn = document.getElementById(`${taskId}-next-btn`);
+
+    playBtn.onclick = () => {
+      playBtn.disabled = true;
+      playEffects(config);
+      setTimeout(() => {
+        clearStones(config);
+        setTimeout(() => {
+          displayBox = createSummaryStones(config, displayBox);
+          nextBtn.disabled = false;
+        }, 1000);
+      }, 3500);
+    }
+    nextBtn.onclick = () => {
+      document.getElementById(`taskbox-${taskId}`).style.height = '200px';
+      nextBtn.disabled = true;
+      showNext(`box-${taskType}-${fmtTaskIdx(index + 1)}`);
+    }
+  }
 }

@@ -74,16 +74,15 @@ if (mode !== "dev") {
   document.getElementById("show-gen-phase").style.display = "none";
 }
 
-createGenTaskBox(genTaskConfigs[0], "flex");
-// for(let i = 0; i < nLearnTasks; i++ ) {
-//   createTaskBox(learnTaskConfigs[i], (mode === "dev")? "flex" : "none");
-// }
+for(let i = 0; i < nLearnTasks; i++ ) {
+  createTaskBox(learnTaskConfigs[i], (mode === "dev")? "flex" : "none");
+}
 
 // createTextInputPanel("learn", "none");
 
-// for(let i = 0; i < nGenTasks; i++ ) {
-//   createTaskBox(genTaskConfigs[i], (mode === "dev")? "flex" : "none");
-// }
+for(let i = 0; i < nGenTasks; i++ ) {
+  createGenTaskBox(genTaskConfigs[i], (i === 0)? "flex" : "none");
+}
 
 if (mode !== "dev") {
   setTimeout(() => {
@@ -563,7 +562,6 @@ function createTaskBox (config, display = "none") {
 }
 
 function createGenTaskBox (config, display = "none") {
-  const taskType = config.type;
   const taskId = config.taskId;
 
   let index = config.index;
@@ -597,4 +595,19 @@ function createGenTaskBox (config, display = "none") {
   document.body.append(box);
   box.style.display = display;
 
+  /** Interactivities */
+  const selectionForm = document.getElementById(`${taskId}-selection-form`);
+  const confirmBtn = document.getElementById(`${taskId}-confirm-btn`);
+  selectionForm.onchange = () =>
+    composeSelection(`${taskId}-selection-svg`, `${taskId}-selection-form`, `${taskId}-confirm-btn`);
+  confirmBtn.onclick = () => {
+    console.log("save data!");
+    disableFormInputs(`${taskId}-selection-form`);
+    if (index < nGenTasks) {
+      document.getElementById(`box-${taskId}`).style.display = "none";
+      showNext(`box-gen-${fmtTaskIdx(index + 1)}`)
+    } else {
+      console.log("show debrief page")
+    }
+  }
 }

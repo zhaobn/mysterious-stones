@@ -377,7 +377,7 @@ function playEffects (config) {
   setTimeout(() => {
     let svg = document.getElementById(`${config.taskId}-recipient-svg`);
     clearElement(`${config.taskId}-recipient-stone`);
-    svg = attachStone(svg, `${config.taskId}-recipient-stone`, getOpts(config.result, false));
+    svg = attachStone(svg, `${config.taskId}-result-stone`, getOpts(config.result, false));
   }, 1500);
 }
 function clearStones (config) {
@@ -399,7 +399,7 @@ function createSummaryStones(config, parentDiv) {
       sumDiv.style.justifyContent = "space-between";
     } else if (type === "after") {
       sumDiv.append(createStone("new-stone", `${config.taskId}-agent`, getOpts(config.agent, true)));
-      sumDiv.append(createStone("new-stone", `${config.taskId}-result`, getOpts(config.recipient, false)));
+      sumDiv.append(createStone("new-stone", `${config.taskId}-result`, getOpts(config.result, false)));
       sumDiv.style.justifyContent = "flex-end";
     } else {
       console.log("Summary type not match @createSummaryStones()")

@@ -530,6 +530,7 @@ function createTaskBox (config, display = "none") {
     }
     nextBtn.onclick = () => {
       document.getElementById(`taskbox-${taskId}`).style.height = '200px';
+      document.getElementById(`${taskId}-display-box`).style.backgroundColor = '#e0e0e0';
       nextBtn.disabled = true;
       showNext(`box-${taskType}-${fmtTaskIdx(index + 1)}`);
     }

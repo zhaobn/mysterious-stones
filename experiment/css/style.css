@@ -86,7 +86,8 @@ h4 {
   display: flex;
 }
 
-.display-box, .record-pan, .input-box, .selection-composer,
+.display-box, .sum-box,
+.record-pan, .input-box, .selection-composer,
 .task-button,
 .instruction, .instruction h1 {
   background-color: #f4f4f4;

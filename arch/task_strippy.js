@@ -75,6 +75,7 @@ let gtData = initDataFile(genTaskConfigs); // gt := generalization tasks
 let textSelection = '';
 
 /** Main body */
+
 if (mode !== "dev") {
   document.body.append(createCustomElement("div", "section-page", "show-learning-phase"));
   document.getElementById("show-learning-phase").append(createText("h1", "Investigation starts"));

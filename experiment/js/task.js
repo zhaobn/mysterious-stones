@@ -1,5 +1,5 @@
 
-let mode = 'dev';
+let mode = '';
 let cond = "A1";
 
 /** Global variables */
@@ -74,15 +74,11 @@ if (mode !== "dev") {
   document.getElementById("show-gen-phase").style.display = "none";
 }
 
-for(let i = 0; i < nLearnTasks; i++ ) {
-  createTaskBox(learnTaskConfigs[i], (mode === "dev")? "flex" : "none");
-}
+for(let i = 0; i < nLearnTasks; i++ ) createTaskBox(learnTaskConfigs[i], (mode === "dev")? "flex" : "none");
+createTextInputPanel("learn", "none");
 
-// createTextInputPanel("learn", "none");
-
-for(let i = 0; i < nGenTasks; i++ ) {
-  createGenTaskBox(genTaskConfigs[i], (i === 0)? "flex" : "none");
-}
+for(let i = 0; i < nGenTasks; i++ ) createGenTaskBox(genTaskConfigs[i], (mode === "dev")? "flex" : "none");
+createDebriefPage();
 
 if (mode !== "dev") {
   setTimeout(() => {
@@ -312,14 +308,16 @@ function createTextInputPanel (taskId, display = "none") {
     inputNextBtn.disabled = false;
   }
   inputNextBtn.onclick = () => {
-    for(let i = 0; i < nLearnTasks; i ++) document.getElementById(`box-learn-${fmtTaskIdx(i+1)}`).style.display = "none";
+    // for(let i = 0; i < nLearnTasks; i ++) document.getElementById(`box-learn-${fmtTaskIdx(i+1)}`).style.display = "none";
     document.getElementById("box-learn-input").style.display = "none";
-    document.getElementById("show-gen-phase").style.display = "block";
-    setTimeout(() => {
-      document.getElementById("show-gen-phase").style.display = "none";
+    showNext("box-gen-01");
+    // document.getElementById("show-gen-phase").style.display = "block";
+    // setTimeout(() => {
+      // document.getElementById("show-gen-phase").style.display = "none";
       // for(let i = 0; i < nLearnTasks; i ++) document.getElementById(`box-learn-${fmtTaskIdx(i+1)}`).style.display = "flex";
-      document.getElementById("box-gen-01").style.display = "flex";
-    }, 2000);
+      // showNext("box-gen-01")
+      // document.getElementById("box-gen-01").style.display = "flex";
+    // }, 2000);
   }
 }
 function createInputForm(taskId) {
@@ -355,10 +353,14 @@ function disableFormInputs (formId) {
   const inputs = form.elements;
   (Object.keys(inputs)).forEach((input) => inputs[input].disabled = true);
 }
-function showNext(nextId) {
-  let nextDiv = document.getElementById(nextId);
-  nextDiv.style.display = "flex";
-  nextDiv.scrollIntoView(mode === 'dev'? false: true);
+function showNext(id, display = "flex") {
+  let div = document.getElementById(id);
+  div.style.display = display;
+  div.scrollIntoView(mode === 'dev'? false: true);
+}
+function hide(id) {
+  let div = document.getElementById(id);
+  div.style.display = "none";
 }
 function isFilled (formID) {
   let notFilled = false;
@@ -408,18 +410,18 @@ function clearElement (id) {
   let clear = document.getElementById(id);
   if(!(clear === null)) clear.parentNode.removeChild(clear);
 }
-function createSummaryStones(config, parentDiv) {
+function createSummaryStones(config, parentDiv, stoneClass = "new-stone") {
   createSumBox = (sumBox, type) => {
     let textDiv = createCustomElement("div", "sum-text", `${config.taskId}-sumbox-${type}-text`);
     textDiv.append(createText("h2", capFirstLetter(type)));
     let sumDiv = createCustomElement("div", "sum-display", `${config.taskId}-sumbox-${type}-display`);
     if (type === "before") {
-      sumDiv.append(createStone("new-stone", `${config.taskId}-agent`, getOpts(config.agent, true)));
-      sumDiv.append(createStone("new-stone", `${config.taskId}-recipient`, getOpts(config.recipient, false)));
+      sumDiv.append(createStone(stoneClass, `${config.taskId}-agent`, getOpts(config.agent, true)));
+      sumDiv.append(createStone(stoneClass, `${config.taskId}-recipient`, getOpts(config.recipient, false)));
       sumDiv.style.justifyContent = "space-between";
     } else if (type === "after") {
-      sumDiv.append(createStone("new-stone", `${config.taskId}-agent`, getOpts(config.agent, true)));
-      sumDiv.append(createStone("new-stone", `${config.taskId}-result`, getOpts(config.result, false)));
+      sumDiv.append(createStone(stoneClass, `${config.taskId}-agent`, getOpts(config.agent, true)));
+      sumDiv.append(createStone(stoneClass, `${config.taskId}-result`, getOpts(config.result, false)));
       sumDiv.style.justifyContent = "flex-end";
     } else {
       console.log("Summary type not match @createSummaryStones()")
@@ -433,9 +435,9 @@ function createSummaryStones(config, parentDiv) {
 
   beforeBox = createSumBox(beforeBox, "before");
   afterBox = createSumBox(afterBox, "after");
-
   parentDiv.append(beforeBox);
   parentDiv.append(afterBox);
+  return parentDiv;
 }
 function capFirstLetter (str) {
   let fl = str[0].toUpperCase();
@@ -604,10 +606,137 @@ function createGenTaskBox (config, display = "none") {
     console.log("save data!");
     disableFormInputs(`${taskId}-selection-form`);
     if (index < nGenTasks) {
-      document.getElementById(`box-${taskId}`).style.display = "none";
+      // document.getElementById(`box-${taskId}`).style.display = "none";
       showNext(`box-gen-${fmtTaskIdx(index + 1)}`)
     } else {
-      console.log("show debrief page")
+      for (let i = 0; i < nLearnTasks; i++) hide(`box-learn-${fmtTaskIdx(i + 1)}`)
+      for (let i = 0;  i < nGenTasks; i++) hide(`box-gen-${fmtTaskIdx(i + 1)}`)
+      showNext("debrief")
     }
   }
+}
+// function createHistory (configs) {
+//   const createSummary = (config) => {
+//     config.taskId = "sum" + config.taskId;
+//     let div = createCustomElement("div", "hist-box", `ssum-${config.taskId}`);
+//     let taskNum = createCustomElement("div", "task-num", `ssum-${config.taskId}-task-num`);
+//     taskNum.append(createText("h1", config.index));
+//     let sumDiv = createCustomElement("div","sum-div", `ssum-${config.taskId}-sum-div`);
+//     sumDiv = createSummaryStones(config, sumDiv);
+//     div.append(taskNum);
+//     div.append(sumDiv);
+//     return(div)
+//   }
+//   let box = createCustomElement("div", "box", "box-history");
+//   let textDiv = createCustomElement("div", "box", "box-history");
+//   textDiv.append(createText("h1", "Summary"));
+
+//   box.append(textDiv);
+
+//   configs.forEach(c => box.append(createSummary(c)));
+
+//   document.body.append(box)
+// }
+function createDebriefPage (display = "none") {
+  const debrief = createCustomElement("div", "box", "debrief");
+  debrief.innerHTML = `
+  <h1>Thank you for your contributions to science</h1>
+    <h4>You will be eligible for full payment once you answer the following questions.</h4>
+    <h4><b>Note</b>: To continue, please answer <span style="color:red">all questions</span>.</h4>
+    <form id="postquiz"  class='frame' action="debrief" method="post">
+      <b>1.&nbsp;</b>How old are you?:
+       <input
+          id="age" name="age" class="posttestQ" type="number"
+          maxlength = "3" min="18" max="100"step = "1"
+        > years
+      </p>
+      <p>
+        <b>2.&nbsp;</b>What is your gender?
+        <select id="sex" name="sex" class="posttestQ">
+          <option value="noresp" SELECTED></option>
+          <option value="female">Female</option>
+          <option value="male">Male</option>
+          <option value="other">Other</option>
+          <option value="noresponse">I’d prefer not to respond</option>
+        </select>
+      </p>
+      <p>
+        <b>3.&nbsp;</b>On a scale of 1-10 (where 10 is the most engaged), please rate how <b>ENGAGING</b> you found the learning task:
+        <select id="engagement" name="engagement" class="posttestQ">
+          <option value="--" SELECTED>
+          <option value="10">10 - Very engaging</option>
+          <option value="9">9</option>
+          <option value="8">8</option>
+          <option value="7">7</option>
+          <option value="6">6</option>
+          <option value="5">5 - Moderately</option>
+          <option value="4">4</option>
+          <option value="3">3</option>
+          <option value="2">2</option>
+          <option value="1">1</option>
+          <option value="0">0 - Not engaged</option>
+        </select>
+      </p>
+      <p>
+        <b>4.&nbsp;</b>On a scale of 1-10 (where 10 is the most difficult), please rate how <b>DIFFICULT</b> you found the learning task:
+        <select id="difficulty" name="difficulty" class="posttestQ">
+          <option value="--" SELECTED>
+          <option value="10">10 - Very difficult</option>
+          <option value="9">9</option>
+          <option value="8">8</option>
+          <option value="7">7</option>
+          <option value="6">6</option>
+          <option value="5">5 - Moderately difficult</option>
+          <option value="4">4</option>
+          <option value="3">3</option>
+          <option value="2">2</option>
+          <option value="1">1</option>
+          <option value="0">0 - Not difficult at all</option>
+        </select>
+      </p>
+      <p><b>5.&nbsp;</b>Do you have any comments regarding the experiment?</p>
+      <textarea name="feedback" id="feedback" placeholder="Please type here"></textarea>
+    </form>
+    <div class='button-group-vc'>
+      <button class='big-button' id='done-btn' disabled>Done</button>
+    </div>
+  `
+  debrief.style.display = display;
+  document.body.append(debrief);
+
+  const doneBtn = document.getElementById('done-btn');
+  const debriefForm = document.getElementById('postquiz');
+
+  debriefForm.onchange = () => {
+    isFilled('postquiz')? doneBtn.disabled = false: null;
+  }
+  doneBtn.onclick = () => saveData();
+}
+
+
+
+function saveFormData (input, dataObj) {
+  let fieldName = input.name;
+  dataObj[fieldName] = input.value;
+  return dataObj;
+}
+
+/** Auto-download data file for off-line use */
+function download(content, fileName, contentType) {
+  var a = document.createElement("a");
+  var file = new Blob([content], {type: contentType});
+  a.href = URL.createObjectURL(file);
+  a.download = fileName;
+  a.click();
+}
+
+function saveData () {
+  /** Get data */
+  let dataFile = {};
+  dataFile.learn = ltData;
+  dataFile.gen = gtData;
+  dataFile.feedback = feedbackData;
+  /** Save data */
+  console.log(dataFile);
+  // download(JSON.stringify(dataFile), 'data.txt', '"text/csv"');
 }

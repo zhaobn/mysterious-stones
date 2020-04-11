@@ -1,13 +1,17 @@
 
-let mode = '';
+let mode = 'dev';
 let cond = "A1";
 
 /** Global variables */
+let data = {};
+let inputData = {};
+let genData = { "taskId": [], "shape": [], "color": [] };
+let feedbackData = {};
+
 const svgElements = [ "svg", "polygon", "circle", "rect" ];
 const borderWidth = "5px";
 const mar = 5;
 const len = 60;
-let textSelection = "";
 
 /** Configurations */
 const colorDict = {
@@ -26,7 +30,6 @@ const allShapes = [
   "p_7", // 7 sides
   "p_8", // 8 sides
 ]
-
 const taskConfigs = {
   "A1": {
     "learn": [
@@ -302,7 +305,9 @@ function createTextInputPanel (taskId, display = "none") {
 
   inputForm.onchange = () => isFilled(`${taskId}-input-form`)? submitBtn.disabled = false: null;
   submitBtn.onclick = () => {
-    console.log("submit form!");
+    let inputs = inputForm.elements;
+    Object.keys(inputs).forEach(id => saveFormData(inputs[id], inputData));
+    data["inputs"] = inputData;
     submitBtn.disabled = true;
     disableFormInputs(`${taskId}-input-form`);
     inputNextBtn.disabled = false;
@@ -451,6 +456,26 @@ function currentSelection (formId) {
   });
   return selections.reverse().join(";")
 }
+function saveFormData (input, dataObj) {
+  let fieldName = input.name;
+  dataObj[fieldName] = input.value;
+  return dataObj;
+}
+
+/** Auto-download data file for off-line use */
+function download(content, fileName, contentType) {
+  var a = document.createElement("a");
+  var file = new Blob([content], {type: contentType});
+  a.href = URL.createObjectURL(file);
+  a.download = fileName;
+  a.click();
+}
+
+function saveData (dataFile) {
+  console.log(dataFile);
+  download(JSON.stringify(dataFile), 'data.txt', '"text/csv"');
+}
+
 function composeSelection (svgid, formid, checkBtnId) {
   const selection = currentSelection(formid);
   const checkBtn = document.getElementById(checkBtnId);
@@ -603,7 +628,10 @@ function createGenTaskBox (config, display = "none") {
   selectionForm.onchange = () =>
     composeSelection(`${taskId}-selection-svg`, `${taskId}-selection-form`, `${taskId}-confirm-btn`);
   confirmBtn.onclick = () => {
-    console.log("save data!");
+    genData["taskId"].push(taskId);
+    let inputs = selectionForm.elements;
+    Object.keys(inputs).forEach(id => genData[inputs[id].name].push(inputs[id].value));
+    data["gen"] = genData;
     disableFormInputs(`${taskId}-selection-form`);
     if (index < nGenTasks) {
       // document.getElementById(`box-${taskId}`).style.display = "none";
@@ -710,33 +738,10 @@ function createDebriefPage (display = "none") {
   debriefForm.onchange = () => {
     isFilled('postquiz')? doneBtn.disabled = false: null;
   }
-  doneBtn.onclick = () => saveData();
-}
-
-
-
-function saveFormData (input, dataObj) {
-  let fieldName = input.name;
-  dataObj[fieldName] = input.value;
-  return dataObj;
-}
-
-/** Auto-download data file for off-line use */
-function download(content, fileName, contentType) {
-  var a = document.createElement("a");
-  var file = new Blob([content], {type: contentType});
-  a.href = URL.createObjectURL(file);
-  a.download = fileName;
-  a.click();
-}
-
-function saveData () {
-  /** Get data */
-  let dataFile = {};
-  dataFile.learn = ltData;
-  dataFile.gen = gtData;
-  dataFile.feedback = feedbackData;
-  /** Save data */
-  console.log(dataFile);
-  // download(JSON.stringify(dataFile), 'data.txt', '"text/csv"');
+  doneBtn.onclick = () => {
+    let inputs = debriefForm.elements;
+    Object.keys(inputs).forEach(id => saveFormData(inputs[id], feedbackData));
+    data["feedback"] = feedbackData;
+    saveData(data);
+  };
 }

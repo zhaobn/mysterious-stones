@@ -1,6 +1,6 @@
 
-let mode = '';
-let cond = "test";
+let mode = 'dev';
+let cond = "C1";
 
 /** Global variables */
 let data = {};
@@ -8,7 +8,7 @@ let inputData = {};
 let genData = { "taskId": [], "shape": [], "color": [] };
 let feedbackData = {};
 
-const svgElements = [ "svg", "polygon", "circle", "rect" ];
+const svgElements = [ "svg", "polygon", "circle", "rect", "path" ];
 const borderWidth = "5px";
 const mar = 5;
 const len = 60;
@@ -24,20 +24,20 @@ const colorDict = {
 }
 const allColors = Object.keys(colorDict);
 const allShapes = [
-  "0",   // circle,
+  "s_0", // circle,
   "p_3", // triangular
   "p_4", // square
   "p_5", // polygon 5 sides
   "p_6", // polygon 6 sides
   "p_7", // 7 sides
   "p_8", // 8 sides
-  "h",   // heart
-  "d",   // donut
+  "s_s", // star
+  "s_d", // donut
 ]
 const taskConfigs = {
   "test": {
     "learn": [
-      [ "l3", "m4", "d4" ],
+      [ "rd", "g0", "gs" ],
     ],
     "gen": [
       [ "l3", "d4" ],
@@ -111,7 +111,7 @@ const taskConfigs = {
     "gen": [
       [ "r0", "d4" ],
       [ "r4", "ld" ],
-      [ "gh", "r3" ],
+      [ "gs", "r3" ],
     ]
   },
   "C2": {
@@ -126,7 +126,7 @@ const taskConfigs = {
     "gen": [
       [ "r0", "d4" ],
       [ "r4", "ld" ],
-      [ "gh", "r3" ],
+      [ "gs", "r3" ],
     ]
   },
 }
@@ -181,11 +181,24 @@ function getOpts (style, isAgent) {
   opts["hasBorder"] = isAgent;
   if (shape[0] === "p") {
     const n = shape.split("_")[1];
-    opts["points"] = calcPolygon({n:n,r:len/2,a:0})
+    opts["points"] = calcPolygon({n:n,r:len/2,a:0});
   } else {
-    opts["cx"] = len/2;
-    opts["cy"] = len/2;
-    opts["r"] = len/2-mar;
+    switch (shape[2]) {
+      case "0":
+        opts["cx"] = len/2;
+        opts["cy"] = len/2;
+        opts["r"] = len/2-mar;
+        break;
+      case "s":
+        opts["points"] = calcStar();
+        opts["transform"] = "rotate(55deg)";
+        break;
+      case "d":
+        opts["d"] = calcDonut();
+        break;
+
+    }
+
   }
   return opts;
 }
@@ -267,7 +280,11 @@ function createBtn (btnId, text = "Button", on = true, className = "task-button"
 }
 function attachStone (svg, id, opts, shapeClass = 'shape') {
   if (Object.keys(opts).indexOf("points") < 0) {
-    svg.append(createCircle(shapeClass, `${id}`, opts));
+    if (Object.keys(opts).indexOf("d") < 0) {
+      svg.append(createCircle(shapeClass, `${id}`, opts));
+    } else {
+      svg.append(createDonut(shapeClass, `${id}`, opts));
+    }
   } else {
     svg.append(createPolygon(shapeClass, `${id}`, opts))
   }
@@ -280,13 +297,22 @@ function createStone (stoneClass, id, opts, svgClass = 'test', shapeClass = 'sha
   div.append(svg)
   return(div);
 }
+function createDonut (className, id, opts) {
+  let donut = createCustomElement("path", className, id);
+  setAttributes(donut, {
+    "fill": opts.color,
+    "d": opts.d,
+    "stroke-width": opts.hasBorder? borderWidth : "0px",
+  })
+  return(donut);
+}
 function createPolygon(className, id, opts) {
   let polygon = createCustomElement("polygon", className, id);
   setAttributes(polygon, {
     "fill": opts.color,
     "points": opts.points,
     "stroke-width": opts.hasBorder? borderWidth : "0px",
-  })
+  });
   return(polygon);
 }
 function createCircle (className, id, opts) {
@@ -565,8 +591,8 @@ function composeSelection (svgid, formid, checkBtnId) {
 function getTaskConfigs (settings) {
   const taskType = (settings[0].length > 2)? "learn" : "gen";
   const readStone = (str) => {
+    let shape = ((parseInt(str[1]) > 0)? "p" : "s") + '_' + str[1];
     let color = "";
-    let shape = "p_" + str[1];
     switch (str[0]) {
       case "l":
         color = "light";
@@ -579,6 +605,12 @@ function getTaskConfigs (settings) {
         break;
       case "v":
         color = "very_dark";
+        break;
+      case "r":
+        color = "red";
+        break;
+      case "g":
+        color = "green";
         break;
     }
     return color + ";" + shape;
@@ -818,4 +850,21 @@ function createDebriefPage (display = "none") {
     data["feedback"] = feedbackData;
     saveData(data);
   };
+}
+function calcDonut(outercx = len/2, outercy = len/2, outerr = len/2-mar, innercx = len/2, innercy = len/2, innerr = len/4-mar) {
+  // http://xn--dahlstrm-t4a.net/svg/path/donut-shop.html
+  return "M" + outercx + " " + outercy + "m-" + outerr + ",0a" + outerr + "," + outerr + ",0 1,0 " + (outerr * 2) + ",0a " + outerr + "," + outerr + " 0 1,0 -" + (outerr * 2) + ",0z" +
+       "M" + innercx + " " + innercy + "m-" + innerr + ",0a" + innerr + "," + innerr + ",0 0,1 " + (innerr * 2) + ",0a " + innerr + "," + innerr + " 0 0,1 -" + (innerr * 2) + ",0z";
+}
+function calcStar(centerX = len/2, centerY = len/2, outerRadius = len/2, innerRadius = len/4, arms = 5){
+  //https://dillieodigital.wordpress.com/2013/01/16/quick-tip-how-to-draw-a-star-with-svg-and-javascript/
+  let results = "";
+  let angle = Math.PI / arms;
+  for (let i = 0; i < 2 * arms; i++) {
+    let r = (i & 1) == 0 ? outerRadius : innerRadius;
+    let currX = Math.round(centerX + Math.cos(i * angle) * r);
+    let currY = Math.round(centerY + Math.sin(i * angle) * r);
+    results = (i == 0)? currX + "," + currY : results + ", " + currX + "," + currY
+  }
+   return results;
 }

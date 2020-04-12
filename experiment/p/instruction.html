@@ -2,33 +2,58 @@
 <html>
   <head>
     <link rel='stylesheet' type="text/css" href='../css/style.css'>
-    <title>Experiment</title>
+    <title>Instructions</title>
   </head>
   <body>
     <div id='instruction'>
       <h1>Instructions</h1>
       <div class="frame" id="box-desc">
-        <p>Scientists just discovered some unusual stones from an expedition. When one of these stones touches another, it may cause the touched stone to change.</p>
-        <p>Changing stones to certain forms can be very useful for an important research project. Therefore, scientists want to understand how the changes work, i.e., <b>which properties of the stones cause what effects</b>.</p>
-        <p>What scientists already know about these unusual stones:</p>
+        <p>
+          Scientists just discovered some unusual stones from an expedition.
+          These stones vary in their shapes and color shading.
+        </p>
         <ul>
-          <li>All the stones are colored by one or two of these colors:
-            <span style="color: #1565C0; font-weight: bold;">dark blue</span>,
-            <span style="color: #64B5F6; font-weight: bold;">light blue</span>,
-            <span style="color: #6A1B9A; font-weight: bold;">dark purple</span>,
-            <span style="color: #AB47BC; font-weight: bold;">light purple</span>.
-          <li>Some stones have stripes - could be
-            north-east pointed <div class="feedback-stone" style="display: inline-block; height: 20px; width: 20px; margin: 0; background: repeating-linear-gradient(-45deg, #1565C0, #1565C0 5px, #64B5F6 5px, #64B5F6 10px);"></div>,
-            or north-west pointed <div class="feedback-stone" style="display: inline-block; height: 20px; width: 20px; margin: 0; background: repeating-linear-gradient(45deg, #1565C0, #1565C0 5px, #64B5F6 5px, #64B5F6 10px);"></div>;
-            some are plain <div class="feedback-stone" style="display: inline-block; height: 20px; width: 20px; margin: 0; background: #1565C0;"></div>.</li>
-          <li>The one that touches is the <b>Agent</b> of the change, and the one being touched is the <b>Recipient</b>. Agent and Recipient can be any stones.</li>
+          <li>Stones' color shading varies from
+            <span style="color: #c9daf8; font-weight: bold;">light</span>,
+            <span style="color: #6d9eeb; font-weight: bold;">medium</span>,
+            <span style="color: #1155cc; font-weight: bold;">dark</span>, to
+            <span style="color: #1c4587; font-weight: bold;">very dark</span>.
+          </li>
+          <li>And their shapes vary with number of edges -
+            triangular <svg height="20px" width="20px"><polygon fill="#1155cc" points="10,0 20,20 0,20"></polygon></svg>,
+            square <svg height="20px" width="20px"><polygon fill="#1155cc" points="10,20 0,10 10,0 20,10"></polygon></svg>,
+            pentagon <svg height="20px" width="20px"><polygon fill="#1155cc" points="13,20 2,16 2,4 13,0 20,10"></polygon></svg>,
+            hexagon <svg height="20px" width="20px"><polygon fill="#1155cc" points="15,19 5,19 0,10 5,1 15,1 20,10"></polygon></svg>,
+            etc.
+          </li>
         </ul>
-        <p>You are in this scientific team to determine which properties of the stones cause what effects. We got some samples for your investigation. In these samples, <b>Agent is always on the left, and the Recipient is always on the right.</b></p>
-        <p>Firstly, you will observe 9 samples made from different pairs of stones. You can watch the effects by clicking the "Play" button next to each sample.</p>
-        <p>After observing each sample, please write down your conjecture of which properties of the stones cause what effects. You can use the provided "copy" and "paste" buttons to avoid typing the same thing multiple times.</p>
-        <p>Then, we will test how good you are by giving you three test samples. In these test samples, you will see pairs of Agents and Recipients, and you need to make a prediction of what the result is by selecting in the panel on the right-hand side of the screen.</p>
-        <p>After that, you will have a chance to work with some newly-discovered unusual stones - some of them are not included in the previous samples. We ask you to predict what the effects would be according to the causal explanations you came up with. You will get feedback after making each prediction, and you may update your working hypothesis alongside.</p>
-        <p>If you've fully understood the intructions, please proceed to the comprehension questions.</p>
+        <p>
+          These unusual stones are amazing. If an unusual stone touches another, the touched one's properties may change.
+          Let's call the one touching the others the <b>agent</b>, and the one being touched the <b>recipient</b>.
+          Precisely, <b>an agent stone can set color shading and/or shape of an recipient into specific states</b>.
+        </p>
+        <p>Any of these unusual stones can be an agent or recipient, only depending on their role in such interactions.</p>
+        <p>You are part of this scientific team to discover <b>which properties of the agent cause what effects on the recipient</b>.</p>
+        <p>
+          Your tasks contain three phases:
+          <ol>
+            <li>
+              First, you will observe several pairs of stones - agent stones are indicated by having borders, like the illustration below.
+              <div id="instruction-demo-display">
+                <svg height="50px" width="50px"><polygon fill="#c9daf8" stroke-width="4px" stroke="#BDBDBD" points="25,5 45 25, 25,45 5,25"></polygon></svg>
+                <svg height="50px" width="50px"><polygon fill="#6d9eeb" stroke-width="0px" points="25,5 45 25, 25,45 5,25"></polygon></svg>
+              </div>
+              You can click a "Play" button to watch the effects. After the effects are played, you will see a summary of the agent stone, the recipient stone's original state, and the recipient stone's after state.
+            </li>
+            <li>Then, we ask you to write down your opinions about which properties of the agent cause what effects on the recipient.</li>
+            <li>
+              Finally, you will be facing several pairs of new stones, and give your best prediction at the given agent stone's effect on the given recipient stone.
+              You can compose your answer by setting a stone's shape and color shading from two drop-down menus.
+            </li>
+          </ol>
+        </p>
+        <p>While making predictions, the summaries you saw earlier will be shown at the top of the page. Please free feel to scroll up if you need to consult them.</p>
+        <p>Think carefully. Your predictions are important for science.</p>
       </div>
       <div class='button-group-vc'>
           <button class='big-button' id='desc-btn'>>> Comprehension questions</button>
@@ -39,22 +64,22 @@
       <div class="frame">
         <form id='prequiz'>
           <ol>
-            <li>Your goal is to figure out which properties of these unusual stones cause what effects.</li>
+            <li>All stones have borders around them</li>
             <p>
               <input type="radio" name="check1">Correct
               <input type="radio" name="check1">False
             </p>
-            <li>The stone on the left-hand side is the Agent, and the stone on the right-hand side is the Recipient.</li>
+            <li>Your goal is to figure out which properties of these unusual stones cause what effects</li>
             <p>
               <input type="radio" name="check2">Correct
               <input type="radio" name="check2">False
             </p>
-            <li>You have to come up with a new explanationn for each trial.</li>
+            <li>You need to memorise all the stones and effects</li>
             <p>
               <input type="radio" name="check3">Correct
               <input type="radio" name="check3">False
             </p>
-            <li>You will not be given the correct answer after you made a prediction.</li>
+            <li>You need to make predictions for <i>new</i> pair of stones</li>
             <p>
               <input type="radio" name="check4">Correct
               <input type="radio" name="check4">False

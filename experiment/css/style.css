@@ -13,7 +13,9 @@ h2 {
   text-align: center;
   font-size: 18px;
 }
-
+h3 {
+  color: darkorange;
+}
 h4 {
   margin: 10px 100px 0px 100px;
   font-weight: 300;
@@ -32,6 +34,11 @@ h4 {
   margin: 20px 100px;
   font-size: 18px;
   min-height: 300px;
+}
+
+.frame p,
+.frame li {
+  line-height: 1.5;
 }
 
 .frame textarea {
@@ -357,4 +364,13 @@ h4 {
   display: flex;
   flex-direction: row;
   justify-content: space-evenly;
+}
+#instruction-demo-display {
+  border: solid 1px #BDBDBD;
+  width: 40%;
+  height: 80px;
+  margin: auto;
+  display: flex;
+  justify-content: space-evenly;
+  align-items: center;
 }

@@ -7,7 +7,7 @@ descBtn.onclick = () => {
 
 const checkBtn = document.getElementById('check-btn');
 const checks = [ 'check1', 'check2', 'check3', 'check4' ];
-const answers = [ true, true, false, false ];
+const answers = [ false, true, false, true ];
 
 const passBtn = document.getElementById('pass-btn');
 const retryBtn = document.getElementById('retry-btn');

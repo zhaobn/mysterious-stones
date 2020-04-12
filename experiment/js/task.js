@@ -1,6 +1,6 @@
 
-let mode = 'dev';
-let cond = "A1";
+let mode = '';
+let cond = "test";
 
 /** Global variables */
 let data = {};
@@ -19,18 +19,30 @@ const colorDict = {
   "dark": "#1155cc",
   "medium": "#6d9eeb",
   "light": "#c9daf8",
+  "red": "red",
+  "green": "green",
 }
 const allColors = Object.keys(colorDict);
 const allShapes = [
-  "circle",
+  "0",   // circle,
   "p_3", // triangular
   "p_4", // square
   "p_5", // polygon 5 sides
   "p_6", // polygon 6 sides
   "p_7", // 7 sides
   "p_8", // 8 sides
+  "h",   // heart
+  "d",   // donut
 ]
 const taskConfigs = {
+  "test": {
+    "learn": [
+      [ "l3", "m4", "d4" ],
+    ],
+    "gen": [
+      [ "l3", "d4" ],
+    ]
+  },
   "A1": {
     "learn": [
       [ "l3", "m4", "d4" ],
@@ -56,9 +68,68 @@ const taskConfigs = {
       [ "d3", "l4" ],
       [ "m6", "m6" ],
     ]
-  }
+  },
+  "B1": {
+    "learn": [
+      [ "l3", "l4", "l4" ],
+      [ "l3", "m4", "l4" ],
+      [ "l3", "d6", "l6" ],
+      [ "d3", "l3", "l3" ],
+      [ "d4", "m6", "d6" ],
+      [ "d5", "d4", "d4" ],
+    ],
+    "gen": [
+      [ "m3", "d4" ],
+      [ "m4", "l7" ],
+      [ "m5", "m3" ],
+    ]
+  },
+  "B2": {
+    "learn": [
+      [ "l4", "l3", "l4" ],
+      [ "m4", "l3", "l4" ],
+      [ "d6", "l3", "l6" ],
+      [ "l3", "d3", "l3" ],
+      [ "m6", "d4", "d6" ],
+      [ "d4", "d5", "d4" ],
+    ],
+    "gen": [
+      [ "m3", "d4" ],
+      [ "m4", "l7" ],
+      [ "m5", "m3" ],
+    ]
+  },
+  "C1": {
+    "learn": [
+      [ "l3", "m4", "m3" ],
+      [ "l6", "m3", "m6" ],
+      [ "l7", "m5", "m7" ],
+      [ "d3", "l3", "l3" ],
+      [ "d4", "l6", "l4" ],
+      [ "d5", "l4", "l5" ],
+    ],
+    "gen": [
+      [ "r0", "d4" ],
+      [ "r4", "ld" ],
+      [ "gh", "r3" ],
+    ]
+  },
+  "C2": {
+    "learn": [
+      [ "l3", "m4", "m7" ],
+      [ "l6", "m3", "d6" ],
+      [ "l7", "m5", "m3" ],
+      [ "d3", "l3", "l4" ],
+      [ "d4", "l6", "d3" ],
+      [ "d5", "l4", "d6" ],
+    ],
+    "gen": [
+      [ "r0", "d4" ],
+      [ "r4", "ld" ],
+      [ "gh", "r3" ],
+    ]
+  },
 }
-
 const allStones = getAllStones(allColors, allShapes);
 
 const learnTaskConfigs = getTaskConfigs(taskConfigs[cond].learn);
@@ -134,7 +205,6 @@ function createAnswerComposer(config) {
           <select id="shape" name="shape" class="selection-input">
             <option value="--" SELECTED>--</option>
             <option value="p_3">Triangle</option>
-            <option value="p_4">Square</option>
             <option value="p_4">Square</option>
             <option value="p_5">Pentagon</option>
             <option value="p_6">Hexagon</option>
@@ -327,7 +397,7 @@ function createTextInputPanel (taskId, display = "none") {
 }
 function createInputForm(taskId) {
   let form = createCustomElement("form", "input-form", `${taskId}-input-form`);
-  const placeholderText = `Please refer to objects as agent, recipient, result; please refer to properties using plain, stripes, and directions.`
+  const placeholderText = `Please type here`
   const options = `
     <option value="--" SELECTED>
     <option value="10">10 - Very certain</option>
@@ -343,7 +413,11 @@ function createInputForm(taskId) {
     <option value="0">0 - Not sure at all</option>
   `
   form.innerHTML = `
-    <p>Such effect is probably because</p>
+    <p><b>Which properties of the stones cause what effects?</b>
+      (Please refer to stones as <i>agent</i>, <i>recipient</i>,
+      refer to properties using <i>light, medium, dark, very dark shadings</i>;
+      and/or <i>triangular, rectangular, number of edges</i>, etc.)
+    </p>
     <textarea name="${taskId}-input-1" id="${taskId}-input-1" placeholder="${placeholderText}"></textarea>
     <p>How certain are you?
       <select id="${taskId}-input-1-certainty" name="${taskId}-input-1-certainty" class="input-rule">

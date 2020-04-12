@@ -5,7 +5,7 @@ let cond = "C1";
 /** Global variables */
 let data = {};
 let inputData = {};
-let genData = { "taskId": [], "shape": [], "color": [] };
+let genData = { "taskId": [], "shape": [], "color": [], "conf": [] };
 let feedbackData = {};
 
 const svgElements = [ "svg", "polygon", "circle", "rect", "path" ];
@@ -207,20 +207,18 @@ function createAnswerComposer(config) {
   let box = createCustomElement("div", "display-box", `${taskId}-selection-box`);
   box.style.width = "40%";
 
-  // let composer = createCustomElement("div", "selection-composer", `${taskId}-selection-composer`);
-  // let svg
   const extraColors = (cond[0] === "C")? `
     <option value="red">Red</option>
     <option value="green">Green</option>` : '';
   const extraShapes = (cond[0] === "C")? `
-    <option value="s_0">Star</option>
+    <option value="s_0">Circle</option>
     <option value="s_d">Donut</option>
     <option value="s_s">Star</option>` : '';
   box.innerHTML = `
     <div class="selection-composer">
       <div class="selection-form-div">
         <form class="selection-form" id="${taskId}-selection-form">
-          <p>Shape:&nbsp;&nbsp;&nbsp;
+          <p>Shape:
           <select id="shape" name="shape" class="selection-input">
             <option value="--" SELECTED>--</option>
             <option value="p_3">Triangle</option>
@@ -240,7 +238,21 @@ function createAnswerComposer(config) {
             <option value="very_dark">Very dark</option>
             ${extraColors}
           </select>
-          <p>
+          <p>Your confidence:
+          <select id="conf" name="conf" class="selection-input">
+            <option value="--" SELECTED>--</option>
+            <option value="10">10 - Very confident</option>
+            <option value="9">9</option>
+            <option value="8">8</option>
+            <option value="7">7</option>
+            <option value="6">6</option>
+            <option value="5">5 - Moderately confident</option>
+            <option value="4">4</option>
+            <option value="3">3</option>
+            <option value="2">2</option>
+            <option value="1">1 - Not confident at all</option>
+          </select>
+          </p>
         </form>
       </div>
       <div class="selection-svg-div">
@@ -585,16 +597,20 @@ function saveData (dataFile) {
 }
 
 function composeSelection (svgid, formid, checkBtnId) {
-  const selection = currentSelection(formid);
-  const checkBtn = document.getElementById(checkBtnId);
-  if (!(selection.split(";")[0] === "--" || selection.split(";")[1] === "--")) {
-    checkBtn.disabled = false;
+  const selections = currentSelection(formid).split(";");
+  const confidence = selections[0];
+  const color = selections[1];
+  const shape = selections[2];
+
+  if (!(color === "--" || shape === "--")) {
     let svg = document.getElementById(svgid);
     if (svg.childNodes.length > 0) {
       clearElement("test-stone")
     };
-    svg = attachStone(svg, "test-stone", getOpts(selection));
+    svg = attachStone(svg, "test-stone", getOpts(color+";"+shape));
   }
+  let checkBtn = document.getElementById(checkBtnId);
+  if (!(color === '--' || shape === '--' || confidence === '--')) checkBtn.disabled = false;
 }
 function getTaskConfigs (settings) {
   const taskType = (settings[0].length > 2)? "learn" : "gen";

@@ -209,7 +209,13 @@ function createAnswerComposer(config) {
 
   // let composer = createCustomElement("div", "selection-composer", `${taskId}-selection-composer`);
   // let svg
-
+  const extraColors = (cond[0] === "C")? `
+    <option value="red">Red</option>
+    <option value="green">Green</option>` : '';
+  const extraShapes = (cond[0] === "C")? `
+    <option value="s_0">Star</option>
+    <option value="s_d">Donut</option>
+    <option value="s_s">Star</option>` : '';
   box.innerHTML = `
     <div class="selection-composer">
       <div class="selection-form-div">
@@ -222,6 +228,7 @@ function createAnswerComposer(config) {
             <option value="p_5">Pentagon</option>
             <option value="p_6">Hexagon</option>
             <option value="p_7">Heptagon</option>
+            ${extraShapes}
           </select>
           </p>
           <p>Shading:
@@ -231,6 +238,7 @@ function createAnswerComposer(config) {
             <option value="medium">Medium</option>
             <option value="dark">Dark</option>
             <option value="very_dark">Very dark</option>
+            ${extraColors}
           </select>
           <p>
         </form>

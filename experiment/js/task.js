@@ -1,6 +1,6 @@
 
-let mode = 'dev';
-let cond = "C1";
+let mode = '';
+let cond = "A1";
 
 /** Global variables */
 let data = {};

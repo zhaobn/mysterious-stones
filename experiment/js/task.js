@@ -459,10 +459,11 @@ function createInputForm(taskId) {
     <option value="0">0 - Not sure at all</option>
   `
   form.innerHTML = `
-    <p><b>Which properties of the stones cause what effects?</b>
-      (Please refer to stones as <i>agent</i>, <i>recipient</i>,
-      refer to properties using <i>light, medium, dark, very dark shadings</i>;
-      and/or <i>triangular, rectangular, number of edges</i>, etc.)
+    <p>
+      <b>What is your initial impression about how these mysterious stones work?</b>
+      (Please refer to stones as <i>active</i> and <i>inactive</i>,
+      and be specific about <i>what properties you think matter or do not matter for the effects,
+      and how they do so</i>.)
     </p>
     <textarea name="${taskId}-input-1" id="${taskId}-input-1" placeholder="${placeholderText}"></textarea>
     <p>How certain are you?

@@ -26,15 +26,35 @@
           </div>
         </div>
         <div class="button-group-vc">
-            <button class="big-button" id="consent-btn" disabled>I Agree</button>
+          <button class="big-button" id="consent-btn" disabled>I Agree</button>
         </div>
+    </div>
+    <div id="reminder" display="none">
+      <h1>Thank you for participating in this study</h1>
+      <div class="frame">
+        <p>Please note that:</p>
+        <ul>
+          <li>You will have to pass a test on your understanding before you can start the experiment.</li>
+          <li>Please minimize the chances of possible distractions (switch off messengers, email, music,...)</li>
+          <li>Please make this window as large as possible (full screen best).</li>
+          <li>Do not refresh this page during the experiment.</li>
+        </ul>
+      </div>
+      <div class="button-group-vc">
+        <button class="big-button" id="reminder-btn">Sure</button>
+      </div>
     </div>
   </body>
   <script type='text/javascript'>
     const checkScrollHeight = (text, btn) => ((text.scrollTop + text.offsetHeight) >= text.scrollHeight) ? btn.disabled = false : null;
     const consentBtn = document.getElementById("consent-btn");
     const consentText = document.getElementById("consent-info");
+    const reminderBtn = document.getElementById("reminder-btn");
     consentText.addEventListener("scroll", () => checkScrollHeight(consentText, consentBtn), false);
-    consentBtn.onclick = () => location.href = "instruction.html"
+    consentBtn.onclick = () => {
+      document.getElementById("landing").style.display = "none";
+      document.getElementById("reminder").style.display = "block";
+    }
+    reminderBtn.onclick = () => location.href = "instruction.html"
   </script>
 </html>

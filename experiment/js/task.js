@@ -1,6 +1,6 @@
 
 let mode = '';
-let cond = "C1";
+let cond = "test";
 
 /** Global variables */
 let data = {};
@@ -149,9 +149,10 @@ if (mode !== "dev") {
 }
 
 for(let i = 0; i < nLearnTasks; i++ ) createTaskBox(learnTaskConfigs[i], (mode === "dev")? "flex" : "none");
-createTextInputPanel("learn", "none");
+createTextInputPanel("initial", "none");
 
 for(let i = 0; i < nGenTasks; i++ ) createGenTaskBox(genTaskConfigs[i], (mode === "dev")? "flex" : "none");
+createTextInputPanel("final", "none");
 createDebriefPage();
 
 if (mode !== "dev") {
@@ -390,14 +391,7 @@ function setAttributes(el, attrs) {
 function createTextInputPanel (taskId, display = "none") {
   let box = createCustomElement("div", "box", `box-${taskId}-input`);
   let taskBox = createCustomElement("div", "input-div", `${taskId}-input`);
-  const instructionPan = createCustomElement("div", "instruction", `${taskId}-instruction`);
-  instructionPan.innerHTML = `
-    <h1>Make sure you:</h1>
-    <ul>
-      <li>Refer to objects as <b>Agent</b>, <b>Recipient</b>, and <b>Result</b>.</li>
-      <li>Refer to object properties using <b>dark/pale</b>, <b>red</b>, <b>blue</b>, <b>plain</b>, <b>left stripes</b>, <b>right stripes</b>.</li>
-    </ul>
-    `
+
   const displayBox = createCustomElement("div", "input-box", `${taskId}-input-box`);
   displayBox.append(createInputForm(taskId));
 
@@ -406,7 +400,6 @@ function createTextInputPanel (taskId, display = "none") {
   buttonGroup.append(createBtn(`${taskId}-input-next-btn`, "Next",
     (mode === "dev" || mode === "debug")? true: false));
 
-  // taskBox.append(instructionPan);
   taskBox.append(displayBox);
   taskBox.append(buttonGroup);
 
@@ -429,16 +422,17 @@ function createTextInputPanel (taskId, display = "none") {
     inputNextBtn.disabled = false;
   }
   inputNextBtn.onclick = () => {
-    // for(let i = 0; i < nLearnTasks; i ++) document.getElementById(`box-learn-${fmtTaskIdx(i+1)}`).style.display = "none";
-    document.getElementById("box-learn-input").style.display = "none";
-    showNext("box-gen-01");
-    // document.getElementById("show-gen-phase").style.display = "block";
-    // setTimeout(() => {
-      // document.getElementById("show-gen-phase").style.display = "none";
-      // for(let i = 0; i < nLearnTasks; i ++) document.getElementById(`box-learn-${fmtTaskIdx(i+1)}`).style.display = "flex";
-      // showNext("box-gen-01")
-      // document.getElementById("box-gen-01").style.display = "flex";
-    // }, 2000);
+    if (taskId === "initial") {
+      hide("box-initial-input");
+      showNext("box-gen-01");
+    } else if (taskId === "final") {
+      for (let i = 0; i < nLearnTasks; i++) hide(`box-learn-${fmtTaskIdx(i + 1)}`)
+      for (let i = 0;  i < nGenTasks; i++) hide(`box-gen-${fmtTaskIdx(i + 1)}`)
+      hide("box-final-input");
+      showNext("debrief");
+    } else {
+      console.log("taskId not found!")
+    }
   }
 }
 function createInputForm(taskId) {
@@ -460,14 +454,14 @@ function createInputForm(taskId) {
   `
   form.innerHTML = `
     <p>
-      <b>What is your initial impression about how these mysterious stones work?</b>
+      <b>What is your ${taskId} impression about how these mysterious stones work?</b>
       (Please refer to stones as <i>active</i> and <i>inactive</i>,
       and be specific about <i>what properties you think matter or do not matter for the effects,
       and how they do so</i>.)
     </p>
-    <textarea name="${taskId}-input-1" id="${taskId}-input-1" placeholder="${placeholderText}"></textarea>
+    <textarea name="${taskId}-input" id="${taskId}-input" placeholder="${placeholderText}"></textarea>
     <p>How certain are you?
-      <select id="${taskId}-input-1-certainty" name="${taskId}-input-1-certainty" class="input-rule">
+      <select id="${taskId}-input-certainty" name="${taskId}-input-certainty" class="input-rule">
         ${options}
       </select>
     </p>
@@ -713,7 +707,7 @@ function createTaskBox (config, display = "none") {
       if (index < nLearnTasks) {
         showNext(`box-${taskType}-${fmtTaskIdx(index + 1)}`);
       } else {
-        showNext("box-learn-input");
+        showNext("box-initial-input");
       }
     }
   }
@@ -768,9 +762,7 @@ function createGenTaskBox (config, display = "none") {
       // document.getElementById(`box-${taskId}`).style.display = "none";
       showNext(`box-gen-${fmtTaskIdx(index + 1)}`)
     } else {
-      for (let i = 0; i < nLearnTasks; i++) hide(`box-learn-${fmtTaskIdx(i + 1)}`)
-      for (let i = 0;  i < nGenTasks; i++) hide(`box-gen-${fmtTaskIdx(i + 1)}`)
-      showNext("debrief")
+      showNext("box-final-input")
     }
   }
 }

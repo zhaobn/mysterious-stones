@@ -1,6 +1,6 @@
 
 let mode = '';
-let cond = "test";
+let cond = "C1";
 
 /** Global variables */
 let data = {};
@@ -15,7 +15,7 @@ const len = 60;
 
 /** Configurations */
 const colorDict = {
-  "very_dark": "#1c4587",
+  "very_dark": "#052e54",
   "dark": "#1155cc",
   "medium": "#6d9eeb",
   "light": "#c9daf8",

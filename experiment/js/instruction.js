@@ -19,11 +19,6 @@ retryBtn.onclick = () => location.href='instruction.html';
 
 document.getElementById('prequiz').onchange = () => isFilled() ? checkBtn.disabled = false : null;
 
-setStyle (document.getElementById('eg-stone-agent'), "lt-tomato-gold", true)
-setStyle (document.getElementById('eg-stone-recipient'), "plain-royalblue", true)
-
-
-
 function checkComprehension() {
     let inputs = [];
     checks.map(check => {

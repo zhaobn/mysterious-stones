@@ -1,6 +1,6 @@
 
 let mode = '';
-let cond = "A1";
+let cond = "C1";
 
 /** Global variables */
 let data = {};
@@ -110,7 +110,7 @@ const taskConfigs = {
     ],
     "gen": [
       [ "r0", "d4" ],
-      [ "r4", "ld" ],
+      [ "r4", "md" ],
       [ "gs", "r3" ],
     ]
   },
@@ -125,7 +125,7 @@ const taskConfigs = {
     ],
     "gen": [
       [ "r0", "d4" ],
-      [ "r4", "ld" ],
+      [ "r4", "md" ],
       [ "gs", "r3" ],
     ]
   },

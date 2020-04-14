@@ -1,6 +1,6 @@
 
 let mode = '';
-let cond = "C1";
+let cond = "test";
 
 /** Global variables */
 let data = {};
@@ -41,6 +41,8 @@ const taskConfigs = {
     ],
     "gen": [
       [ "l3", "d4" ],
+      [ "d5", "m3" ],
+      [ "vd", "ls" ],
     ]
   },
   "A1": {
@@ -148,7 +150,7 @@ if (mode !== "dev") {
   document.getElementById("show-gen-phase").style.display = "none";
 }
 
-for(let i = 0; i < nLearnTasks; i++ ) createTaskBox(learnTaskConfigs[i], (mode === "dev")? "flex" : "none");
+for(let i = 0; i < nLearnTasks; i++ ) createLearnTaskBox(learnTaskConfigs[i], (mode === "dev")? "flex" : "none");
 createTextInputPanel("initial", "none");
 
 for(let i = 0; i < nGenTasks; i++ ) createGenTaskBox(genTaskConfigs[i], (mode === "dev")? "flex" : "none");
@@ -649,7 +651,7 @@ function getTaskConfigs (settings) {
 
   return configs;
 }
-function createTaskBox (config, display = "none") {
+function createLearnTaskBox (config, display = "none") {
   const taskType = config.type;
   const taskId = config.taskId;
 
@@ -665,19 +667,12 @@ function createTaskBox (config, display = "none") {
   let displayBox = createCustomElement("div", "display-box", `${taskId}-display-box`);
   displayBox = createInitStones(config, displayBox);
 
-  if (taskType === "learn") {
-    const buttonGroup = createCustomElement("div", "button-group", `${taskId}-button-group`);
-    buttonGroup.append(createBtn(`${taskId}-play-btn`, "Play", true));
-    buttonGroup.append(createBtn(`${taskId}-next-btn`, "Next", false));
+  const buttonGroup = createCustomElement("div", "button-group", `${taskId}-button-group`);
+  buttonGroup.append(createBtn(`${taskId}-play-btn`, "Play", true));
+  buttonGroup.append(createBtn(`${taskId}-next-btn`, "Next", false));
 
-    taskBox.append(displayBox);
-    taskBox.append(buttonGroup);
-  } else if (taskType === "gen") {
-    taskBox.append(displayBox);
-    taskBox.append(createAnswerComposer(config));
-  } else {
-    console.log("Task type not match")
-  }
+  taskBox.append(displayBox);
+  taskBox.append(buttonGroup);
 
   box.append(taskBox);
 
@@ -685,30 +680,28 @@ function createTaskBox (config, display = "none") {
   box.style.display = display;
 
   // /** Button functionalities */
-  if (taskType === "learn") {
-    const playBtn = document.getElementById(`${taskId}-play-btn`);
-    const nextBtn = document.getElementById(`${taskId}-next-btn`);
+  const playBtn = document.getElementById(`${taskId}-play-btn`);
+  const nextBtn = document.getElementById(`${taskId}-next-btn`);
 
-    playBtn.onclick = () => {
-      playBtn.disabled = true;
-      playEffects(config);
+  playBtn.onclick = () => {
+    playBtn.disabled = true;
+    playEffects(config);
+    setTimeout(() => {
+      clearStones(config);
       setTimeout(() => {
-        clearStones(config);
-        setTimeout(() => {
-          displayBox = createSummaryStones(config, displayBox);
-          nextBtn.disabled = false;
-        }, 1000);
-      }, 3500);
-    }
-    nextBtn.onclick = () => {
-      nextBtn.disabled = true;
-      document.getElementById(`taskbox-${taskId}`).style.height = '200px';
-      document.getElementById(`${taskId}-display-box`).style.backgroundColor = '#e0e0e0';
-      if (index < nLearnTasks) {
-        showNext(`box-${taskType}-${fmtTaskIdx(index + 1)}`);
-      } else {
-        showNext("box-initial-input");
-      }
+        displayBox = createSummaryStones(config, displayBox);
+        nextBtn.disabled = false;
+      }, 1000);
+    }, 3500);
+  }
+  nextBtn.onclick = () => {
+    nextBtn.disabled = true;
+    document.getElementById(`taskbox-${taskId}`).style.height = '200px';
+    document.getElementById(`${taskId}-display-box`).style.backgroundColor = '#e0e0e0';
+    if (index < nLearnTasks) {
+      showNext(`box-${taskType}-${fmtTaskIdx(index + 1)}`);
+    } else {
+      showNext("box-initial-input");
     }
   }
 }
@@ -759,7 +752,7 @@ function createGenTaskBox (config, display = "none") {
     data["gen"] = genData;
     disableFormInputs(`${taskId}-selection-form`);
     if (index < nGenTasks) {
-      // document.getElementById(`box-${taskId}`).style.display = "none";
+      hide(`box-${taskId}`)
       showNext(`box-gen-${fmtTaskIdx(index + 1)}`)
     } else {
       showNext("box-final-input")
@@ -873,7 +866,7 @@ function calcDonut(outercx = len/2, outercy = len/2, outerr = len/2-mar, innercx
   return "M" + outercx + " " + outercy + "m-" + outerr + ",0a" + outerr + "," + outerr + ",0 1,0 " + (outerr * 2) + ",0a " + outerr + "," + outerr + " 0 1,0 -" + (outerr * 2) + ",0z" +
        "M" + innercx + " " + innercy + "m-" + innerr + ",0a" + innerr + "," + innerr + ",0 0,1 " + (innerr * 2) + ",0a " + innerr + "," + innerr + " 0 0,1 -" + (innerr * 2) + ",0z";
 }
-function calcStar(centerX = len/2, centerY = len/2, outerRadius = len/2, innerRadius = len/4, arms = 5){
+function calcStar(arms = 5, centerX = len/2, centerY = len/2, outerRadius = len/2, innerRadius = len/4){
   //https://dillieodigital.wordpress.com/2013/01/16/quick-tip-how-to-draw-a-star-with-svg-and-javascript/
   let results = "";
   let angle = Math.PI / arms;

@@ -1,6 +1,6 @@
 
-let mode = '';
-let cond = "A1";
+let mode = 'dev';
+let cond = "C1";
 
 /** Global variables */
 let data = {};
@@ -21,6 +21,7 @@ const colorDict = {
   "light": "#c9daf8",
   "red": "red",
   "green": "green",
+  "orange": "orange",
 }
 const allColors = Object.keys(colorDict);
 const allShapes = [
@@ -31,13 +32,14 @@ const allShapes = [
   "p_6", // polygon 6 sides
   "p_7", // 7 sides
   "p_8", // 8 sides
-  "s_s", // star
+  "s_s", // 5 arm star
+  "s_t", // 4 arm star
   "s_d", // donut
 ]
 const taskConfigs = {
   "test": {
     "learn": [
-      [ "rd", "g0", "gs" ],
+      [ "rt", "g0", "gs" ],
     ],
     "gen": [
       [ "l3", "d4" ],
@@ -157,9 +159,15 @@ const taskConfigs = {
       [ "d5", "l4", "l5" ],
     ],
     "gen": [
-      [ "r0", "d4" ],
-      [ "r4", "md" ],
-      [ "gs", "r3" ],
+      [ "m3", "d5" ],
+      [ "d8", "l7" ],
+      [ "v5", "v4" ],
+      [ "v8", "v8" ],
+      [ "ms", "dd" ],
+      [ "vd", "vt" ],
+      [ "o6", "r3" ],
+      [ "r0", "g8" ],
+      [ "rs", "od" ],
     ]
   }
 }
@@ -227,6 +235,10 @@ function getOpts (style, isAgent) {
         opts["points"] = calcStar();
         opts["transform"] = "rotate(55deg)";
         break;
+      case "t":
+        opts["points"] = calcStar(4);
+        // opts["transform"] = "rotate(55deg)";
+        break;
       case "d":
         opts["d"] = calcDonut();
         break;
@@ -243,11 +255,14 @@ function createAnswerComposer(config) {
 
   const extraColors = (cond[0] === "C")? `
     <option value="red">Red</option>
+    <option value="orange">Orange</option>
     <option value="green">Green</option>` : '';
   const extraShapes = (cond[0] === "C")? `
+    <option value="p_8">Octagon</option>
     <option value="s_0">Circle</option>
     <option value="s_d">Donut</option>
-    <option value="s_s">Star</option>` : '';
+    <option value="s_t">4-Arm Star</option>
+    <option value="s_s">5-Arm Star</option>` : '';
   box.innerHTML = `
     <div class="selection-composer">
       <div class="selection-form-div">
@@ -663,6 +678,9 @@ function getTaskConfigs (settings) {
         break;
       case "g":
         color = "green";
+        break;
+      case "o":
+        color = "orange";
         break;
     }
     return color + ";" + shape;

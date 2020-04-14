@@ -1,6 +1,6 @@
 
 let mode = '';
-let cond = "test";
+let cond = "A1";
 
 /** Global variables */
 let data = {};
@@ -196,6 +196,7 @@ const passBtn = document.getElementById('pass-btn');
 const retryBtn = document.getElementById('retry-btn');
 
 checkBtn.onclick = () => checkComprehension();
+
 passBtn.onclick = () => {
   hide("pass");
   hide("comprehension");

@@ -1,6 +1,6 @@
 
-let mode = 'dev';
-let cond = "C1";
+let mode = '';
+let cond = "test";
 
 /** Global variables */
 let data = {};
@@ -179,29 +179,67 @@ const nLearnTasks = Object.keys(learnTaskConfigs).length;
 const genTaskConfigs = getTaskConfigs(taskConfigs[cond].gen);
 const nGenTasks = Object.keys(genTaskConfigs).length;
 
-/** Main body */
-if (mode !== "dev") {
-  document.body.append(createCustomElement("div", "section-page", "show-learning-phase"));
-  document.getElementById("show-learning-phase").append(createText("h1", "Investigation starts"));
 
-  document.body.append(createCustomElement("div", "section-page", "show-gen-phase"));
-  document.getElementById("show-gen-phase").append(createText("h1", "With newly-discovered stones"));
-  document.getElementById("show-gen-phase").style.display = "none";
+/** Instruction & comprehension */
+
+const descBtn = document.getElementById('desc-btn');
+descBtn.onclick = () => {
+  document.getElementById("instruction").style.display = "none";
+  document.getElementById("comprehension").style.display = "block";
 }
 
+const checkBtn = document.getElementById('check-btn');
+const checks = [ 'check1', 'check2', 'check3', 'check4' ];
+const answers = [ false, true, false, true ];
+
+const passBtn = document.getElementById('pass-btn');
+const retryBtn = document.getElementById('retry-btn');
+
+checkBtn.onclick = () => checkComprehension();
+passBtn.onclick = () => {
+  hide("pass");
+  hide("comprehension");
+  showNext("box-learn-01")
+};
+retryBtn.onclick = () => {
+  hide("retry");
+  hide("comprehension");
+  showNext("instruction")
+};
+
+document.getElementById('prequiz').onchange = () => compIsFilled() ? checkBtn.disabled = false : null;
+
+function checkComprehension() {
+    let inputs = [];
+    checks.map(check => {
+        const vals = document.getElementsByName(check);
+        inputs.push(vals[0].checked);
+    });
+    const pass = (inputs.join('') === answers.join(''));
+    showPostCheckPage(pass);
+}
+function showPostCheckPage (isPass) {
+    const pageDiv = isPass? 'pass' : 'retry';
+    document.getElementById('check-btn').style.display = 'none';
+    document.getElementById(pageDiv).style.display = 'block';
+}
+function compIsFilled () {
+    let radios = document.getElementsByTagName('input');
+    let checked = 0;
+    for (let i = 0; i < radios.length; i++) {
+        checked += radios[i].checked;
+    }
+    return (checked > checks.length-1)
+}
+
+
+/** Tasks */
 for(let i = 0; i < nLearnTasks; i++ ) createLearnTaskBox(learnTaskConfigs[i], (mode === "dev")? "flex" : "none");
 createTextInputPanel("initial", "none");
 
 for(let i = 0; i < nGenTasks; i++ ) createGenTaskBox(genTaskConfigs[i], (mode === "dev")? "flex" : "none");
 createTextInputPanel("final", "none");
 createDebriefPage();
-
-if (mode !== "dev") {
-  setTimeout(() => {
-    document.getElementById("show-learning-phase").style.display = "none";
-    document.getElementById("box-learn-01").style.display = "flex";
-  }, 2000);
-}
 
 /** Functions */
 function createInitStones(config, parentDiv) {

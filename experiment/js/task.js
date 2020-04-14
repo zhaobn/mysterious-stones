@@ -576,7 +576,7 @@ function clearStones (config) {
 }
 function clearElement (id) {
   let clear = document.getElementById(id);
-  if(!(clear === null)) clear.parentNode.removeChild(clear);
+  clear.remove();
 }
 function createSummaryStones(config, parentDiv, stoneClass = "new-stone") {
   createSumBox = (sumBox, type) => {
@@ -644,13 +644,14 @@ function composeSelection (svgid, formid, checkBtnId) {
   const confidence = selections[0];
   const color = selections[1];
   const shape = selections[2];
+  const taskId = svgid.split('-').slice(0,2).join("-");
 
   if (!(color === "--" || shape === "--")) {
     let svg = document.getElementById(svgid);
     if (svg.childNodes.length > 0) {
-      clearElement("test-stone")
+      clearElement(`${taskId}-test-stone`)
     };
-    svg = attachStone(svg, "test-stone", getOpts(color+";"+shape));
+    svg = attachStone(svg, `${taskId}-test-stone`, getOpts(color+";"+shape));
   }
   let checkBtn = document.getElementById(checkBtnId);
   if (!(color === '--' || shape === '--' || confidence === '--')) checkBtn.disabled = false;

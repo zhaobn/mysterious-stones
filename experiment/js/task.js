@@ -765,7 +765,7 @@ function createGenTaskBox (config, display = "none") {
   taskNum.append(createText('h1', index + '/' + nGenTasks));
 
   let textDiv = createCustomElement("div", "text-div", `${taskId}-text-div`);
-  textDiv.append(createText("h1", "This agent will turn this recipient into ...?"));
+  textDiv.append(createText("h1", "This active stone will turn this inactive stone into ...?"));
 
   let taskDiv = createCustomElement("div", "task-div", `${taskId}-task-div`);
   let displayDiv = createCustomElement("div", "display-div", `${taskId}-display-div`);

@@ -28,8 +28,8 @@ dbExistsTable(con, participantTableName)
 ## Then you can pull the task data from postgreSQL 
 td <- dbGetQuery(con, paste("SELECT * from ", taskTableName))
 
-pilot_start = 1
-pilot_end = length(td[[1]])
+pilot_start = 20
+pilot_end = 36
 
 subject <- td$subject[c(pilot_start:pilot_end)]
 trials <- td$trials[c(pilot_start:pilot_end)]
@@ -41,6 +41,7 @@ prep_JSON <- function(str) {
   str = gsub(": '", ': \"', str)
   str = gsub(", '", ', \"', str)
   str = gsub("',", '\",', str)
+  str = gsub("'}", '\"},', str)
   return(str)
 }
 
@@ -56,22 +57,68 @@ inv_fromJSON <- function(js, opt) {
 
 
 ## Create dataframes
-df.sw.aux = as.data.frame(inv_fromJSON(subject[1], FALSE))
+df.sw.aux = as.data.frame(inv_fromJSON(subject[1], TRUE))
 df.tw.aux = as.data.frame(inv_fromJSON(trials[1], FALSE))
-for (i in 2:pilot_end) {
-  sj = as.data.frame(inv_fromJSON(subject[i], FALSE))
-  tj = as.data.frame(inv_fromJSON(drop_clicks(trials[i]), FALSE))
+nsubs = length(subject);
+for (i in 2:nsubs) {
+  sj = as.data.frame(inv_fromJSON(subject[i], TRUE))
   df.sw.aux = rbind(df.sw.aux, sj)
+}
+for (i in 2:nsubs) {
+  tj = as.data.frame(inv_fromJSON(trials[i], FALSE))
   df.tw.aux = rbind(df.tw.aux, tj)
 }
-
-N = max(df.tw.aux[[1]]) # 15 trials
+# Weird redundency
+# df.tw.aux <- df.tw.aux[-c(6, 22, 23, 64, 85), ] #A1A2
+df.tw.aux <- df.tw.aux[-c(16, 22, 28, 74), ] #A3A4
+N = nlevels(df.tw.aux[[1]]) # 5
 
 ## And append them to the id and upis
 df.sw <- data.frame(ix=td$id,
                     id=td$participant)
+df.sw <- df.sw[c(pilot_start:pilot_end),]
 df.sw <- cbind(df.sw, df.sw.aux)
 df.tw <- cbind(ix=rep(df.sw$ix, each=N), id=rep(df.sw$id, each=N), df.tw.aux)
 
+## Append condtions to tw, get trial id
+conditions <- df.sw %>% select(ix, condition)
+df.tw <- df.tw %>% left_join(conditions, by='ix')
+df.tw <- df.tw %>% mutate(trial=substr(taskId, 6, 6))
+df.tw <- df.tw %>% select(ix, condition, trial, shape, color, conf,
+                          agent_shape, agent_color, recipient_shape, recipient_color, id)
+
+## Formats
+df.sw$age<-as.numeric(as.character(df.sw$age))
+df.sw$instructions_duration<-as.numeric(as.character(df.sw$instructions_duration))
+df.sw$task_duration<-as.numeric(as.character(df.sw$task_duration))
+df.sw$initial_certainty<-as.numeric(as.character(df.sw$initial_certainty))
+df.sw$final_certainty<-as.numeric(as.character(df.sw$final_certainty))
+
+df.tw$trial<-as.numeric(as.character(df.tw$trial))
+df.tw$condition<-as.character(df.tw$condition)
 ## Save data
-save(file='../data/arc/mturk_20200112_plain.Rdata', df.sw, df.tw)
+save(df.sw, df.tw, file='../data/mturk_20200418_A3A4.Rdata') # ../data/mturk_20200416_A1A2.Rdata
+# load(file="../data/mturk_20200416_A1A2_18.Rdata")
+
+# Combine data
+b.sw<-df.sw
+b.tw<-df.tw
+df.sw<-rbind(df.sw, b.sw)
+df.tw<-rbind(df.tw, b.tw)
+save(df.sw, df.tw, file='../data/mturk_20200419_A.Rdata')
+
+# Get free responses
+save_free_resp <- function (cond) {
+  free_resp<-df.sw%>%filter(condition==cond)%>%
+    select(ix, condition, initial_input, initial_certainty, 
+           final_input, final_certainty, id)
+  write.csv(file=paste0("../data/free_resp_", cond, ".csv"), free_resp)
+}
+save_free_resp("A4")
+
+
+
+
+
+
+

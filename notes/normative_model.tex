@@ -1,0 +1,236 @@
+\documentclass[11pt]{article}
+
+\usepackage[sort]{natbib}
+\usepackage{fancyhdr}
+
+% you may include other packages here (next line)
+\usepackage{enumitem}
+\usepackage[tiny]{titlesec}
+\usepackage{lastpage}
+\usepackage{amsthm}
+\usepackage{amssymb}
+\usepackage{amsmath}
+\usepackage{verbatim}
+%\usepackage{graphicx}
+%\usepackage{wrapfig}
+
+% \theoremstyle{definition}
+% \newtheorem{definition}{Definition}[section]
+% \newtheorem{theorem}{Theorem}
+% \newtheorem{lemma}[theorem]{Lemma}
+
+%\newtheorem{exmp}{Example}[section]
+
+
+\newcommand{\fa}{f^{\alpha}}
+\newcommand{\Fa}{F^{\alpha}}
+\newcommand{\pre}{pre_{\sigma}}
+
+
+%----- you must not change this -----------------
+\oddsidemargin 0.2cm
+\topmargin -1.0cm
+\footskip 0cm
+\textheight 24.0cm
+\textwidth 15.25cm
+\parindent=0pt
+\parskip 1ex
+\renewcommand{\baselinestretch}{1.1}
+\pagestyle{fancy}
+%----------------------------------------------------
+
+
+
+% enter your details here----------------------------------
+
+\lhead{\normalsize \textrm{Mysterious Stones}}
+\chead{}
+\rhead{\normalsize Bonan Zhao}
+\lfoot{}
+\cfoot{Page \thepage \hspace{1pt} of \pageref{LastPage}}
+\rfoot{}
+\setlength{\fboxrule}{4pt}\setlength{\fboxsep}{2ex}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0.4pt}
+
+	
+\begin{document}
+
+
+%----------------your title below -----------------------------
+
+\begin{center}
+{\bf Normative Model I}
+
+{\normalsize \today}
+\end{center}
+
+
+%---------------- start of document body------------------
+
+\section*{Language}
+
+Let $O$ be the set of all stones (objects),
+and use $A, R, R'$ to represent a stone's role in a causal interaction - 
+	$A$ stands for the \textit{agent}, 
+	$R$ for the pre-interaction state of the \textit{recipient}, 
+	and $R'$ the post-interaction state of the recipient, also named the \textit{result}.
+
+Feature space $F = \{ L, S, \ldots \}$ consists of
+	\textit{lightness} $L$ - the color shadings,
+	and \textit{sidedness} $S$ - number of edges of the polygons.
+	Note that this feature set may grow as the experiment setting gets richer.
+
+For this model, 
+	lightness $L$ takes value $l_1, l_2, l_3, l_4$ along the lightness scale from light to dark. 
+	Specifically, 
+		$l_1$ stands for \textit{light}, 
+		$l_2$ for \textit{medium}, 
+		$l_3$ for \textit{dark}, and 
+		$l_4$ for \textit{very dark}, as used in the experiment.
+	Sidedness $S$ takes value $p_3, \ldots, p_7$, 
+		where each subscript represents the number of edges for a polygon (hence $p$).
+
+We define a value-reading function $v(o, f) = u, o \in O, f \in F$ and $u$ is the value of feature $F$ for object $o$.
+
+For our current model, each stone has two features - lightness $L$ and sidedness $S$.
+Hence for each object $o \in O$ there are two kinds of value-reading functions $v(o, L)$ and $v(o, S)$.
+For simplicity, we will use $L(o)$ instead of $v(o, L)$ to read stone $o$'s lightness $L$,
+	and $S(o)$ instead of $v(o, S)$ to read stone $o$'s sidedness $S$.
+
+
+
+With these definitions, the language of this task consists of
+
+\begin{itemize}
+\item Atomic sentences:
+	\begin{itemize}
+		\item $L(A), L(R), L(R'), S(A), S(R), S(R')$: read stone feature values
+		\item $1, \ldots, 7$: index numbers
+		\item $l_1, \ldots, l_4, s_3, \ldots, s_7$: feature values
+	\end{itemize}
+\item Relations:
+	\begin{itemize}
+		\item $=, \neq$: compare if values match. Eg. 
+					$L(A) = l_2, S(A) \neq S(R')$.
+		\item $>, <$: compare values within the same feature by comparing their subscripts. 
+					Eg. $l_1 < l_2, S(A) > S(R)$.
+		\item $+, -$: plus and minus operations on feature value subscripts.
+		 			Eg. $s_1 + 1 = s_2, L(R') = L(R) - 1$.
+		% \item (To decide) min, max: get minimal/maximal value. Eg. min(${c_1, c_2}$) = $c_1$.
+		\item $\models$: \textit{if} the cause conditions (the part before $\models$) satisfy, result effects (the part after $\models$) follow.
+					Eg. $(c(R) = c(A)) \models (c(R') = c(R))$.
+			If the cause conditions are not satisfied, we assume that the recipient stone does not change. 
+			See below for legit candidates of a cause condition or result effect.
+	\end{itemize}
+
+\newpage
+\item Grammar:
+	\begin{itemize}
+		\item If $\phi, \psi, \chi$ are an atomic sentences, the following compositions are \textit{basic sentences} of the language:
+			$(\phi = \psi), (\phi \neq \psi), (\phi > \psi), (\phi < \psi)$,
+			$(\phi + \psi = \chi), (\phi - \psi = \chi)$
+		\item If $\alpha, \beta$ are basic sentences, $[\alpha, \beta]$ is the conjunction of $\alpha$ and $\beta$. 
+			Number of conjuncts in such conjunctions $\geq 2$. 
+		\item A causal hypothesis is of the form $[\alpha_1, \ldots, \alpha_k] \models [\alpha_{k + 1}, \ldots, \alpha_n]$, where
+			\begin{itemize}
+				\item Either the cause condition is $\top$ - \textit{any}, or each basic sentence of $\alpha_1, \ldots, \alpha_k$ contains $A$ or $R$, but not $R'$.
+				\item Each basic sentence of $\alpha_{k + 1}, \ldots, \alpha_n$ contains $R'$.
+			\end{itemize}
+	\end{itemize}
+\end{itemize}
+
+Examples
+
+\begin{itemize}
+	\item $[(s(A) \neq s(R)), (c(A) \neq c(R))] \models [(c(R') = c(A)), (s(R') = s(A))]$ \\
+	If the agent stone and the recipient stone have different shapes and colors, then the recipient stone will turn into the same as the agent stone;
+	otherwise the agent will have no effect on the recipient stone.
+	\item $(s(A) = s_3) \models (s(R') = s(R) + 1)$ \\
+	If the agent stone is a triangle (regardless of its color), then the recipient stone shape's number of edges increases by 1;
+	otherwise the agent will have no effect on the recipient stone.
+\end{itemize}
+
+\section*{Hypotheses}
+
+Let's restrict the complete hypothesis space by only allowing meaningful sentences up to step 1. 
+
+For $\alpha_{k + 1}, \ldots, \alpha_n$:
+	let $\alpha_{k + 1}$ be $(s(R') = x)$, 
+	where $x$ takes value from
+	$s_3, \ldots, s_7, s(A), s(R), s(A) + 1, s(A) - 1, s(R) + 1, s(R) - 1$;
+then, replace $=$ with $\neq, >, <$.
+Apply the same procedure for $c(R')$ to compose $\alpha_{k+2}$. 
+With 4 color shadings and 5 shapes this amounts to
+$(4 + 6) \times 4 +  (5 + 6) \times 4 = 84$
+effects.
+
+As for the cause conditions part, i.e., $\alpha_1, \ldots, \alpha_k$, there are several options.
+
+\begin{itemize}
+ \item Restrain from using \textit{if}, the cause conditions part can be trivialized to just $\top$,
+ 	meaning that properties of the agent and recipient stones do not matter;
+ 	just being the agent or being the recipient suffices to produce the specified effect.
+ \item Applying the procedure used for producing the effects to produce cause conditions. 
+ 	For example, let $\alpha_1$ be $(s(A) = x)$ where $x$ takes value from 
+ 	$s_3, \ldots, s_7, s(R), s(R) + 1, s(R) - 1$, 
+ 	then replace $=$ with $\neq, >, <$. 
+ 	Let $\alpha_2$ be $(c(A) = x)$ and apply the same procedure.
+ 	Similar for $(s(R) = x)$ and $(c(R) = x)$.
+ 	Note that $(s(A) = s(R))$ is equivalent to $(s(R) = s(A))$, 
+ 	therefore when generating cause conditions using the $(s(R) = x)$ form, duplicates must be removed.
+
+
+\newpage
+ \item A complex reasoner can combine multiple causal hypotheses instead maintaining only one - in a \textit{if ... else ...} manner.
+\end{itemize}
+
+
+\section*{Learning}
+
+Let $\langle A, R, R' \rangle$ be a complete data point $d$. 
+For a causal hypothesis $h$,
+if $s(A), c(A), s(R), c(R)$ make the cause conditions true and 
+with $s(R'), c(R')$ they make the result effects true, 
+then $P(d|h) = 1$.
+If $s(A), c(A), s(R), c(R)$ fails to satisfy the cause conditions,
+recipients should remain as they are (because no causes are posed onto them),
+hence $P(d|h) = 1$ if $s(R') = s(R)$ and $c(R') = c(R)$, 
+and $P(d|h) = 0$ otherwise.
+
+Thus, upon observing a complete data point $d$, 
+
+\[P(h|d) = \frac{P(d|h)P(h)}{\sum_{h_i \in H}P(d|h_i)P(h_i)}\]
+
+Assuming a flat prior for the first data point,
+our Bayesian learner updates hypothesis space 6 times sequentially upon 
+observing the six learning shots.
+
+\section*{Generalization}
+
+Upon observing a partial data point $d' = \langle A, R \rangle$,
+the complete data point $d^*$ normalizes over 20 possible $R'$s.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+% ----------------end of document body---------------------
+
+
+
+\end{document}

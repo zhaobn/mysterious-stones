@@ -374,3 +374,7 @@ h4 {
   justify-content: space-evenly;
   align-items: center;
 }
+#pass, #retry {
+display: flex;
+flex-direction: column;
+}

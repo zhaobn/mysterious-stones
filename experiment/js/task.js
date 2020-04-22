@@ -1,12 +1,20 @@
 
 let mode = '';
-let cond = "A1";
+const cond = (Math.random() > 0.5)? "A1" : "A2";
+console.log(cond);
 
 /** Global variables */
 let data = {};
 let inputData = {};
-let genData = { "taskId": [], "shape": [], "color": [], "conf": [] };
+let genData = {
+  "taskId": [], "agent_shape": [], "agent_color": [],
+  "recipient_shape": [], "recipient_color": [],
+  "shape": [], "color": [], "conf": [] };
 let feedbackData = {};
+
+const start_time = Date.now();
+let start_task_time = 0;
+
 
 const svgElements = [ "svg", "polygon", "circle", "rect", "path" ];
 const borderWidth = "5px";
@@ -184,13 +192,14 @@ const nGenTasks = Object.keys(genTaskConfigs).length;
 
 const descBtn = document.getElementById('desc-btn');
 descBtn.onclick = () => {
-  document.getElementById("instruction").style.display = "none";
-  document.getElementById("comprehension").style.display = "block";
+  hide("instruction");
+  showNext("comprehension", "block");
+  showNext("check-btn");
 }
 
 const checkBtn = document.getElementById('check-btn');
-const checks = [ 'check1', 'check2', 'check3', 'check4' ];
-const answers = [ false, true, false, true ];
+const checks = [ 'check1', 'check2', 'check3', 'check4', 'check5' ];
+const answers = [ false, true, false, true, true ];
 
 const passBtn = document.getElementById('pass-btn');
 const retryBtn = document.getElementById('retry-btn');
@@ -198,6 +207,7 @@ const retryBtn = document.getElementById('retry-btn');
 checkBtn.onclick = () => checkComprehension();
 
 passBtn.onclick = () => {
+  start_task_time = Date.now();
   hide("pass");
   hide("comprehension");
   showNext("box-learn-01")
@@ -205,7 +215,7 @@ passBtn.onclick = () => {
 retryBtn.onclick = () => {
   hide("retry");
   hide("comprehension");
-  showNext("instruction")
+  showNext("instruction", "block")
 };
 
 document.getElementById('prequiz').onchange = () => compIsFilled() ? checkBtn.disabled = false : null;
@@ -222,7 +232,7 @@ function checkComprehension() {
 function showPostCheckPage (isPass) {
     const pageDiv = isPass? 'pass' : 'retry';
     document.getElementById('check-btn').style.display = 'none';
-    document.getElementById(pageDiv).style.display = 'block';
+    document.getElementById(pageDiv).style.display = 'flex';
 }
 function compIsFilled () {
     let radios = document.getElementsByTagName('input');
@@ -546,9 +556,9 @@ function createInputForm(taskId) {
       and be specific about <i>what properties you think matter or do not matter for the effects,
       and how they do so</i>.)
     </p>
-    <textarea name="${taskId}-input" id="${taskId}-input" placeholder="${placeholderText}"></textarea>
+    <textarea name="${taskId}_input" id="${taskId}-input" placeholder="${placeholderText}"></textarea>
     <p>How certain are you?
-      <select id="${taskId}-input-certainty" name="${taskId}-input-certainty" class="input-rule">
+      <select name="${taskId}_certainty" id="${taskId}-certainty" class="input-rule">
         ${options}
       </select>
     </p>
@@ -671,11 +681,6 @@ function download(content, fileName, contentType) {
   a.href = URL.createObjectURL(file);
   a.download = fileName;
   a.click();
-}
-
-function saveData (dataFile) {
-  console.log(dataFile);
-  download(JSON.stringify(dataFile), 'data.txt', '"text/csv"');
 }
 
 function composeSelection (svgid, formid, checkBtnId) {
@@ -836,6 +841,10 @@ function createGenTaskBox (config, display = "none") {
     composeSelection(`${taskId}-selection-svg`, `${taskId}-selection-form`, `${taskId}-confirm-btn`);
   confirmBtn.onclick = () => {
     genData["taskId"].push(taskId);
+    genData["agent_color"].push(config.agent.split(';')[0]);
+    genData["agent_shape"].push(config.agent.split(';')[1]);
+    genData["recipient_color"].push(config.recipient.split(';')[0]);
+    genData["recipient_shape"].push(config.recipient.split(';')[1]);
     let inputs = selectionForm.elements;
     Object.keys(inputs).forEach(id => genData[inputs[id].name].push(inputs[id].value));
     data["gen"] = genData;
@@ -966,4 +975,59 @@ function calcStar(arms = 5, centerX = len/2, centerY = len/2, outerRadius = len/
     results = (i == 0)? currX + "," + currY : results + ", " + currX + "," + currY
   }
    return results;
+}
+function showCompletion(code) {
+  hide("debrief")
+  showNext("completed")
+  let t = document.createTextNode(code);
+  document.getElementById('completion-code').append(t);
+}
+function saveData (dataFile) {
+  // console.log(dataFile);
+  // download(JSON.stringify(dataFile), 'data.txt', '"text/csv"');
+
+  const end_time = new Date();
+  let token = generateToken(8);
+
+  let clientData = {};
+  clientData.subject = {};
+  clientData.subject.condition = cond;
+
+  (Object.keys(dataFile.inputs)).forEach(el => clientData.subject[el] = dataFile.inputs[el]);
+  (Object.keys(dataFile.feedback)).forEach(el => clientData.subject[el] = dataFile.feedback[el]);
+
+  clientData.subject.date = formatDates(end_time, 'date');
+  clientData.subject.time = formatDates(end_time, 'time');
+  clientData.subject.instructions_duration = start_task_time - start_time,
+  clientData.subject.task_duration = end_time - start_task_time,
+  clientData.subject.token = token;
+
+  clientData.trials = dataFile.gen;
+
+  console.log(clientData);
+
+  fetch(root_string, {
+      method: 'POST',
+      body: JSON.stringify(clientData),
+  })
+  .then(() => showCompletion(token))
+  .catch((error) => console.log(error));
+}
+function generateToken (length) {
+  let tokens = '';
+  let chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  for (let i = 0; i < length; i ++) {
+      tokens += chars.charAt(Math.floor(Math.random() * chars.length))
+  }
+  return tokens;
+}
+function formatDates (date, option = 'date') {
+  let year = date.getFullYear();
+  let month = String(date.getMonth() + 1).padStart(2, '0');
+  let day = String(date.getDate() + 1).padStart(2, '0');
+  let hour = String(date.getHours()+ 1).padStart(2, '0');
+  let min = String(date.getMinutes() + 1).padStart(2, '0');
+  let sec = String(date.getSeconds() + 1).padStart(2, '0');
+  dateParts = (option === 'date') ? [ year, month, day ] : [ hour, min, sec ];
+  return dateParts.join('_');
 }

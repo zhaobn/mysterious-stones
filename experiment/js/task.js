@@ -1,5 +1,5 @@
 
-let mode = 'dev';
+let mode = '';
 const cond = (Math.random() > 0.5)? "A1" : "A2";
 console.log(cond);
 

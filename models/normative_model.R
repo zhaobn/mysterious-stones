@@ -208,6 +208,7 @@ normalize<-function(vec) {
 df.tr_hypos$prior<-1/nrow(df.tr_hypos)
 ld_A1<-as.list(df.learn%>%filter(cond=='A1'&trial==1)%>%select(agent, recipient, result))
 
+#### The rigid way ####
 df.tr_hypos.a1<-df.tr_hypos
 df.tr_hypos.a1['ld_1']<-flatten(ld_A1)
 df.tr_hypos.a1['li_1']<-as.numeric(mapply(check_hypo, df.tr_hypos.a1$effects, df.tr_hypos.a1['ld_1']))
@@ -224,12 +225,47 @@ for (i in 2:6) {
 save(df.tr_hypos, df.tr_hypos.a1, file='normative_model.Rdata')
 # df.tr_hypos.a1$post_1<-softmax(df.tr_hypos.a1$li_1, 20)
 
+#### Shortcuts ####
+df.tr_hypos.strict.a1<-df.tr_hypos.a1
+df.tr_hypos.a1<-df.tr_hypos.a1%>%select(causes, effects)
+
+update<-function(df, group, n_trials=6, src=df.learn) {
+  for (i in 1:n_trials) {
+    ld<-as.list(src%>%filter(cond==group&trial==i)%>%select(agent, recipient, result))
+    df[paste0('ld_', i)]<-flatten(ld)
+    df[paste0('li_', i)]<-as.numeric(mapply(check_hypo, df$effects, df[paste0('ld_', i)]))
+  }
+  cols<-seq(4, 4+2*(n_trials-1), 2)
+  df<-df%>%
+    mutate(sum=rowSums(.[c(cols)]))%>%
+    mutate(final=if_else(sum==n_trials, 1, 0))
+  df$post<-normalize(df$final)
+  return(df)
+}
+
+df.tr_hypos.a2<-df.tr_hypos%>%select(causes, effects)
+df.tr_hypos.a2<-update(test, 'A2', 6)
+
+df.tr_hypos.a3<-df.tr_hypos%>%select(causes, effects)
+df.tr_hypos.a3<-update(test, 'A3', 6)
+
+df.tr_hypos.a4<-df.tr_hypos%>%select(causes, effects)
+df.tr_hypos.a4<-update(test, 'A4', 6)
+
+p<-df.tr_hypos.a4%>%select(effects, post)
+df.tr_hypos<-df.tr_hypos%>%left_join(p, by='effects')%>%
+  select(causes, effects, post_a1, post_a2, post_a3, post_a4=post)
+  
+save(df.tr_hypos, 
+     df.tr_hypos.a1, 
+     df.tr_hypos.a2,
+     df.tr_hypos.a3,
+     df.tr_hypos.a4,
+     df.tr_hypos.strict.a1, 
+     file="normative_model.Rdata")
+
 # Generalization
 
 
 # Tests
-x<-df.tr_hypos.a1%>%filter(post_6>0)
-
-
-
 

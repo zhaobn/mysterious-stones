@@ -49,4 +49,20 @@ save(df.all, df.learn, df.gen, file='base_data.Rdata')
 # write.csv(df.learn, file = 'learn.csv')
 # write.csv(df.gen, file = 'gen.csv')
 
+# df.learn<-df.learn%>%select(cond, type, trial, agent, recipient, result)
+# df.gen<-df.gen%>%select(cond, type, trial, agent, recipient)
+
+# df.learn$agent<-as.character(df.learn$agent)
+# df.learn$recipient<-as.character(df.learn$recipient)
+# df.learn$result<-as.character(df.learn$result)
+
+# df.gen$agent<-as.character(df.gen$agent)
+# df.gen$recipient<-as.character(df.gen$recipient)
+
+
+
+
+
+
+
 

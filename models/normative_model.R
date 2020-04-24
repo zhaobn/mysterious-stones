@@ -146,6 +146,20 @@ df.tr_hypos$effects<-as.character(df.tr_hypos$effects)
 save(df.tr_hypos, file="normative_model.Rdata")
 
 # Checking functions
+flatten<-function(list, sep=',') {
+  str=c()
+  for (i in 1:length(list)) str<-c(str, list[[i]])
+  return(paste(str, collapse=sep))
+}
+to_list<-function(str, sep=',') {
+  vecs<-strsplit(str, sep)[[1]]
+  data<-list()
+  data[['agent']]<-vecs[1]
+  data[['recipient']]<-vecs[2]
+  data[['result']]<-vecs[3]
+  return(data)
+}
+
 pass<-function(sentence, obs, dict=abbs) {
   f<-substr(sentence, 1, 1)
   relation<-substr(sentence, 4, 4)
@@ -163,16 +177,59 @@ pass<-function(sentence, obs, dict=abbs) {
     opr<-substr(var_2, 2, 3)
     var_2<-shift(get(obs[[dict[[obj]]]], dict[[f]]), opr)
   }
-  return(dict[[relation]] == match(var_1, var_2))
+  if (relation != '~') {
+    return(dict[[relation]] == match(var_1, var_2))
+  } else {
+    return(match(var_1, var_2) != '0')
+  }
 }
+check_hypo<-function(hypo, data) {
+  is_true<-TRUE
+  hypos<-strsplit(hypo, ',')[[1]]
+  for (h in hypos) {
+    is_true<-is_true&pass(h, to_list(data))
+  }
+  return(is_true)
+}
+softmax<-function(vec, base=1) {
+  exps<-c()
+  for (i in 1:length(vec)) exps<-c(exps, exp(base*vec[[i]]))
+  total<-sum(exps)
+  for (i in 1:length(vec)) vec[[i]]<-exps[i]/total
+  return(vec)
+}
+normalize<-function(vec) {
+  total<-sum(vec)
+  for (i in 1:length(vec)) vec[i]<-vec[i]/total
+  return(vec)
+}
+
 # Learning
+df.tr_hypos$prior<-1/nrow(df.tr_hypos)
+ld_A1<-as.list(df.learn%>%filter(cond=='A1'&trial==1)%>%select(agent, recipient, result))
+
+df.tr_hypos.a1<-df.tr_hypos
+df.tr_hypos.a1['ld_1']<-flatten(ld_A1)
+df.tr_hypos.a1['li_1']<-as.numeric(mapply(check_hypo, df.tr_hypos.a1$effects, df.tr_hypos.a1['ld_1']))
+df.tr_hypos.a1['pr_1']<-df.tr_hypos.a1['li_1']*df.tr_hypos.a1['prior']
+df.tr_hypos.a1['post_1']<-normalize(df.tr_hypos.a1['pr_1'])
+
+for (i in 2:6) {
+  ld<-as.list(df.learn%>%filter(cond=='A1'&trial==i)%>%select(agent, recipient, result))
+  df.tr_hypos.a1[paste0('ld_', i)]<-flatten(ld)
+  df.tr_hypos.a1[paste0('li_', i)]<-as.numeric(mapply(check_hypo, df.tr_hypos.a1$effects, df.tr_hypos.a1[paste0('ld_', i)]))
+  df.tr_hypos.a1[paste0('pr_', i)]<-df.tr_hypos.a1[paste0('li_', i)]*df.tr_hypos.a1[paste0('post_', i-1)]
+  df.tr_hypos.a1[paste0('post_', i)]<-normalize(df.tr_hypos.a1[paste0('pr_', i)])
+}
+save(df.tr_hypos, df.tr_hypos.a1, file='normative_model.Rdata')
+# df.tr_hypos.a1$post_1<-softmax(df.tr_hypos.a1$li_1, 20)
 
 # Generalization
 
 
 # Tests
-dp<-as.list(df.all[107,])
-hp<-df.tr_hypos[1,]
+x<-df.tr_hypos.a1%>%filter(post_6>0)
+
 
 
 

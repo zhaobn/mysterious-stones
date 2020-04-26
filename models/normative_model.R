@@ -156,7 +156,9 @@ to_list<-function(str, sep=',') {
   data<-list()
   data[['agent']]<-vecs[1]
   data[['recipient']]<-vecs[2]
-  data[['result']]<-vecs[3]
+  if (length(vecs) > 2) {
+    data[['result']]<-vecs[3]
+  }
   return(data)
 }
 
@@ -256,16 +258,61 @@ p<-df.tr_hypos.a4%>%select(effects, post)
 df.tr_hypos<-df.tr_hypos%>%left_join(p, by='effects')%>%
   select(causes, effects, post_a1, post_a2, post_a3, post_a4=post)
   
-save(df.tr_hypos, 
-     df.tr_hypos.a1, 
-     df.tr_hypos.a2,
-     df.tr_hypos.a3,
-     df.tr_hypos.a4,
-     df.tr_hypos.strict.a1, 
-     file="normative_model.Rdata")
+save(file="normative_model.Rdata", df.tr_hypos, 
+     df.tr_hypos.a1, df.tr_hypos.a2,
+     df.tr_hypos.a3, df.tr_hypos.a4, df.tr_hypos.strict.a1)
 
 # Generalization
+all_stones<-c();
+for (l in feature_values[['lightness']]) {
+  for (s in feature_values[['sidedness']]) {
+    all_stones<-c(all_stones, paste0(l, '-', s))
+  }
+}
+df.tr_hypos_gen<-data.frame(all_stones)
+colnames(df.tr_hypos_gen)<-c('stone')
 
+check_trial<-function(cid, tid, results=df.tr_hypos_gen, 
+                      gen_src=df.gen, hypo_src=df.tr_hypos) {
+  cn<-paste0('post_', tolower(cid))
+  gen_data<-hypo_src[hypo_src[cn]>0, ]%>%select(effects)%>%rename(hypo=effects)
+  gen_data$hypo<-as.character(gen_data$hypo)
+  
+  gen_trial<-gen_src%>%filter(cond==cid&trial==tid)%>%select(agent, recipient)
+  for (i in 1:length(all_stones)) {
+    gen_data<-check_stone(all_stones[i], flatten(gen_trial), gen_data)
+  }
+  
+  gen_results<-c()
+  for (i in 1:length(all_stones)) {
+    stone<-all_stones[i]
+    checks<-gen_data%>%select(hypo, !!stone)
+    gen_results<-c(gen_results, sum(checks[stone]))
+  }
+  
+  prob<-normalize(gen_results)
+  results<-cbind(results, data.frame(prob))
+  fcn<-paste0(tolower(cid), '_0', tid)
+  results<-results%>%rename(!!fcn:=prob)
+  
+  return(results)
+}
 
-# Tests
+check_stone<-function(stone, gen, src) {
+  df<-src%>%select(hypo)
+  df$data<-paste0(gen, ',', stone)
+  df$pass<-as.numeric(mapply(check_hypo, df$hypo, df$data))
+  df<-df%>%select(hypo, !!stone:=pass)
+  src<-src%>%left_join(df, by='hypo')
+  return(src)
+}
+
+for (i in 1:5) {
+  df.tr_hypos_gen<-check_trial('A4', i, df.tr_hypos_gen)
+}
+
+save(file="normative_model.Rdata", df.tr_hypos, 
+     df.tr_hypos.a1, df.tr_hypos.a2,
+     df.tr_hypos.a3, df.tr_hypos.a4, df.tr_hypos.strict.a1,
+     df.tr_hypos_gen, df.tr_hypos_gen.a1)
 

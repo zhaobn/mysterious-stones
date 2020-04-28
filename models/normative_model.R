@@ -2,6 +2,7 @@ options("scipen" = 10)
 options()$scipen
 
 library(dplyr)
+library(ggplot2)
 rm(list=ls())
 
 # Global settings
@@ -98,52 +99,66 @@ shift<-function(var, opr) {
   else return('Operation not found')
 }
 
-
 # Generate all hypothesis
 all_hypotheses<-c()
 # Generate hypos with trivial cause
-effects<-c()
-
 generate_basic_hypos<-function(feature, operator, subject, feature_vars=feature_values) {
   f<-toupper(substring(feature, 1, 1))
   hypos<-c()
-  if (subject == 'T') {
-    vars<-feature_vars[[feature]]
-    objs<-c(vars, 'A', 'R')
-    for (obj in objs) {
-      hypos<-c(hypos, paste0(f, '(', subject, operator, obj, ')'))
-    }
-    if (operator == '=') {
-      for (extra in extra_operators) {
-        hypos<-c(hypos, paste0(f, '(', subject, operator, 'A', extra, ')'))
-        hypos<-c(hypos, paste0(f, '(', subject, operator, 'R', extra, ')'))
+  
+  vars<-feature_vars[[feature]]
+  objs<-vars
+  if (subject == 'T') objs<-c(objs, 'A', 'R')
+    else if (subject == 'A') objs<-c(objs, 'R')
+  
+  for (obj in objs) {
+    hypos<-c(hypos, paste0(f, '(', subject, operator, obj, ')'))
+  }
+  
+  if (operator == '=') {
+    extra_obj<-if (subject == 'T') c('A', 'R') else
+      if (subject == 'A') c('R') else c('A') 
+    for (extra in extra_operators) {
+      for (ob in extra_obj) {
+        hypos<-c(hypos, paste0(f, '(', subject, operator, ob, extra, ')'))
       }
     }
   }
   return(hypos)
 }
-#ngenerate_basic_hypos('sidedness', '=', 'T')
+# generate_basic_hypos('sidedness', '=', 'A')
+get_hypo<-function(feature, subject, src, ops=operators) {
+  for (o in ops) {
+    src<-c(src, generate_basic_hypos(feature, o, subject))
+  }
+  return(src)
+}
 lightness_effects<-c()
-for (o in operators) {
-  lightness_effects<-c(lightness_effects, generate_basic_hypos('lightness', o, 'T'))
-}
+lightness_effects<-get_hypo('lightness', 'T', lightness_effects)
+
 sidedness_effects<-c()
-for (o in operators) {
-  sidedness_effects<-c(sidedness_effects, generate_basic_hypos('sidedness', o, 'T'))
-}
+sidedness_effects<-get_hypo('sidedness', 'T', sidedness_effects)
+
+effects<-c()
 for (l in lightness_effects) {
   for (s in sidedness_effects) {
     hypo<-paste0(l, ',', s)
     effects<-c(effects, hypo)
   }
 }
-causes<-rep('', length(effects))
-hypos<-data.frame(causes)
-hypos<-cbind(hypos, data.frame(effects))
-df.tr_hypos<-hypos
-df.tr_hypos$effects<-as.character(df.tr_hypos$effects)
 
-save(df.tr_hypos, file="normative_model.Rdata")
+df.effects<-data.frame(effects)
+df.effects$effects<-as.character(df.effects$effects)
+
+causes<-c()
+as<-c(); as<-get_hypo('sidedness', 'A', as)
+al<-c(); al<-get_hypo('lightness', 'A', al)
+rs<-c(); rs<-get_hypo('sidedness', 'R', rs)
+rl<-c(); rl<-get_hypo('lightness', 'R', rl)
+
+causes<-c(as, al, rs, rl)
+df.causes<-data.frame(causes)
+df.causes$causes<-as.character(df.causes$causes)
 
 # Checking functions
 flatten<-function(list, sep=',') {
@@ -207,10 +222,10 @@ normalize<-function(vec) {
 }
 
 # Learning
-df.tr_hypos$prior<-1/nrow(df.tr_hypos)
+#### The rigid way ####
+df.effects$prior<-1/nrow(df.tr_hypos)
 ld_A1<-as.list(df.learn%>%filter(cond=='A1'&trial==1)%>%select(agent, recipient, result))
 
-#### The rigid way ####
 df.tr_hypos.a1<-df.tr_hypos
 df.tr_hypos.a1['ld_1']<-flatten(ld_A1)
 df.tr_hypos.a1['li_1']<-as.numeric(mapply(check_hypo, df.tr_hypos.a1$effects, df.tr_hypos.a1['ld_1']))
@@ -224,12 +239,10 @@ for (i in 2:6) {
   df.tr_hypos.a1[paste0('pr_', i)]<-df.tr_hypos.a1[paste0('li_', i)]*df.tr_hypos.a1[paste0('post_', i-1)]
   df.tr_hypos.a1[paste0('post_', i)]<-normalize(df.tr_hypos.a1[paste0('pr_', i)])
 }
-save(df.tr_hypos, df.tr_hypos.a1, file='normative_model.Rdata')
 # df.tr_hypos.a1$post_1<-softmax(df.tr_hypos.a1$li_1, 20)
 
 #### Shortcuts ####
-df.tr_hypos.strict.a1<-df.tr_hypos.a1
-df.tr_hypos.a1<-df.tr_hypos.a1%>%select(causes, effects)
+df.effects.a1<-df.effects%>%select(effects)
 
 update<-function(df, group, n_trials=6, src=df.learn) {
   for (i in 1:n_trials) {
@@ -237,30 +250,53 @@ update<-function(df, group, n_trials=6, src=df.learn) {
     df[paste0('ld_', i)]<-flatten(ld)
     df[paste0('li_', i)]<-as.numeric(mapply(check_hypo, df$effects, df[paste0('ld_', i)]))
   }
-  cols<-seq(4, 4+2*(n_trials-1), 2)
+  cols<-seq(3, 3+2*(n_trials-1), 2)
   df<-df%>%
     mutate(sum=rowSums(.[c(cols)]))%>%
     mutate(final=if_else(sum==n_trials, 1, 0))
   df$post<-normalize(df$final)
   return(df)
 }
+df.effects.a1<-update(df.effects.a1, 'A1', 6)
 
-df.tr_hypos.a2<-df.tr_hypos%>%select(causes, effects)
-df.tr_hypos.a2<-update(test, 'A2', 6)
+df.effects.a2<-df.effects%>%select(effects)
+df.effects.a2<-update(df.effects.a2, 'A2', 6)
 
-df.tr_hypos.a3<-df.tr_hypos%>%select(causes, effects)
-df.tr_hypos.a3<-update(test, 'A3', 6)
+df.effects.a3<-df.effects%>%select(effects)
+df.effects.a3<-update(df.effects.a3, 'A3', 6)
 
-df.tr_hypos.a4<-df.tr_hypos%>%select(causes, effects)
-df.tr_hypos.a4<-update(test, 'A4', 6)
+df.effects.a4<-df.effects%>%select(effects)
+df.effects.a4<-update(df.effects.a4, 'A4', 6)
 
 p<-df.tr_hypos.a4%>%select(effects, post)
-df.tr_hypos<-df.tr_hypos%>%left_join(p, by='effects')%>%
-  select(causes, effects, post_a1, post_a2, post_a3, post_a4=post)
-  
-save(file="normative_model.Rdata", df.tr_hypos, 
-     df.tr_hypos.a1, df.tr_hypos.a2,
-     df.tr_hypos.a3, df.tr_hypos.a4, df.tr_hypos.strict.a1)
+df.effects<-df.effects%>%left_join(p, by='effects')%>%
+  select(effects, post_a1, post_a2, post_a3, post_a4=post)
+
+# Checks for causes
+df.causes<-data.frame(causes)
+df.causes$causes<-as.character(df.causes$causes)
+
+update_causes<-function(cid, n_trials=6, src=df.learn, tar=df.causes) {
+  df<-tar%>%select(causes)
+  for (i in 1:n_trials) {
+    ld<-as.list(src%>%filter(cond==cid&trial==i)%>%select(agent, recipient, result))
+    df[paste0('ld_', i)]<-flatten(ld)
+    df[paste0('li_', i)]<-as.numeric(mapply(check_hypo, df$causes, df[paste0('ld_', i)]))
+  }
+  cols<-seq(3, 3+2*(n_trials-1), 2)
+  df<-df%>%
+    mutate(sum=rowSums(.[c(cols)]))%>%
+    mutate(final=if_else(sum==n_trials, 1, 0))%>%
+    rename(!!cid:=final)
+  tar<-cbind(tar, df[cid])
+  return(tar)
+}
+
+for (i in 1:4) {
+  #df.causes<-update_causes(paste0('A', i))
+  print(sum(df.causes[paste0('A', i)]))
+}
+# save(df.causes, df.effects, df.effects_gen, file='normative_model.Rdata')
 
 # Generalization
 all_stones<-c();
@@ -269,24 +305,34 @@ for (l in feature_values[['lightness']]) {
     all_stones<-c(all_stones, paste0(l, '-', s))
   }
 }
-df.tr_hypos_gen<-data.frame(all_stones)
-colnames(df.tr_hypos_gen)<-c('stone')
+df.posteriors<-data.frame(all_stones)
+colnames(df.posteriors)<-c('stone')
+df.posteriors$stone<-as.character(df.posteriors$stone)
 
-check_trial<-function(cid, tid, results=df.tr_hypos_gen, 
-                      gen_src=df.gen, hypo_src=df.tr_hypos) {
-  cn<-paste0('post_', tolower(cid))
-  gen_data<-hypo_src[hypo_src[cn]>0, ]%>%select(effects)%>%rename(hypo=effects)
-  gen_data$hypo<-as.character(gen_data$hypo)
+check_trial<-function(cid, tid, 
+                      results=df.posteriors, 
+                      gen_src=df.gen,
+                      causes_src=df.causes,
+                      effects_src=df.effects) {
+  causes<-c('', causes_src[causes_src[cid]>0, 'causes'])
+  ecol<-paste0('post_', tolower(cid))
+  effects<-effects_src[effects_src[ecol]>0, 'effects']
+  
+  dc<-data.frame(causes)
+  de<-data.frame(effects)
+  da<-merge(dc, de)
+  da$causes<-as.character(da$causes)
+  da$effects<-as.character(da$effects)
   
   gen_trial<-gen_src%>%filter(cond==cid&trial==tid)%>%select(agent, recipient)
   for (i in 1:length(all_stones)) {
-    gen_data<-check_stone(all_stones[i], flatten(gen_trial), gen_data)
+    da<-check_stone(all_stones[i], flatten(gen_trial), da)
   }
   
   gen_results<-c()
   for (i in 1:length(all_stones)) {
     stone<-all_stones[i]
-    checks<-gen_data%>%select(hypo, !!stone)
+    checks<-da%>%select(causes, effects, !!stone)
     gen_results<-c(gen_results, sum(checks[stone]))
   }
   
@@ -299,20 +345,77 @@ check_trial<-function(cid, tid, results=df.tr_hypos_gen,
 }
 
 check_stone<-function(stone, gen, src) {
-  df<-src%>%select(hypo)
+  df<-src%>%select(causes, effects)
+  r_stone<-strsplit(gen, ',')[[1]][2]
   df$data<-paste0(gen, ',', stone)
-  df$pass<-as.numeric(mapply(check_hypo, df$hypo, df$data))
-  df<-df%>%select(hypo, !!stone:=pass)
-  src<-src%>%left_join(df, by='hypo')
+  df$pass_c<-as.numeric(mapply(check_hypo, df$causes, df$data))
+  df$pass_e<-as.numeric(mapply(check_hypo, df$effects, df$data))
+  df<-df%>%mutate(pass=if_else(pass_c>0&pass_e>0, 1, 
+                            if_else(pass_c<1&!!stone==!!r_stone, 1, 0)))
+  
+  df<-df%>%select(causes, effects, !!stone:=pass)
+  src<-src%>%left_join(df, by=c('causes', 'effects'))
   return(src)
 }
 
+
 for (i in 1:5) {
-  df.tr_hypos_gen<-check_trial('A4', i, df.tr_hypos_gen)
+  df.posteriors<-check_trial('A4', i, df.posteriors)
 }
 
-save(file="normative_model.Rdata", df.tr_hypos, 
-     df.tr_hypos.a1, df.tr_hypos.a2,
-     df.tr_hypos.a3, df.tr_hypos.a4, df.tr_hypos.strict.a1,
-     df.tr_hypos_gen, df.tr_hypos_gen.a1)
+save(file="normative_model.Rdata", 
+     df.causes, df.effects, df.posteriors)
+
+save(file="intermediate.Rdata",
+     df.effects.a1, df.effects.a2,
+     df.effects.a3, df.effects.a4)
+
+# Test new trials
+df.test<-read.csv('learn_test.csv')
+df.test$cond<-as.character(df.test$cond)
+df.test$agent<-as.character(df.test$agent)
+df.test$recipient<-as.character(df.test$recipient)
+df.test$result<-as.character(df.test$result)
+
+test.learn<-df.test%>%filter(cond=='A2')
+test.gen<-df.gen%>%filter(cond=='A2')
+test.causes<-df.causes%>%select(causes, orig_a2=A2)
+test.effects<-df.effects%>%select(effects, orig_a2=post_a2)
+
+x<-test.causes%>%select(causes)
+x<-update_causes('A2', 6, test.learn, x)
+test.causes<-test.causes%>%left_join(x, by='causes')%>%
+  select(causes, orig_a2, A2)
+
+test.effects.a2<-test.effects%>%select(effects)
+test.effects.a2<-update(test.effects.a2, 'A2', 6, test.learn)
+test.effects<-test.effects%>%left_join(test.effects.a2, by='effects')%>%
+  select(effects, orig_a2, post_a2=post)
+
+test.posteriors<-df.posteriors%>%select(stone, starts_with('a2'))
+y<-test.posteriors%>%select(stone)
+y<-check_trial('A2', 1, y, test.gen, test.causes, test.effects)
+
+for (i in 2:5) {
+  y<-check_trial('A2', i, y, test.gen, test.causes, test.effects)
+}
+cns<-paste0('test_a2_0', seq(1, 5))
+cns<-c('stone', cns)
+colnames(y)<-cns
+test.posteriors<-test.posteriors%>%left_join(y, by='stone')
+
+# Plot
+tid<-'a2_01'
+ttid<-paste0('test_', tid)
+
+df$type<-factor(df$type, levels = c('used', 'test'))
+df<-test.posteriors%>%select(stone, post=!!tid)%>%mutate(type='used')
+df<-rbind(df, test.posteriors%>%select(stone, post=!!ttid)%>%mutate(type='test'))
+ggplot(df, aes(fill=type, y=post, x=stone)) + 
+  geom_bar(position="dodge", stat="identity")
+
+save(test.causes, test.effects, test.posteriors, file='tests.Rdata')
+
+
+
 

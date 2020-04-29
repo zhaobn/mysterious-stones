@@ -28,5 +28,32 @@ save_trial_combos<-function(cond) {
 }
 save_trial_combos("A4")
 
+# Translate stones
+sels<-df.tw%>%select(ix, cond=condition, trial, shape, color, conf)
+sels<-sels%>%mutate(s=paste0(substr(shape, 1, 1), substr(shape, 3, 3)))
+sels<-sels%>%mutate(l=case_when(color=='light'~'l1',
+                                color=='medium'~'l2',
+                                color=='dark'~'l3',
+                                color=='very_dark'~'l4'))
+sels<-sels%>%mutate(stone=paste0(l, '-', s))
+sels<-sels%>%select(ix, condition=cond, trial, l, s, stone)
+df.tw<-df.tw%>%left_join(sels, by=c('ix','condition', 'trial'))
+save(df.sw, df.tw, file = '../data/mturk_20200419_A.Rdata')
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 

@@ -1,0 +1,150 @@
+\documentclass[11pt]{article}
+
+\usepackage[sort]{natbib}
+\usepackage{fancyhdr}
+
+% you may include other packages here (next line)
+\usepackage{enumitem}
+\usepackage[tiny]{titlesec}
+\usepackage{lastpage}
+\usepackage{amsthm}
+\usepackage{amssymb}
+\usepackage{amsmath}
+\usepackage{verbatim}
+%\usepackage{graphicx}
+%\usepackage{wrapfig}
+
+% \theoremstyle{definition}
+% \newtheorem{definition}{Definition}[section]
+% \newtheorem{theorem}{Theorem}
+% \newtheorem{lemma}[theorem]{Lemma}
+
+%\newtheorem{exmp}{Example}[section]
+
+
+\newcommand{\fa}{f^{\alpha}}
+\newcommand{\Fa}{F^{\alpha}}
+\newcommand{\pre}{pre_{\sigma}}
+
+
+%----- you must not change this -----------------
+\oddsidemargin 0.2cm
+\topmargin -1.0cm
+\footskip 0cm
+\textheight 24.0cm
+\textwidth 15.25cm
+\parindent=0pt
+\parskip 1ex
+\renewcommand{\baselinestretch}{1.1}
+\pagestyle{fancy}
+%----------------------------------------------------
+
+
+
+% enter your details here----------------------------------
+
+\lhead{\normalsize \textrm{Mysterious Stones}}
+\chead{}
+\rhead{\normalsize Bonan Zhao}
+\lfoot{}
+\cfoot{Page \thepage \hspace{1pt} of \pageref{LastPage}}
+\rfoot{}
+\setlength{\fboxrule}{4pt}\setlength{\fboxsep}{2ex}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0.4pt}
+
+	
+\begin{document}
+
+
+%----------------your title below -----------------------------
+
+\begin{center}
+{\bf Generative Model}
+
+{\normalsize \today}
+\end{center}
+
+
+%---------------- start of document body------------------
+
+Following definitions in previous notes \textit{Normative Model I},
+refine a generative process to create causal relations (hypotheses) as follows.
+
+\begin{enumerate}
+\item Create one causal relation.
+Start by sampling number of cause sentences (from a gamma distribution, say $\Gamma(1.5, 1)$?);
+number of effect sentences is 2 by definition 
+(one sentence for $R'$ lightness, and one sentence for $R'$ sidedness).
+
+Each sentence is created by
+
+\begin{enumerate}
+	\item Sample relations, controlled by a relation parameter $\alpha$:
+
+	$P(\text{pick }=) = P(\text{pick }\neq) = \alpha/2$, 
+	$P(\text{pick }>) = P(\text{pick }<) = (1-\alpha)/2$.
+
+	\item Sample a subject (left-hand side of the picked relation):
+
+	For cause sentences, sample $A$ or $R$ are equally likely, 
+	$P(\text{pick }A) = P(\text{pick }R) = 1/2$;
+	effect sentences always take $R'$ as subjects.
+
+	\item Sample an object (right-hand side of the picked relation):
+
+	Objects can be absolute - an exact lightness or sidedness value,
+	or relative - $A$'s lightness (sidedness) or $R$'s.
+	Relative values, in addition, can combine with the increase or decrease by level 1 option (eg. $L(R')=L(A)+1)$.
+
+	Assume that each type of values are picked equally like:
+
+	$P(\text{pick }l_i) = \frac{1}{3|L|}$ 
+	where $l_i$ is an exact lightness value, 
+	and $|L|$ is the total number of lightness values (in current experiment setup);
+
+	$P(\text{pick }s_i) = \frac{1}{3|S|}$
+	where $s_i$ is an exact sidedness value
+	and $|S|$ is the total number of sidedness values (in current experiment setup);
+
+	$P(\text{pick }A) = P(\text{pick }R) = \frac{1}{6}$ for effect sentences,
+	$P(\text{pick }A) = P(\text{pick }R) = \frac{1}{3}$ for cause sentences 
+	(because for a cause sentence the object has to be different from the subject;
+
+	$P(\text{pick }A, +1) = P(\text{pick }A, -1) = P(\text{pick }R, +1) = P(\text{pick }R, -1) = \frac{1}{3 \times 4} = \frac{1}{12}$ for effect sentences;
+	and $\frac{1}{6}$ for cause sentences by similar reasons.
+
+
+\end{enumerate}
+
+
+
+\item With probability $\beta$ sample an extra causal relation
+that will join the others as an \textit{if-else}.
+$\beta$ decreases as the number of existing causal relations increases.
+
+\end{enumerate} 
+
+The above procedure generates \textit{one} hypothesis, 
+that can potentially contain multiple causal relations by an \textit{if-else} relation.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+% ----------------end of document body---------------------
+
+
+
+\end{document}

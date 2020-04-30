@@ -35,6 +35,7 @@ for (c in 1:4) {
     if (!(c==1 && i==1)) df.plot<-rbind(df.plot, read_pp(cond, i))
   }
 }
+save(df.causes,df.effects, df.posteriors, df.plot, file = '../models/normative_model.Rdata')
 
 test<-df.plot%>%filter(cond=='A1')
 ggplot(df.plot, aes(x=trial, y=reorder(stone, desc(stone)), fill=pp)) +
@@ -51,10 +52,34 @@ ggplot(df.plot, aes(x=trial, y=reorder(stone, desc(stone)), fill=pp)) +
     plot.background = element_rect(fill = "transparent",colour = NA)
   )
 
+# Plot test trial prediction
+orig<-df.plot%>%filter(cond=='A2')
+test<-test.posteriors%>%select(stone, starts_with('test_'))
+colnames(test)<-c('stone', paste0('a2_0', seq(1:5)))
+dt<-read_pp('A2', 1, test)
+for (i in 2:5) {
+  if (!(c==1 && i==1)) dt<-rbind(dt, read_pp('A2', i, test))
+}
+a1<-df.plot%>%filter(cond=='A1')
+a1<-a1%>%mutate(type='A1')
+orig<-orig%>%mutate(type='A2, non-symmetric')
+dt<-dt%>%mutate(type='A2, symmetric')
+test.plot<-rbind(a1, orig, dt)
+save(test.causes, test.effects, test.posteriors, test.plot, file='tests.Rdata')
 
-
-
-
+ggplot(test.plot, aes(x=trial, y=reorder(stone, desc(stone)), fill=pp)) +
+  geom_tile() +
+  geom_text(aes(label=round(pp, 2))) +
+  facet_wrap(~type) + 
+  scale_fill_gradient(low = "white", high = "red") +
+  theme(legend.position="none") +
+  labs(x='generalization trials', y='stone') + 
+  theme(
+    panel.grid.major = element_blank(), 
+    panel.grid.minor = element_blank(),
+    panel.background = element_rect(fill = "transparent",colour = NA),
+    plot.background = element_rect(fill = "transparent",colour = NA)
+  )
 
 
 

@@ -100,22 +100,42 @@ draw_object<-function(sig='', f='', rel='', sub='', pr=0.5){
 
 # Resursive functions
 # Compose atomic sentence(s)
-compose_atomics<-function(sig, ter=0.5, feature_w=0.5, relation_w=0.5, relative_w=0.5) {
-  at<-list()
+compose_atomics<-function(at, sig, ter=0.5, feature_w=0.5, relation_w=0.5, relative_w=0.5) {
+  compose<-function(feature) {
+    cp<-list()
+    f<-toupper(substr(feature, 1, 1))
+    subj<-draw_subject(sig);
+    reln<-draw_relation(relation_w);
+    obj<-draw_object(sig, feature, names(reln), names(subj), relative_w)
+    sentence<-paste(c(f, "(", names(subj), ")", names(reln), names(obj)), collapse='')
+    cp[[sentence]]<-feature_w*subj[[1]]*reln[[1]]*obj[[1]]
+    return(cp)
+  }
+  combine<-function(list_1, list_2) {
+    combined<-list()
+    s<-paste(c(names(list_1), names(list_2)), collapse=',')
+    combined[[s]]<-list_1[[1]]*list_2[[1]]
+    return(combined)
+  }
   
   f_idx<-if (runif(1) <= 0.5) 1 else 2 
   feature<-names(features)[f_idx]
-  f<-toupper(substr(feature, 1, 1))
   
-  subj<-draw_subject(sig);
-  reln<-draw_relation(relation_w);
-  obj<-draw_object(sig, feature, names(reln), names(subj), relative_w)
+  if (length(names(at)) == 0) {
+    st<-compose(feature)
+    at[[names(st)]]<-st[[1]]
+  } else if ((sig=='e')&(length(strsplit(names(at), split = ',')[[1]])==1)) {
+    other_feature<-names(features)[!names(features)==feature]
+    return(compose(other_feature))
+  } else return(at)
   
-  sentence<-paste(c(f, "(", names(subj), names(reln), names(obj), ")"), collapse='')
-  at[[sentence]]<-feature_w*subj[[1]]*reln[[1]]*obj[[1]]
-  return(at)
+  if (runif(1) <= ter) {
+    return(at)
+  } else {
+    return(combine(at, compose_atomics(at, sig, ter, feature_w, relation_w, relative_w)))
+  }
 }
-# compose_atomics('c')
+compose_atomics(list(), 'e')
 
 # Compose entailment(s)
 

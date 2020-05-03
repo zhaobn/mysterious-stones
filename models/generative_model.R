@@ -137,12 +137,25 @@ compose_atomics<-function(at, sig, ter=0.5, feature_w=0.5, relation_w=0.5, relat
 
 # Compose entailment(s)
 compose_entailments<-function(et, end=0.5, ter=0.5, feature_w=0.5, relation_w=0.5, relative_w=0.5) {
-  causes<-compose_atomics(list(), 'c')
+  causes<-compose_atomics(list(), 'c', ter, feature_w, relation_w, relative_w)
+  effects<-compose_atomics(list(), 'e', ter, feature_w, relation_w, relative_w)
+  entailment<-paste(c(names(causes), '*', names(effects)), collapse='')
+  prob<-causes[[1]] * effects[[1]]
+  if (length(names(et))==0) {
+    et[[entailment]]<-prob
+  } else {
+    entailments<-paste(c(names(et), '|', entailment), collapse='')
+    prev<-et[[1]]
+    et<-list()
+    et[[entailments]]<-prev * prob
+  }
+  if (runif(1)<=end) {
+    return(et)
+  } else {
+    return(compose_entailments(et, end, ter, feature_w, relation_w, relative_w))
+  }
 }
-
-# Compose hypothesis/es
-
-# Debug/tests
+# compose_entailments(list())
 
 # Results
 

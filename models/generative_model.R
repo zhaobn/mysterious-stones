@@ -11,22 +11,6 @@ features<-list()
 features[['lightness']]<-paste0('l', c(1:4))
 features[['sidedness']]<-paste0('p', c(3:7))
 
-# Helper dict
-prep_abbs<-function() {
-  abbs<-list()
-  abbs[['L']]<-'lightness'
-  abbs[['S']]<-'sidedness'
-  abbs[['A']]<-'agent'
-  abbs[['R']]<-'recipient'
-  abbs[['T']]<-'result'
-  abbs[['=']]<-c(0)
-  abbs[['>']]<-c(1)
-  abbs[['<']]<-c(2)
-  abbs[['~']]<-c(1, 2)
-  return(abbs)
-}
-abbs<-prep_abbs()
-
 # Base functions
 # 1. Draw relations
 draw_relation<-function(pr=0.5) {
@@ -162,6 +146,10 @@ compose_entailments<-function(et, end=0.5, ter=0.5, feature_w=0.5, relation_w=0.
 }
 # compose_entailments(list())
 
-# Results
+# Entry functions
+
+
+
+
 
 

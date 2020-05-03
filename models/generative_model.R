@@ -127,10 +127,15 @@ compose_atomics<-function(at, sig, ter=0.5, feature_w=0.5, relation_w=0.5, relat
   } else {
     at_prob<-at[[1]]
     nt<-compose(other_feature)
+    # Check if this sentence has appeared before
     sentence<-paste(c(names(at), names(nt)), collapse=',')
-    at<-list()
-    at[[sentence]]<-at_prob * nt[[1]]
-    return(compose_atomics(at, sig, ter, feature_w, relation_w, relative_w))
+    if (names(nt) %in% strsplit(names(at), ',')[[1]]) {
+      return(at)
+    } else {
+      at<-list()
+      at[[sentence]]<-at_prob * nt[[1]]
+      return(compose_atomics(at, sig, ter, feature_w, relation_w, relative_w)) 
+    }
   }
 }
 # compose_atomics(list(), 'e')

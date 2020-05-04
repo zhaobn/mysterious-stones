@@ -91,7 +91,7 @@ compose_atomics<-function(at, sig, ter=0.5, feature_w=0.5, relation_w=0.5, relat
     subj<-draw_subject(sig);
     reln<-draw_relation(relation_w);
     obj<-draw_object(sig, feature, names(reln), names(subj), relative_w)
-    sentence<-paste(c(f, "(", names(subj), ")", names(reln), names(obj)), collapse='')
+    sentence<-paste(c(f, "(", names(subj), names(reln), names(obj), ")"), collapse='')
     cp[[sentence]]<-feature_w*subj[[1]]*reln[[1]]*obj[[1]]
     return(cp)
   }
@@ -147,9 +147,17 @@ compose_entailments<-function(et, end=0.5, ter=0.5, feature_w=0.5, relation_w=0.
 # compose_entailments(list())
 
 # Entry functions
-
-
-
-
+hypo<-c()
+prior<-c()
+i<-1
+while(i < 5001) {
+  f<-compose_entailments(list())
+  hypo<-c(hypo, names(f))
+  prior<-c(prior, f[[1]])
+  i<-i + 1
+}
+df.hypos<-data.frame(hypo, prior)
+df.hypos$hypo<-as.character(df.hypos$hypo)
+save(df.gen_hypos, file='generative.Rdata')
 
 

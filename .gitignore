@@ -18,3 +18,4 @@
 *.out
 *.bbl
 *.blg
+.Rproj.user

@@ -1,8 +1,8 @@
 
 #### Global settings ####
 feature_values<-list()
-feature_values[['edges']]<-paste(seq(3,8))
-feature_values[['shades']]<-c('l', 'm', 'd', 'v')
+feature_values[['edges']]<-paste(seq(3,8)) # number of edges
+feature_values[['shades']]<-paste(seq(4)) # 1: light, 4: very dark
 
 features<-names(feature_values)
 
@@ -10,16 +10,16 @@ relations<-c('=', '~', '>', '<')
 addon<-c('+1', '-1')
 
 #### Grammar ####
-H<-function(role) return(sample(c(empty(), AND(role), form(role)), 1))
-
 empty<-function() return('')
+
+H<-function(role) return(sample(c(empty(), AND(role), form(role)), 1))
 
 AND<-function(role) {
   if (runif(1)>0.5) {
     funcs<-c(empty(), form(role))
-    return(paste0("AND(",sample(funcs, 1), ",", sample(funcs, 1), ")"))
+    return(paste0("AND[", sample(funcs, 1), ",", sample(funcs, 1), "]"))
   } else {
-    return(paste0("AND(",H(role), ",", H(role), ")"))
+    return(paste0("AND[", H(role), ",", H(role), "]"))
   }
 }
 

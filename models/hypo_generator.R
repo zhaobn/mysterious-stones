@@ -15,11 +15,12 @@ H<-function(role) return(sample(c(empty(), AND(role), form(role)), 1))
 empty<-function() return('')
 
 AND<-function(role) {
-  #sub<-H(role)
-  sub1<-sample(c(empty(), form(role)), 1)
-  sub2<-sample(c(empty(), form(role)), 1)
-  #sub<-paste0("H", role)
-  return(paste0("AND(",sub1, ",", sub2, ")"))
+  if (runif(1)>0.5) {
+    funcs<-c(empty(), form(role))
+    return(paste0("AND(",sample(funcs, 1), ",", sample(funcs, 1), ")"))
+  } else {
+    return(paste0("AND(",H(role), ",", H(role), ")"))
+  }
 }
 
 form<-function(role) {

@@ -60,30 +60,34 @@ causal_mechanism<-function(hypo, data) {
   hypo<-gsub('R', data$recipient, hypo)
   
   input<-eval(parse(text=hypo))
-  # Take care of empty ones
-  if (input$cause==''|input$effect=='') {
-    dist[[as.character(data$recipient)]]<-1
+  effect<-input$effect
+  dist<-init_dist()
+  
+  if (input$cause=='') {
+    set_default<-if (effect=='') T else F
   } else {
-    # Check cause conditions
     cause_cond<-eval(parse(text=input$cause))
-    # Default to no change
-    if (is.na(cause_cond)|!cause_cond) {
-      dist[[as.character(data$recipient)]]<-1
-    } else {
-      na_effect<-F
-      # Check for all possible result object
-      for (d in names(dist)) {
-        effect_text<-input$effect
-        effect_text<-gsub('M', d, effect_text)
-        if (is.na(eval(parse(text=effect_text)))) {
-          na_effect<-T; break;
-        } else {
-          dist[[d]]<-as.numeric(eval(parse(text=effect_text)))
-        }
+    set_default<-if (is.na(cause_cond)|!cause_cond) T else F
+  }
+  
+  if (!set_default) {
+    for (d in names(dist)) {
+      effect_text<-gsub('M', d, effect)
+      cond<-eval(parse(text=effect_text))
+      if (is.na(cond)|is.null(cond)) {
+        set_default<-T; break;
+      } else {
+        dist[[d]]<-as.numeric(cond)
       }
-      if (na_effect) dist[[as.character(data$recipient)]]<-1 else dist<-normalize(dist)
     }
   }
+  
+  if (set_default) {
+    dist[[as.character(data$recipient)]]<-1
+  } else {
+    dist<-normalize(dist)
+  }
+  
   return(dist)
 }
 
@@ -91,7 +95,6 @@ get_likeli<-function(hypo, data) {
   data<-listify_data(data)
   return(causal_mechanism(hypo, data)[[as.character(data$result)]])
 }
-get_likeli(hypo, data)
 
 
 

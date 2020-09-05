@@ -36,7 +36,6 @@ get_group_post<-function(group_name, source=hypos_grouped) {
   hypos[,final_col]<-hypos$post_6
   return(hypos[,c('hypo', final_col)])
 }
-learn_a1<-get_group_post('A1')
 
 # Generalization predictions
 get_one_gen_pred<-function(group_name, trial_id, learn_post) {
@@ -44,23 +43,31 @@ get_one_gen_pred<-function(group_name, trial_id, learn_post) {
   post_col<-paste0('post_', group_name)
   df<-learn_post[(learn_post[,post_col]>0),]
   result<-unlist(init_dist())
-  for (i in 1:nrow(y)) {
+  for (i in 1:nrow(df)) {
     result<-result+(unlist(causal_mechanism(df$hypo[i], data)))*df[i, post_col]
   }
   return(data.frame(group=group_name, phase='gen', trial=trial_id, 
                     object=all_objects, pred=normalize(result)))
 }
+
+
+# Test for A1
+learn_a1<-get_group_post('A1')
 gen_preds<-get_one_gen_pred('A1', 1, learn_a1)
 for (i in seq(5)) gen_preds<-rbind(gen_preds, get_one_gen_pred('A1', i, learn_a1))
 
 # Plot
 library(ggplot2)
 library(viridis)
-ggplot(gen_preds, aes(x=object, y=trial, fill=pred)) + geom_tile() + 
-  scale_y_continuous(trans="reverse", breaks=unique(gen_preds$trial)) + 
+ggplot(uni_preds, aes(x=object, y=trial, fill=pred)) + geom_tile() + 
+  scale_y_continuous(trans="reverse", breaks=unique(uni_preds$trial)) + 
   scale_fill_viridis(option="E", direction=-1) 
 # + facet_grid(data~learn_cond)
 
+# try for universal effects
+effects_a1<-get_group_post('A1', effects_grouped)
+uni_preds<-get_one_gen_pred('A1', 1, effects_a1)
+for (i in seq(5)) uni_preds<-rbind(uni_preds, get_one_gen_pred('A1', i, effects_a1))
 
 
 

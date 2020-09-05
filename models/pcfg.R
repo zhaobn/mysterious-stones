@@ -118,9 +118,24 @@ hypos_grouped$prior_raw<-mapply(pcfg_prior, hypos_grouped$shortest)
 hypos_grouped$prior<-normalize(hypos_grouped$prior_raw)
 save(hypos_grouped, file='../data/hypos_grouped.Rdata')
 
+df$shortest<-as.character(df$shortest)
+effects_grouped<-df
+effects_grouped$prior_raw<-mapply(pcfg_prior, effects_grouped$shortest)
+effects_grouped$prior<-normalize(effects_grouped$prior_raw)
+save(effects_grouped, file='../data/effects_grouped.Rdata')
+
+################################################################
+# Check whethter true rule is included
+h=hypos_grouped$shortest
+x=h[which(grepl('edges\\(M\\)==edges\\(A\\)\\+1', h))]
+y=h[which(grepl('shades\\(M\\)==shades\\(R\\)\\+1', h))]
+z=intersect(x, y) # problematic
 
 
-
+h2=effects_grouped$shortest
+x2=h2[which(grepl('edges\\(M\\)==edges\\(A\\)\\+1', h2))]
+y2=h2[which(grepl('shades\\(M\\)==shades\\(R\\)\\+1', h2))]
+z2=intersect(x2, y2)
 
 
 

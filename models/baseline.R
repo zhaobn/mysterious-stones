@@ -1,9 +1,11 @@
 
 library(dplyr)
+library(ggplot2)
+library(viridis)
 source('./shared.R')
 
 # Get experiment data
-tasks<-read.csv('../data/trial_setup.csv')
+tasks<-read.csv('../data/pilot_setup.csv')
 fetch_task<-function(group_name, phase_name, trial_id, type='list', source=tasks) {
   task_data<-source%>%
     filter(group==group_name&phase==phase_name&trial==trial_id)%>%
@@ -25,7 +27,7 @@ get_group_post<-function(group_name, source=hypos_grouped) {
   hypos<-source%>%select(hypo=shortest, prior)
   final_col<-paste0('post_', group_name)
   for (i in seq(6)) {
-    data<-fetch_task('A1', 'learn', i, 's')
+    data<-fetch_task(group_name, 'learn', i, 's')
     prior_col<-if (i==1) 'prior' else paste0('post_', i-1)
     likeli_col<-paste0('likeli_',i)
     post_col<-paste0('post_',i)
@@ -51,23 +53,67 @@ get_one_gen_pred<-function(group_name, trial_id, learn_post) {
 }
 
 
-# Test for A1
-learn_a1<-get_group_post('A1')
-gen_preds<-get_one_gen_pred('A1', 1, learn_a1)
-for (i in seq(5)) gen_preds<-rbind(gen_preds, get_one_gen_pred('A1', i, learn_a1))
+# Put them together
+init_result<-data.frame(group=character(0), phase=character(0), trial=numeric(0), pred=character(0), pred=numeric(0))
 
-# Plot
-library(ggplot2)
-library(viridis)
-ggplot(uni_preds, aes(x=object, y=trial, fill=pred)) + geom_tile() + 
-  scale_y_continuous(trans="reverse", breaks=unique(uni_preds$trial)) + 
-  scale_fill_viridis(option="E", direction=-1) 
-# + facet_grid(data~learn_cond)
+ueffect_preds<-init_result
+for (i in seq(4)) {
+  group_name=paste0('A', i)
+  learned<-get_group_post(group_name, effects_grouped)
+  prediction<-get_one_gen_pred(group_name, 1, learned)
+  for (j in 2:5) {
+    prediction<-rbind(prediction, get_one_gen_pred(group_name, j, learned))
+  }
+  ueffect_preds<-rbind(ueffect_preds, prediction)
+}
 
-# try for universal effects
-effects_a1<-get_group_post('A1', effects_grouped)
-uni_preds<-get_one_gen_pred('A1', 1, effects_a1)
-for (i in seq(5)) uni_preds<-rbind(uni_preds, get_one_gen_pred('A1', i, effects_a1))
+comp_preds<-init_result
+for (i in seq(4)) {
+  group_name=paste0('A', i)
+  learned<-get_group_post(group_name, hypos_grouped)
+  prediction<-get_one_gen_pred(group_name, 1, learned)
+  for (j in 2:5) {
+    prediction<-rbind(prediction, get_one_gen_pred(group_name, j, learned))
+  }
+  comp_preds<-rbind(comp_preds, prediction)
+}
+
+# plot
+ppt<-df.ppt%>%mutate(source='pilot')%>%select(group, trial, object, prob=freq, source)
+ue<-ueffect_preds%>%mutate(source='uni_effects')%>%select(group, trial, object, prob=pred, source)
+cp<-comp_preds%>%mutate(source='cause_effects')%>%select(group, trial, object, prob=pred, source)
+
+df<-rbind(ppt, ue, cp)
+df$source<-factor(df$source, levels=c('pilot', 'cause_effects', 'uni_effects'))
+ggplot(df, aes(x=object, y=trial, fill=prob)) + geom_tile() + 
+  scale_y_continuous(trans="reverse", breaks=unique(df$trial)) + 
+  scale_fill_gradient(low='white', high='#293352') +
+  #scale_fill_viridis(option="E", direction=-1) + 
+  theme_linedraw() +
+  facet_grid(source~group)
+
+# Try universal effects on the new design
+tasks<-read.csv('../data/trial_setup.csv')
+new_preds<-init_result
+for (i in seq(2)) {
+  group_name=paste0('A', i)
+  learned<-get_group_post(group_name, effects_grouped)
+  prediction<-get_one_gen_pred(group_name, 1, learned)
+  for (j in 2:5) prediction<-rbind(prediction, get_one_gen_pred(group_name, j, learned))
+  new_preds<-rbind(new_preds, prediction)
+}
+ggplot(new_preds, aes(x=object, y=trial, fill=pred)) + geom_tile() + 
+  scale_y_continuous(trans="reverse", breaks=unique(new_preds$trial)) + 
+  scale_fill_gradient(low='white', high='#293352') +
+  theme_linedraw() +
+  facet_grid(~group)
+
+
+
+
+
+
+
 
 
 

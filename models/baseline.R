@@ -92,6 +92,49 @@ ggplot(df, aes(x=object, y=trial, fill=prob)) + geom_tile() +
   theme_linedraw() +
   facet_grid(source~group)
 
+
+# Try using the causal-equivalence prior
+backup<-effects_grouped
+effects_equi<-effects_grouped%>%select(shortest, n)
+effects_equi$prior<-normalize(effects_equi$n)
+
+ce_preds<-init_result
+for (i in seq(4)) {
+  group_name=paste0('A', i)
+  learned<-get_group_post(group_name, effects_grouped)
+  prediction<-get_one_gen_pred(group_name, 1, learned)
+  for (j in 2:5) {
+    prediction<-rbind(prediction, get_one_gen_pred(group_name, j, learned))
+  }
+  ce_preds<-rbind(ce_preds, prediction)
+}
+
+effects_grouped<-backup
+ue_preds<-init_result
+for (i in seq(4)) {
+  group_name=paste0('A', i)
+  learned<-get_group_post(group_name, effects_grouped)
+  prediction<-get_one_gen_pred(group_name, 1, learned)
+  for (j in 2:5) {
+    prediction<-rbind(prediction, get_one_gen_pred(group_name, j, learned))
+  }
+  ue_preds<-rbind(ue_preds, prediction)
+}
+
+ppt<-df.ppt%>%mutate(source='pilot')%>%select(group, trial, object, prob=freq, source)
+ce_preds<-ce_preds%>%mutate(source='causal_eq_prior')%>%select(group, trial, object, prob=pred, source)
+ue_preds<-ue_preds%>%mutate(source='pcfg_comp_prior')%>%select(group, trial, object, prob=pred, source)
+
+df<-rbind(ppt, ce_preds, ue_preds)
+df$source<-factor(df$source, levels=c('pilot', 'pcfg_comp_prior', 'causal_eq_prior'))
+
+# Take a detailed look into A1 diffs
+ue_learned<-get_group_post('A1', effects_grouped)
+ce_learned<-get_group_post('A1', effects_equi)
+a1_learned<-ue_learned%>%left_join(ce_learned, by='hypo')
+colnames(a1_learned)<-c('hypo', 'pcfg', 'causal_eq')
+a1_learned<-a1_learned%>%filter(pcfg>0|causal_eq>0)
+
 # Try universal effects on the new design
 tasks<-read.csv('../data/trial_setup.csv')
 new_preds<-init_result
@@ -107,7 +150,6 @@ ggplot(new_preds, aes(x=object, y=trial, fill=pred)) + geom_tile() +
   scale_fill_gradient(low='white', high='#293352') +
   theme_linedraw() +
   facet_grid(~group)
-
 
 
 

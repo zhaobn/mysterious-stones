@@ -5,22 +5,28 @@ library(viridis)
 source('./shared.R')
 
 
-ggplot(comp_preds, aes(x=object, y=trial, fill=pred)) + geom_tile() + 
-  scale_y_continuous(trans="reverse", breaks=unique(comp_preds$trial)) + 
-  scale_fill_viridis(option="E", direction=-1) +
+# simple pilot
+ggplot(ce_preds, aes(x=object, y=trial, fill=pred)) + geom_tile() + 
+  scale_y_continuous(trans="reverse", breaks=unique(ce_preds$trial)) + 
+  scale_fill_gradient(low='white', high='#293352') +
   facet_grid(~group)
 
 
-df<-ueffect_preds%>%mutate(source='uni_effects')%>%
-  select(group, trial, object, prob=pred, source)
-ppt<-df.ppt%>%mutate(source='pilot')%>%
-  select(group, trial, object, prob=freq, source)
-df<-rbind(df, ppt)
+# multi plot
+ppt<-df.ppt%>%mutate(source='pilot')%>%select(group, trial, object, prob=freq, source)
+ue<-ueffect_preds%>%mutate(source='uni_effects')%>%select(group, trial, object, prob=pred, source)
+cp<-comp_preds%>%mutate(source='cause_effects')%>%select(group, trial, object, prob=pred, source)
 
+df<-rbind(ppt, ue, cp)
+df$source<-factor(df$source, levels=c('pilot', 'cause_effects', 'uni_effects'))
 ggplot(df, aes(x=object, y=trial, fill=prob)) + geom_tile() + 
   scale_y_continuous(trans="reverse", breaks=unique(df$trial)) + 
-  scale_fill_viridis(option="E", direction=-1) + 
+  scale_fill_gradient(low='white', high='#293352') +
+  #scale_fill_viridis(option="E", direction=-1) + 
+  theme_linedraw() +
   facet_grid(source~group)
+
+
 
 # try radar
 ppt_r11<-ppt%>%filter(group=='A1'&trial==1)

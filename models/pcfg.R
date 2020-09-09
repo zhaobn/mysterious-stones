@@ -1,11 +1,8 @@
 
-options("scipen" = 10)
-options()$scipen
-
-source('./shared.R')
+source('shared.R')
 
 ################################################################
-##### PCFG ####
+# Generate universal effects
 generate_hypo<-function() {
   pcfg<-function(s, role) {
     s<-gsub('S', sample(c('', 'and(S, S)', 'F(X)LYT'), 1), s)
@@ -31,21 +28,60 @@ generate_hypo<-function() {
     if (grepl('S|X|F|L|Y|V|O|T',s)) return(pcfg(s, role)) else return(s)
   }
   
-  cause<-pcfg('S', 'cause')
-  effect<-pcfg('S', 'effect')
-  
-  return(paste0("list(cause='",cause,"',effect='",effect,"')"))
+  # cause<-pcfg('S', 'cause')
+  # effect<-pcfg('S', 'effect')
+  # 
+  # return(paste0("list(cause='",cause,"',effect='",effect,"')"))
+  return(paste0("list(cause='',effect='", pcfg('S', 'effect'), "')"))
 }
 
-################################################################
-# Group causally-equivalent hypothesis ####
-# hypos<-list()
-# for (i in seq(20000)) hypos[[i]]<-generate_hypo()
-# hypos<-unique(hypos)
+# effects<-list()
+# for (i in seq(20000)) effects[[i]]<-generate_hypo()
+# effects<-unique(effects)
+# save(effects, file='effects.Rdata')
 
-load('hypos.Rdata')
-some_hypos<-hypos[seq(100)]
-data_strs<-all_data_str[seq(3)]
+
+################################################################
+# Universal evaluation
+universal_effects<-function(hypo, data) {
+  # Format input data
+  if (typeof(data)!='list') {
+    obs<-strsplit(data, ',')[[1]]
+    data<-list(agent=obs[1], recipient=obs[2], result=obs[3])
+  }
+  
+  input<-eval(parse(text=hypo))
+  effect<-input$effect
+  
+  na_effect<-F
+  if (effect=='') na_effect<-T else {
+    
+    effect<-gsub('A', data$agent, effect)
+    effect<-gsub('R', data$recipient, effect)
+    
+    dist<-init_dist()
+    
+    for (d in names(dist)) {
+      d_effect<-gsub('M', d, effect)
+      cond<-eval(parse(text=d_effect))
+      if (is.na(cond)|is.null(cond)) {
+        na_effect<-T; break;
+      } else {
+        dist[[d]]<-as.numeric(cond)
+      }
+    }
+  }
+  
+  if (na_effect) dist[[as.character(data$recipient)]]<-1 else dist<-normalize(dist)
+  return(dist)
+}
+
+
+################################################################
+# Group by causal equivalence
+#load('effects.Rdata')
+some_hypos<-effects
+data_strs<-all_data_str
 
 #list_info<-data.frame(current=0)
 results<-list()
@@ -53,7 +89,7 @@ for (hi in 1:length(some_hypos)) {
   h<-some_hypos[[hi]]
   results[[h]]<-list()
   for (d in data_strs) {
-    x<-causal_mechanism(h, d)
+    x<-universal_effects(h, d)
     names(x)<-paste0(d, ',', names(x))
     results[[h]]<-c(results[[h]], x)
   }
@@ -61,8 +97,7 @@ for (hi in 1:length(some_hypos)) {
   # list_info$current<-hi
   # write.csv(list_info, 'list_info.csv')
 }
-
-save(results, file='results_raw.Rdata')
+#save(results, file='results_raw.Rdata')
 
 ut<-unique(results)
 ut_info<-data.frame(total=length(ut))
@@ -78,15 +113,16 @@ group_hypos<-function(i, source) {
 df<-group_hypos(1, results)
 for (i in 2:length(ut)) {
   # logging current line number
-  ut_info$current<-i
-  write.csv(ut_info, 'ut_info.csv')
+  # ut_info$current<-i
+  # write.csv(ut_info, 'ut_info.csv')
   # save up
   df<-rbind(df, group_hypos(i, results))
-  save(df, file='hypos_grouped.Rdata')
+  save(df, file='effects_grouped.Rdata')
 }
 
+
 ################################################################
-# Generative prior
+# Prior
 library(stringr)
 
 pcfg_prior<-function(hypo) {
@@ -105,7 +141,7 @@ pcfg_prior<-function(hypo) {
     rels<-0
     for (s in ss) {
       obj<-strsplit(s, '==|!=|>|<')[[1]][2]
-      if (nchar(obj)>5) rels<-rels+1
+      if (!is.na(obj)&nchar(obj)>5) rels<-rels+1
     }
     vals<-n_drawn-rels
     
@@ -114,28 +150,14 @@ pcfg_prior<-function(hypo) {
   h<-eval(parse(text=hypo))
   return(get_prior(h$cause)*get_prior(h$effect))
 }
-hypos_grouped$prior_raw<-mapply(pcfg_prior, hypos_grouped$shortest)
-hypos_grouped$prior<-normalize(hypos_grouped$prior_raw)
-save(hypos_grouped, file='../data/hypos_grouped.Rdata')
 
-df$shortest<-as.character(df$shortest)
-effects_grouped<-df
-effects_grouped$prior_raw<-mapply(pcfg_prior, effects_grouped$shortest)
-effects_grouped$prior<-normalize(effects_grouped$prior_raw)
+
+effects_grouped$prior<-normalize(effects_grouped$n)
 save(effects_grouped, file='../data/effects_grouped.Rdata')
 
-################################################################
-# Check whethter true rule is included
-h=hypos_grouped$shortest
-x=h[which(grepl('edges\\(M\\)==edges\\(A\\)\\+1', h))]
-y=h[which(grepl('shades\\(M\\)==shades\\(R\\)\\+1', h))]
-z=intersect(x, y) # problematic
 
 
-h2=effects_grouped$shortest
-x2=h2[which(grepl('edges\\(M\\)==edges\\(A\\)\\+1', h2))]
-y2=h2[which(grepl('shades\\(M\\)==shades\\(R\\)\\+1', h2))]
-z2=intersect(x2, y2)
+
 
 
 

@@ -21,7 +21,6 @@ listify_task<-function(task_str) {
   }
 }
 
-
 # Learning: get posterior
 get_group_post<-function(group_name, source=hypos_grouped) {
   hypos<-source%>%select(hypo=shortest, prior)
@@ -52,51 +51,8 @@ get_one_gen_pred<-function(group_name, trial_id, learn_post) {
                     object=all_objects, pred=normalize(result)))
 }
 
-
 # Put them together
 init_result<-data.frame(group=character(0), phase=character(0), trial=numeric(0), pred=character(0), pred=numeric(0))
-
-ueffect_preds<-init_result
-for (i in seq(4)) {
-  group_name=paste0('A', i)
-  learned<-get_group_post(group_name, effects_grouped)
-  prediction<-get_one_gen_pred(group_name, 1, learned)
-  for (j in 2:5) {
-    prediction<-rbind(prediction, get_one_gen_pred(group_name, j, learned))
-  }
-  ueffect_preds<-rbind(ueffect_preds, prediction)
-}
-
-comp_preds<-init_result
-for (i in seq(4)) {
-  group_name=paste0('A', i)
-  learned<-get_group_post(group_name, hypos_grouped)
-  prediction<-get_one_gen_pred(group_name, 1, learned)
-  for (j in 2:5) {
-    prediction<-rbind(prediction, get_one_gen_pred(group_name, j, learned))
-  }
-  comp_preds<-rbind(comp_preds, prediction)
-}
-
-# plot
-ppt<-df.ppt%>%mutate(source='pilot')%>%select(group, trial, object, prob=freq, source)
-ue<-ueffect_preds%>%mutate(source='uni_effects')%>%select(group, trial, object, prob=pred, source)
-cp<-comp_preds%>%mutate(source='cause_effects')%>%select(group, trial, object, prob=pred, source)
-
-df<-rbind(ppt, ue, cp)
-df$source<-factor(df$source, levels=c('pilot', 'cause_effects', 'uni_effects'))
-ggplot(df, aes(x=object, y=trial, fill=prob)) + geom_tile() + 
-  scale_y_continuous(trans="reverse", breaks=unique(df$trial)) + 
-  scale_fill_gradient(low='white', high='#293352') +
-  #scale_fill_viridis(option="E", direction=-1) + 
-  theme_linedraw() +
-  facet_grid(source~group)
-
-
-# Try using the causal-equivalence prior
-backup<-effects_grouped
-effects_equi<-effects_grouped%>%select(shortest, n)
-effects_equi$prior<-normalize(effects_equi$n)
 
 ce_preds<-init_result
 for (i in seq(4)) {
@@ -108,48 +64,30 @@ for (i in seq(4)) {
   }
   ce_preds<-rbind(ce_preds, prediction)
 }
+ce_preds<-ce_preds%>%mutate(source='causal_grouped')%>%select(group, trial, object, prob=pred, source)
 
-effects_grouped<-backup
-ue_preds<-init_result
+# Sanity checks with non-grouped uni-effects
+x<-unique(c(unlist(effects_grouped$shortest), unlist(effects_grouped$hypos)))
+effects_ungrouped<-data.frame(hypo=x)
+effects_ungrouped$hypo<-as.character(effects_ungrouped$hypo)
+effects_ungrouped<-effects_ungrouped%>%filter(!(hypo==''))
+
+effects_ungrouped$prior_raw<-mapply(pcfg_prior, effects_ungrouped$hypo)
+effects_ungrouped$prior<-normalize(effects_ungrouped$prior_raw)
+
+ug_preds<-init_result
 for (i in seq(4)) {
   group_name=paste0('A', i)
-  learned<-get_group_post(group_name, effects_grouped)
+  learned<-get_group_post(group_name, effects_ungrouped)
   prediction<-get_one_gen_pred(group_name, 1, learned)
   for (j in 2:5) {
     prediction<-rbind(prediction, get_one_gen_pred(group_name, j, learned))
   }
-  ue_preds<-rbind(ue_preds, prediction)
+  ug_preds<-rbind(ug_preds, prediction)
 }
+ug_preds<-ug_preds%>%mutate(source='un_grouped')%>%select(group, trial, object, prob=pred, source)
 
-ppt<-df.ppt%>%mutate(source='pilot')%>%select(group, trial, object, prob=freq, source)
-ce_preds<-ce_preds%>%mutate(source='causal_eq_prior')%>%select(group, trial, object, prob=pred, source)
-ue_preds<-ue_preds%>%mutate(source='pcfg_comp_prior')%>%select(group, trial, object, prob=pred, source)
 
-df<-rbind(ppt, ce_preds, ue_preds)
-df$source<-factor(df$source, levels=c('pilot', 'pcfg_comp_prior', 'causal_eq_prior'))
-
-# Take a detailed look into A1 diffs
-ue_learned<-get_group_post('A1', effects_grouped)
-ce_learned<-get_group_post('A1', effects_equi)
-a1_learned<-ue_learned%>%left_join(ce_learned, by='hypo')
-colnames(a1_learned)<-c('hypo', 'pcfg', 'causal_eq')
-a1_learned<-a1_learned%>%filter(pcfg>0|causal_eq>0)
-
-# Try universal effects on the new design
-tasks<-read.csv('../data/trial_setup.csv')
-new_preds<-init_result
-for (i in seq(2)) {
-  group_name=paste0('A', i)
-  learned<-get_group_post(group_name, effects_grouped)
-  prediction<-get_one_gen_pred(group_name, 1, learned)
-  for (j in 2:5) prediction<-rbind(prediction, get_one_gen_pred(group_name, j, learned))
-  new_preds<-rbind(new_preds, prediction)
-}
-ggplot(new_preds, aes(x=object, y=trial, fill=pred)) + geom_tile() + 
-  scale_y_continuous(trans="reverse", breaks=unique(new_preds$trial)) + 
-  scale_fill_gradient(low='white', high='#293352') +
-  theme_linedraw() +
-  facet_grid(~group)
 
 
 

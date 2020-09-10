@@ -96,5 +96,45 @@ get_likeli<-function(hypo, data) {
   return(causal_mechanism(hypo, data)[[as.character(data$result)]])
 }
 
+# for category resemblance
+init_feat_dist<-function(beta=0) {
+  feat_dist<-list()
+  for (e in feature_setting[['edges']]) feat_dist[[paste0('e',e)]]<-beta
+  for (s in feature_setting[['shades']]) feat_dist[[paste0('s',s)]]<-beta
+  return(feat_dist)
+}
+
+read_feature<-function(data, type='A') {
+  if (typeof(data)!='list') data<-listify_data(data)
+  # init
+  feat_dist<-init_feat_dist(0)
+  if (type=='A') data<-data[c('agent')] else
+    if (type=='AR') data<-data[c('agent', 'recipient')]
+  # read obs feature value
+  for (i in 1:length(data)) {
+    edge_val<-paste0('e',edges(data[[i]]))
+    feat_dist[[edge_val]]<-feat_dist[[edge_val]]+1
+    
+    shade_val<-paste0('s',shades(data[[i]]))
+    feat_dist[[shade_val]]<-feat_dist[[shade_val]]+1
+  }
+  return(feat_dist)
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 

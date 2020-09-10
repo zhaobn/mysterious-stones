@@ -152,6 +152,7 @@ pcfg_prior<-function(hypo) {
 }
 
 
+effects_grouped<-effects_grouped%>%select(shortest, n, hypos)
 effects_grouped$prior<-normalize(effects_grouped$n)
 save(effects_grouped, file='../data/effects_grouped.Rdata')
 

@@ -6,7 +6,7 @@ source('shared.R')
 alpha=0.5 # CRP
 beta=0.1 # Dirichlet
 grouping='A' # 'A': agent-only, 'AR': agent-and-recipient
-cond='A2'
+cond='A1'
 
 tasks<-read.csv('../data/pilot_setup.csv')
 task_obs<-tasks%>%filter(group==cond&phase=='learn')%>%select(agent, recipient, result)
@@ -33,7 +33,7 @@ for (s in state) {
 } 
 
 n<-1
-limit<-2000
+limit<-10000
 while (n<limit) {
   # sample 1 obs
   to_update<-sample(seq(nobs), 1) # index
@@ -82,22 +82,76 @@ while (n<limit) {
     propto[[cat]]<-join_new*self_resemblance*this_likeli
   }
   
-  # Sample new category
-  state[to_update]<-sample(names(propto), 1, prob=unlist(propto))
-  states[[n]]<-state
-  for (s in state) {
-    if (!(s %in% names(categories))) categories[[s]]<-list()
-    categories[[s]][[as.character(n)]]<-which(state==s)
+  sum<-Reduce('+', propto)
+  if (sum==0) { # Start over
+    next
+  } else {
+    # Filter out empty entries & normalize
+    propto<-propto[unlist(lapply(propto, function(x) x>0))]
+    propto<-lapply(propto, function(x) x/sum)
+    # Sample new category
+    state[to_update]<-sample(names(propto), 1, prob=unlist(propto))
+    states[[n]]<-state
+    for (s in state) {
+      if (!(s %in% names(categories))) categories[[s]]<-list()
+      categories[[s]][[as.character(n)]]<-which(state==s)
+    }
+    # Go to the next iteration
+    n<-n+1
   }
-
-  # Go to the next iteration
-  n<-n+1
 }
 
+save(states, func_refs, categories, file='gibbs-a1.Rdata')
 
 # Have a look
 df<-data.frame(matrix(unlist(states), nrow=length(states), byrow=T))
+df$i<-seq(nrow(df))
 df%>%tail(10)
+
+# Get posterior
+# Discard first 1000 samples
+samples<-lapply(categories, function(x) x[which(as.numeric(names(x))>1000)])
+# Discard empty funcs
+samples<-samples[unlist(lapply(samples, function(x) length(x)>0))]
+
+fetch_cats<-function(cat_func) {
+  x<-samples[[cat_func]]
+  x_grouped<-list(); sizes<-c()
+  cats<-unique(x)
+  for (v in 1:length(cats)) {
+    obs<-cats[[v]]
+    s<-paste(obs, collapse=',')
+    x_grouped[[s]]<-sum(unlist(lapply(x, function(x) identical(obs, x))))
+    sizes<-c(sizes, length(obs))
+  } 
+  
+  ds<-as.data.frame(unlist(x_grouped), nrow=length(x_grouped))
+  colnames(ds)<-c('n'); rownames(ds)<-c()
+  ds$states<-names(x_grouped)
+  ds$func_ref<-cat_func
+  ds$size<-sizes
+  ds<-ds%>%select(func_ref, states, size, n)
+  return(ds)
+}
+
+cat_post<-data.frame(func_ref=character(0), states=character(0), size=numeric(0), n=numeric(0))
+for (c in names(samples)) cat_post<-rbind(cat_post, fetch_cats(c))
+
+a1.post<-cat_post
+a1.hypos<-hypos
+a1.states<-states
+a1.funcs<-func_refs
+a1.rawcats<-categories
+save(a1.post, a1.hypos, a1.states, a1.funcs, a1.rawcats, file='a1.Rdata')
+
+
+
+
+
+
+
+
+
 
 
 

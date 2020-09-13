@@ -5,8 +5,8 @@ source('shared.R')
 # Setup & global vars
 alpha=0.5 # CRP
 beta=0.1 # Dirichlet
-grouping='A' # 'A': agent-only, 'AR': agent-and-recipient
-cond='A1'
+grouping='AR' # 'A': agent-only, 'AR': agent-and-recipient
+cond='A2'
 
 tasks<-read.csv('../data/pilot_setup.csv')
 task_obs<-tasks%>%filter(group==cond&phase=='learn')%>%select(agent, recipient, result)
@@ -101,7 +101,6 @@ while (n<limit) {
   }
 }
 
-save(states, func_refs, categories, file='gibbs-a1.Rdata')
 
 # Have a look
 df<-data.frame(matrix(unlist(states), nrow=length(states), byrow=T))
@@ -137,20 +136,147 @@ fetch_cats<-function(cat_func) {
 cat_post<-data.frame(func_ref=character(0), states=character(0), size=numeric(0), n=numeric(0))
 for (c in names(samples)) cat_post<-rbind(cat_post, fetch_cats(c))
 
-a1.post<-cat_post
-a1.hypos<-hypos
-a1.states<-states
-a1.funcs<-func_refs
-a1.rawcats<-categories
-save(a1.post, a1.hypos, a1.states, a1.funcs, a1.rawcats, file='a1.Rdata')
+a2.ar.funcs<-func_refs
+a2.ar.states<-states
+a2.ar.rawcats<-categories
+a2.ar.post<-cat_post
+
+a2.a.funcs<-func_refs
+a2.a.states<-states
+a2.a.rawcats<-categories
+a2.a.post<-cat_post
+
+a1.ar.funcs<-func_refs
+a1.ar.states<-states
+a1.ar.rawcats<-categories
+a1.ar.post<-cat_post
+
+a1.a.funcs<-func_refs
+a1.a.states<-states
+a1.a.rawcats<-categories
+a1.a.post<-cat_post
 
 
+# Try plot posterior
+library(ggplot2)
+
+x<-a1.a.post
+x<-x%>%mutate(cat=paste0(func_ref, '-', states))%>%arrange(desc(n))#%>%filter(n>1)
+
+a1_a<-data.frame(cat=character(0))
+for (i in 1:nrow(x)) {
+  df<-data.frame(rep(i, x$n[i]))
+  colnames(df)<-c('cat')
+  a1_a<-rbind(a1_a, df)
+}
+
+ggplot(a1_a, aes(x=cat)) +
+  geom_density(fill="#69b3a2", color="#e9ecef") +
+  ggtitle("A1-A")
+
+ggplot(a1_a, aes(x=cat))+geom_area(stat="count")
+
+y<-a1.ar.post
+y<-y%>%mutate(cat=paste0(func_ref, '-', states))%>%arrange(desc(n))#%>%filter(n>1)
+
+a1_ar<-data.frame(cat=character(0))
+for (i in 1:nrow(y)) {
+  df<-data.frame(rep(i, y$n[i]))
+  colnames(df)<-c('cat')
+  a1_ar<-rbind(a1_ar, df)
+}
+
+x2<-a2.a.post
+x2<-x2%>%mutate(cat=paste0(func_ref, '-', states))%>%arrange(desc(n))#%>%filter(n>1)
+
+a2_a<-data.frame(cat=character(0))
+for (i in 1:nrow(x2)) {
+  df<-data.frame(rep(i, x2$n[i]))
+  colnames(df)<-c('cat')
+  a2_a<-rbind(a2_a, df)
+}
+
+y2<-a2.ar.post
+y2<-y2%>%mutate(cat=paste0(func_ref, '-', states))%>%arrange(desc(n))#%>%filter(n>1)
+
+a2_ar<-data.frame(cat=character(0))
+for (i in 1:nrow(y2)) {
+  df<-data.frame(rep(i, y2$n[i]))
+  colnames(df)<-c('cat')
+  a2_ar<-rbind(a2_ar, df)
+}
+
+nrow(a1.a.post) #2154
+sum(a1.a.post$n) #17851
+
+nrow(a1.ar.post) #2785
+sum(a1.ar.post$n) #21042
+
+nrow(a2.a.post) #2823
+sum(a2.a.post$n) #23626
+
+nrow(a2.ar.post) #2750
+sum(a2.ar.post$n) #20925
 
 
+z<-rbind(mutate(a1_a, type='A1-A'), mutate(a1_ar, type='A1-AR'),
+         mutate(a2_a, type='A2-A'), mutate(a2_ar, type='A2-AR'))
 
+library(viridis)
+ggplot(z, aes(x=cat, color=type, fill=type)) +
+  geom_density(alpha=0) +
+  scale_color_brewer(palette="Set2")
+  #scale_fill_viridis(discrete=TRUE) +
+  #scale_color_viridis(discrete=TRUE)
 
+# Try plot with same cats
+# Refer each cx function to a universal function index
+hdx<-hypos%>%select(hypo)%>%mutate(hdx=paste0('uc', seq(nrow(hypos))))
 
+add_ufunc<-function(target, source) {
+  xf<-sapply(target$func_ref, function(x) source[[x]])
+  xu<-sapply(xf, function(x) hdx[which(hdx$hypo==x), 'hdx'])
+  target$u_func<-xu
+  return(target)
+}
+ux<-add_ufunc(x, a1.a.funcs)%>%select(u_func, states, a1_a=n)
+uy<-add_ufunc(y, a1.ar.funcs)%>%select(u_func, states, a1_ar=n)
+ux2<-add_ufunc(x2, a2.a.funcs)%>%select(u_func, states, a2_a=n)
+uy2<-add_ufunc(y2, a2.ar.funcs)%>%select(u_func, states, a2_ar=n)
 
+all_cats<-ux%>%full_join(uy, by=c('u_func', 'states'))%>%
+  full_join(ux2, by=c('u_func', 'states'))%>%
+  full_join(uy2, by=c('u_func', 'states'))%>%
+  replace_na(list(a1_a=0, a1_ar=0, a2_a=0, a2_ar=0))
+
+all_cats$total<-all_cats$a1_a+all_cats$a1_ar+all_cats$a2_a+all_cats$a2_ar
+# all_cats<-all_cats%>%arrange(desc(total))
+# all_cats$cat<-seq(nrow(all_cats))
+
+all_cats<-all_cats%>%arrange(u_func)
+all_cats$cat<-seq(nrow(all_cats))
+
+save(all_cats, file='cats-a.Rdata')
+
+groups=colnames(all_cats)[3:6]
+for_dense_plot<-function(name) {
+  df<-data.frame(cat=character(0))
+  for (i in 1:nrow(all_cats)) {
+      d<-data.frame(rep(all_cats[i,'cat'], all_cats[i,name]))
+      colnames(d)<-c('cat');
+      df<-rbind(df, d)
+  }
+  df$type=name
+  return(df)
+}
+uf<-for_dense_plot(groups[1])
+for (i in 2:length(groups)) uf<-rbind(uf, for_dense_plot(groups[i]))
+
+ggplot(uf, aes(x=cat, color=type, fill=type)) +
+  geom_density(alpha=0.5) +
+  scale_fill_viridis(discrete=TRUE) +
+  scale_color_viridis(discrete=TRUE)
+  #scale_color_brewer(palette="Set2")
 
 
 

@@ -114,6 +114,10 @@ a2.a.funcs<-func_refs
 a2.ar.states<-states
 a2.ar.funcs<-func_refs
 
+save(a1.a.states, a1.a.funcs, a1.ar.states, a1.ar.funcs,
+     a2.a.states, a2.a.funcs, a2.ar.states, a2.ar.funcs,
+     file='../data/gibbs-a1a2.Rdata')
+
 
 # Have a look
 states<-a1.ar.states

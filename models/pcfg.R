@@ -156,7 +156,32 @@ effects_grouped<-effects_grouped%>%select(shortest, n, hypos)
 effects_grouped$prior<-normalize(effects_grouped$n)
 save(effects_grouped, file='../data/effects_grouped.Rdata')
 
+# Add posterior dists to faster the sampler
+tasks<-read.csv('../data/pilot_setup.csv')
+hypos<-effects_grouped%>%select(hypo=shortest, prior)
 
+get_hypo_posts<-function(cond, task_source=tasks, hypo_source=hypos) {
+  task_obs<-tasks%>%filter(group==cond&phase=='learn')%>%select(agent, recipient, result)
+  df<-hypos
+
+  for (i in seq(nrow(task_obs))) {
+    d<-paste(task_obs[i,], collapse=',')
+    post_col<-paste0('post_',i)
+    df[,post_col]<-mapply(get_likeli, df$hypo, rep(d, nrow(df))) # likelihoods
+    df[,post_col]<-df[,post_col]*df$prior
+    df[,post_col]<-normalize(df[,post_col])
+  }
+  
+  df$group=cond
+  return(df)
+}
+
+x<-get_hypo_posts('A1')
+for (c in paste0('A', seq(2,4))) x<-rbind(x, get_hypo_posts(c))
+
+df.effects.grouped<-effects_grouped
+df.effects.posts<-x
+save(df.effects.grouped, df.effects.posts, file='../data/effects_grouped.Rdata')
 
 
 

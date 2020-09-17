@@ -1,4 +1,8 @@
 
+#### libraries ####
+library(dplyr)
+options(scipen = 10)
+
 #### Glabal variables ####
 # configs
 feature_setting<-list()
@@ -45,6 +49,16 @@ normalize<-function(raw) {
     }
   } else return(raw/sum(raw))
 }
+
+softmax<-function(vec, base=0, type='') {
+  if (type!='log') {
+    v_exp<-exp(vec*base); sum<-sum(v_exp)
+  } else {
+    v_exp<-exp(log(vec)*base); sum<-sum(v_exp)
+  }
+  return(v_exp/sum)
+}
+
 
 listify_data<-function(data_str) {
   if (typeof(data_str)=='list') return(data_str) else {

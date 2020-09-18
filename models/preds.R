@@ -5,11 +5,11 @@ n_learn_obs<-length(unique((tasks%>%filter(phase=='learn'))$trial))
 n_gen_obs<-length(unique((tasks%>%filter(phase=='gen'))$trial))
 
 # Helper functions ####
-read_cats<-function(states_source) {
+read_cats<-function(states_source, drop=1000) {
   df<-data.frame(matrix(unlist(states_source), nrow=length(states_source), byrow=T))
   # Filter out first 500 samples
   df$i<-seq(nrow(df))
-  df<-df%>%filter(i>500)
+  df<-df%>%filter(i>drop)
   # Get unique categories
   df<-df%>%group_by(X1, X2, X3, X4, X5, X6)%>%summarise(n=n())%>%ungroup()
   cats<-cbind(df%>%select(starts_with('X'))%>%mutate_all(as.character), 
@@ -95,8 +95,6 @@ get_cond_preds<-function(cond, states, funcs, alpha, beta, grouping, base='') {
 
 
 
-
-  
   
   
 

@@ -158,7 +158,7 @@ save(effects_grouped, file='../data/effects_grouped.Rdata')
 
 # Add posterior dists to faster the sampler
 tasks<-read.csv('../data/pilot_setup.csv')
-hypos<-effects_grouped%>%select(hypo=shortest, prior)
+hypos<-df.effects.grouped%>%select(hypo=shortest, prior)
 
 get_hypo_posts<-function(cond, task_source=tasks, hypo_source=hypos) {
   task_obs<-tasks%>%filter(group==cond&phase=='learn')%>%select(agent, recipient, result)

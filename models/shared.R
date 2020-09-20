@@ -85,6 +85,15 @@ causal_mechanism<-function(hypo, data) {
   }
   
   if (!set_default) {
+    # If effect clause only spec one feature, set the missing one to default
+    has_shades<-grepl('shades', effect)
+    has_edges<-grepl('edges', effect)
+    if (!(has_edges&has_shades)) {
+      d_text<- if (has_edges) 'shades(M)==shades(R)' else 'edges(M)==edges(R)'
+      effect<-paste0('and(', effect, ', ', d_text, ')')
+      effect<-gsub('R', data$recipient, effect)
+    }
+    
     for (d in names(dist)) {
       effect_text<-gsub('M', d, effect)
       cond<-eval(parse(text=effect_text))

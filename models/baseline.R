@@ -52,10 +52,11 @@ get_one_gen_pred<-function(group_name, trial_id, learn_post) {
 }
 
 # Put them together
+effects_grouped=df.effects.grouped
 init_result<-data.frame(group=character(0), phase=character(0), trial=numeric(0), pred=character(0), pred=numeric(0))
 
 ce_preds<-init_result
-for (i in seq(4)) {
+for (i in seq(2)) {
   group_name=paste0('A', i)
   learned<-get_group_post(group_name, effects_grouped)
   prediction<-get_one_gen_pred(group_name, 1, learned)

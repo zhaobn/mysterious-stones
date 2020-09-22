@@ -19,8 +19,7 @@ run_gibbs_sampler<-function(cond, grouping, alpha, beta, limit, logging=T, hypo_
   start_sampler<-Sys.time()
   # Initalization
   state<-rep('c1', nobs)
-  func_refs[['c1']]<-hypos$hypo[115]
-  #func_refs[['c1']]<-sample(hypos$hypo, 1, prob=hypos$prior)
+  func_refs[['c1']]<-sample(hypos$hypo, 1, prob=hypos$prior)
   
   # # Debugging tests
   # state=c(paste0('c', seq(5)), 'c2')

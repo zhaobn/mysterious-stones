@@ -4,8 +4,8 @@ tasks<-read.csv('../data/pilot_setup.csv')
 n_learn_obs<-length(unique((tasks%>%filter(phase=='learn'))$trial))
 n_gen_obs<-length(unique((tasks%>%filter(phase=='gen'))$trial))
 
-# Helper functions ####
-read_cats<-function(states_source, burn_in=0, thinning=1) {
+# Helpers ####
+read_cats<-function(states_source, burn_in=0, thinning=1, base='') {
   df<-data.frame(matrix(unlist(states_source), nrow=length(states_source), byrow=T))
   # Burn in: filter out first n samples
   df$i<-seq(nrow(df))
@@ -18,67 +18,77 @@ read_cats<-function(states_source, burn_in=0, thinning=1) {
   cats<-cbind(df%>%select(starts_with('X'))%>%mutate_all(as.character), 
               df%>%select(n))%>%
     mutate(prob=normalize(n))
+  # Apply softmax
+  if (base!='') cats$prob<-softmax(cats$prob, base)
   return(cats)
 }
-# One c_i makes prediction for a gen task
-pred_by_group<-function(cond, tid, group_func, group_idx, alpha, beta, grouping) {
-  learn_tasks<-tasks%>%filter(group==cond&phase=='learn')%>%select(agent, recipient)
-  gen_tasks<-tasks%>%filter(group==cond&phase=='gen')%>%select(agent, recipient)
-  
-  task<-as.list(gen_tasks[tid,])
-  preds<-causal_mechanism(group_func, task)
-  
-  group_size<-length(group_idx)
-  if (group_size==n_learn_obs) {
-    return(preds)
-  } else {
-    crp<-group_size/(n_learn_obs-1+alpha)
-    
-    group_feats<-init_feat_dist(beta)
-    for (i in group_idx) {
-      obs_feats<-read_feature(as.list(learn_tasks[i,]), grouping)
-      group_feats<-as.list(unlist(group_feats)+unlist(obs_feats))
-    } 
-    dir_ll<-Reduce('+', Map('*', read_feature(task, grouping), group_feats))/Reduce('+',group_feats)
-    
-    preds<-lapply(preds, function(x) x*crp*dir_ll)
-    return(preds)
+prep_preds<-function(funcs, cond) {
+  preds<-list()
+  for (f in names(funcs)) {
+    preds[[f]]<-list()
+    for (d in 1:n_gen_obs) {
+      data<-as.list(tasks%>%filter(group==cond&phase=='gen'&trial==d)%>%select(agent, recipient))
+      preds[[f]][[d]]<-causal_mechanism(funcs[[f]], data)
+    }
   }
-}
-# One cat prediction
-pred_by_cat<-function(cond, tid, cond_groups, func_source, alpha, beta, grouping) {
-  groups<-list()
-  for (g in unique(cond_groups)) groups[[g]]<-which(cond_groups==g) # indices
-  
-  preds<-init_dist()
-  for (i in 1:length(groups)) {
-    group_func<-func_source[[names(groups)[i]]]; 
-    group_idx<-groups[[i]]
-    preds<-Map('+', preds, 
-               pred_by_group(cond, tid, group_func, group_idx, alpha, beta, grouping))
-  }
-  return(normalize(preds))
-}
-# All cats predictions
-pred_by_task<-function(cond, tid, cat_source, func_source, alpha, beta, grouping){
-  preds<-init_dist()
-  for (i in 1:nrow(cat_source)) {
-    cond_groups<-unlist(cat_source[i, seq(n_learn_obs)])
-    cond_prob<-cat_source[i, 'prob']
-    cat_preds<-Map('*', 
-                   pred_by_cat(cond, tid, cond_groups, func_source, alpha, beta, grouping), 
-                   cond_prob)
-    preds<-Map('+', preds, cat_preds)
-  }
-  #return(normalize(preds)) # should be good
   return(preds)
 }
 
 # Get predictions dataframe for a condition
-get_cond_preds<-function(cond, states, funcs, alpha, beta, grouping, base='') {
+get_cond_preds<-function(cond, learned_cats, func_preds, alpha, beta, grouping) {
+  # Shared values
+  learn_tasks<-tasks%>%filter(group==cond&phase=='learn')%>%select(agent, recipient)
+  gen_tasks<-tasks%>%filter(group==cond&phase=='gen')%>%select(agent, recipient)
+  
+  # Functions to get predictions
+  # One c_i makes prediction for a gen task
+  pred_by_group<-function(tid, group_func, group_idx) {
+    preds<-func_preds[[group_func]][[tid]]
+    group_size<-length(group_idx)
+    task<-as.list(gen_tasks[tid,])
+    if (group_size==n_learn_obs) {
+      return(preds)
+    } else {
+      crp<-group_size/(n_learn_obs-1+alpha)
+      
+      group_feats<-init_feat_dist(beta)
+      for (i in group_idx) {
+        obs_feats<-read_feature(as.list(learn_tasks[i,]), grouping)
+        group_feats<-as.list(unlist(group_feats)+unlist(obs_feats))
+      } 
+      dir_ll<-Reduce('+', Map('*', read_feature(task, grouping), group_feats))/Reduce('+',group_feats)
+      
+      preds<-lapply(preds, function(x) x*crp*dir_ll)
+      return(preds)
+    }
+  }
+  # One cat prediction
+  pred_by_cat<-function(tid, cond_groups) {
+    groups<-list()
+    for (g in unique(cond_groups)) groups[[g]]<-which(cond_groups==g) # indices
+    preds<-init_dist()
+    for (i in 1:length(groups)) {
+      group_func<-names(groups)[i]; 
+      group_idx<-groups[[i]]
+      preds<-Map('+', preds, pred_by_group(tid, group_func, group_idx))
+    }
+    return(normalize(preds))
+  }
+  # All cats predictions
+  pred_by_task<-function(tid){
+    preds<-init_dist()
+    for (i in 1:nrow(learned_cats)) {
+      cond_groups<-unlist(learned_cats[i, seq(n_learn_obs)])
+      cond_prob<-learned_cats[i, 'prob']
+      cat_preds<-Map('*', pred_by_cat(tid, cond_groups), cond_prob)
+      preds<-Map('+', preds, cat_preds)
+    }
+    #return(normalize(preds)) # should be good
+    return(preds)
+  }
   # Format prediction for one task into a dataframe
-  format_task_preds<-function(tid, cat_source, func_source) {
-    x<-pred_by_task(cond, tid, cat_source, func_source, alpha, beta, grouping)
+  format_task_preds<-function(tid) {
+    x<-pred_by_task(tid)
     df<-data.frame(object=names(x), prob=unlist(x)); rownames(df)<-c()
     df<-df%>%mutate(object=as.character(object))%>%
       mutate(group=cond, trial=tid, type=grouping)%>%
@@ -86,18 +96,17 @@ get_cond_preds<-function(cond, states, funcs, alpha, beta, grouping, base='') {
     return(df)
   }
   
-  learned_cats<-read_cats(states)
-  learned_funcs<-funcs
-  if (base!='') learned_cats$prob<-softmax(learned_cats$prob, base)
   
-  df<-format_task_preds(1, learned_cats, learned_funcs)
-  for (i in 2:n_gen_obs) df<-rbind(df, format_task_preds(i, learned_cats, learned_funcs))
+  # Get predictions
+  df<-format_task_preds(1)
+  for (i in 2:n_gen_obs) df<-rbind(df, format_task_preds(i))
   
   return(df)
 }
 
-
-
+# cats<-read_cats(x[[1]], 200, 5)
+# func_preds<-prep_preds(x[[2]], 'A1')
+# y<-get_cond_preds("A1", cats, func_preds, 1, .1, 'A')
   
   
 

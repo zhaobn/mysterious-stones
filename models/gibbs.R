@@ -53,12 +53,14 @@ run_gibbs_sampler<-function(cond, grouping, alpha, beta, limit, logging=T, hypo_
     obs_to_update<-as.list(task_obs[to_update,])
     self_resemblance<-dir_likeli(to_update, to_update)
     
+    other_idx<-setdiff(seq(nobs), to_update)
+    
     # sample new function(s) for this obs from conditional probablity
     post_col<-paste0('post_',to_update)
     funcs_pool<-hypos$hypo[which(hypos[,post_col]>0)]
     funcs_post<-hypos[which(hypos[,post_col]>0), post_col]
     
-    new_funcs<-sample(funcs_pool, 3, prob=funcs_post)
+    new_funcs<-sample(funcs_pool, 1, prob=funcs_post)
     new_cats<-c()
     # whether the sampled func belongs to an existing category
     for (f in unique(new_funcs)) {
@@ -69,30 +71,39 @@ run_gibbs_sampler<-function(cond, grouping, alpha, beta, limit, logging=T, hypo_
         cat<-paste0('c', length(func_refs)+1)
         func_refs[[cat]]<-f
       }
-      new_cats<-c(new_cats, cat)
+      if (!(cat %in% state)) new_cats<-c(new_cats, cat)
     }
-
+    # treat single-unique existing to-update cat as joining a new cat
+    if (!(state[to_update] %in% state[other_idx])) {
+      new_cats<-c(new_cats, state[to_update])
+    }
+    new_cats<-unique(new_cats)
+    
     # Check for existing categories
     propto<-list()
-    for (s in unique(state)) {
+    for (s in unique(state[other_idx])) {
       # Chinese restaurant process
-      join_this<-length(ob_indx)/(nobs-1+alpha)
+      join_this<-length(which(state[other_idx]==s))/(nobs-1+alpha)
       # Dirichlet on feature similarity
-      resemblance<-dir_likeli(to_update, which(state==s))
+      resemblance<-dir_likeli(to_update, setdiff(which(state==s), to_update))
       # Causal function
       likeli<-get_likeli(func_refs[[s]], obs_to_update)
       # Put together
       propto[[s]]<-join_this*resemblance*likeli
     }
     # Or assign new one(s)
-    for (cat in new_cats) {
-      if (!(cat %in% state)) {
+    if (length(new_cats)>0) {
+      for (cat in new_cats) {
         post_likeli<-get_likeli(func_refs[[cat]], obs_to_update)
         propto[[cat]]<-join_new*self_resemblance*post_likeli
       } 
     }
+    # Filter out zero probs to avoid sample() error
+    t<-propto[unlist(lapply(propto, function(x) x>0))]
+    t<-normalize(t)
     # Sample new category
-    state[to_update]<-sample(names(propto), 1, prob=unlist(propto))
+    sampled<-if (length(t)==1) names(t)[1] else sample(names(t), 1, prob=unlist(t))
+    state[to_update]<-sampled
     if (logging) print(paste0(n, ': ', 'sampling ', to_update, ' | ', 
                               paste(state, collapse=',')))
     # Save everything for developing
@@ -108,9 +119,9 @@ run_gibbs_sampler<-function(cond, grouping, alpha, beta, limit, logging=T, hypo_
   return(list(state=states, funcs=func_refs))
 }
 
-x<-run_gibbs_sampler('A1', 'AR', 1, .1, 1000, T)
-df<-data.frame(matrix(unlist(x[[1]]), nrow=length(x[[1]]), byrow=T))
-df<-df%>%group_by(X1, X2, X3, X4, X5, X6)%>%summarise(n=n())%>%ungroup()
+# x<-run_gibbs_sampler('A1', 'AR', 1, .1, 1000, T)
+# df<-data.frame(matrix(unlist(x[[1]]), nrow=length(x[[1]]), byrow=T))
+# df<-df%>%group_by(X1, X2, X3, X4, X5, X6)%>%summarise(n=n())%>%ungroup()
 
 
 

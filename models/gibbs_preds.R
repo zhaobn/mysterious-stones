@@ -9,11 +9,12 @@ beta=.1
 softmax_base=''
 
 x<-run_gibbs_sampler(cond, grouping, alpha, beta, 1000, F)
-x<-a1.ar
-p<-get_cond_preds(cond, x[['state']], x[['funcs']], alpha, beta, grouping, softmax_base)
-cat<-read_cats(x[[1]], 0)
+cats<-read_cats(x[[1]], base=softmax_base, burn_in=200, thinning=5)
+func_preds<-prep_preds(x[[2]], cond)
 
-ggplot(p, aes(x=object, y=trial, fill=prob)) + geom_tile() + 
+y<-get_cond_preds(cond, cats, func_preds, alpha, beta, grouping)
+
+ggplot(y, aes(x=object, y=trial, fill=prob)) + geom_tile() + 
   scale_y_continuous(trans="reverse", breaks=1:5) + 
   scale_fill_gradient(low='white', high='#293352') +
   #scale_fill_viridis(option="E", direction=-1) + 

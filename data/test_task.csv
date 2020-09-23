@@ -1,0 +1,7 @@
+group,phase,trial,agent,recipient,result
+AT,learn,1,64,33,34
+AT,learn,2,64,42,44
+AT,learn,3,41,31,41
+AT,learn,4,64,41,44
+AT,learn,5,41,52,62
+AT,learn,6,41,33,43

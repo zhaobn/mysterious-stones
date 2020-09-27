@@ -11,45 +11,45 @@ const colorDict = {
   "light": "#c9daf8",
 }
 
-let exp_configs = []
+// let exp_configs = []
 
-const fixed_obj = 42
-let varied_obj = [ 52, 53, 51, 31, 41, 32, 33, 43, 63, 62 ].sort()
-varied_obj = shuffle(varied_obj)
+// const fixed_obj = 42
+// let varied_obj = [ 52, 53, 51, 31, 41, 32, 33, 43, 63, 62 ].sort()
+// varied_obj = shuffle(varied_obj)
 
 
-/** Generate experiment configs */
-varied_obj.forEach((r, idx) => {
-  exp_configs.push(formatConfig(idx, 'A1', 'learn', fixed_obj, r, 'AA'))
-})
+// /** Generate experiment configs */
+// varied_obj.forEach((r, idx) => {
+//   exp_configs.push(formatConfig(idx, 'A1', 'learn', fixed_obj, r, 'AA'))
+// })
 
-getGenObjs('A1').forEach((pair, idx) => {
-  exp_configs.push(formatConfig(idx, 'A1', 'gen', pair[0], pair[1]))
-})
+// getGenObjs('A1').forEach((pair, idx) => {
+//   exp_configs.push(formatConfig(idx, 'A1', 'gen', pair[0], pair[1]))
+// })
 
-varied_obj.forEach((r, idx) => {
-  exp_configs.push(formatConfig(idx, 'A2', 'learn', r, fixed_obj, 'AA'))
-})
+// varied_obj.forEach((r, idx) => {
+//   exp_configs.push(formatConfig(idx, 'A2', 'learn', r, fixed_obj, 'AA'))
+// })
 
-getGenObjs('A2').forEach((pair, idx) => {
-  exp_configs.push(formatConfig(idx, 'A2', 'gen', pair[0], pair[1]))
-})
+// getGenObjs('A2').forEach((pair, idx) => {
+//   exp_configs.push(formatConfig(idx, 'A2', 'gen', pair[0], pair[1]))
+// })
 
-varied_obj.forEach((r, idx) => {
-  exp_configs.push(formatConfig(idx, 'A3', 'learn', fixed_obj, r, 'AB'))
-})
+// varied_obj.forEach((r, idx) => {
+//   exp_configs.push(formatConfig(idx, 'A3', 'learn', fixed_obj, r, 'AB'))
+// })
 
-getGenObjs('A3').forEach((pair, idx) => {
-  exp_configs.push(formatConfig(idx, 'A3', 'gen', pair[0], pair[1]))
-})
+// getGenObjs('A3').forEach((pair, idx) => {
+//   exp_configs.push(formatConfig(idx, 'A3', 'gen', pair[0], pair[1]))
+// })
 
-varied_obj.forEach((r, idx) => {
-  exp_configs.push(formatConfig(idx, 'A4', 'learn', r, fixed_obj, 'AB'))
-})
+// varied_obj.forEach((r, idx) => {
+//   exp_configs.push(formatConfig(idx, 'A4', 'learn', r, fixed_obj, 'AB'))
+// })
 
-getGenObjs('A4').forEach((pair, idx) => {
-  exp_configs.push(formatConfig(idx, 'A4', 'gen', pair[0], pair[1]))
-})
+// getGenObjs('A4').forEach((pair, idx) => {
+//   exp_configs.push(formatConfig(idx, 'A4', 'gen', pair[0], pair[1]))
+// })
 
 
 /** Debugging */

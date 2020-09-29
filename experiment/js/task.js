@@ -1,7 +1,10 @@
 
-let mode = '';
-const cond = (Math.random() > 0.5)? "A1" : "A2";
-console.log(cond);
+let mode = 'dev'; // '' for production; 'dev' for development
+
+const cond = config[1].group;
+const order = 'allRand';
+
+console.log(`Condition: ${cond}; order: ${order}`);
 
 /** Global variables */
 let data = {};
@@ -15,7 +18,6 @@ let feedbackData = {};
 const start_time = Date.now();
 let start_task_time = 0;
 
-
 const svgElements = [ "svg", "polygon", "circle", "rect", "path" ];
 const borderWidth = "5px";
 const mar = 5;
@@ -27,169 +29,51 @@ const colorDict = {
   "dark": "#1155cc",
   "medium": "#6d9eeb",
   "light": "#c9daf8",
-  "red": "red",
-  "green": "green",
-  "orange": "orange",
 }
 const allColors = Object.keys(colorDict);
 const allShapes = [
-  "s_0", // circle,
-  "p_3", // triangular
+  "p_3", // triangle
   "p_4", // square
-  "p_5", // polygon 5 sides
-  "p_6", // polygon 6 sides
-  "p_7", // 7 sides
-  "p_8", // 8 sides
-  "s_s", // 5 arm star
-  "s_t", // 4 arm star
-  "s_d", // donut
+  "p_5", // pentagon
+  "p_6", // hexagon
+  "p_7", // heptagon
 ]
-const taskConfigs = {
-  "test": {
-    "learn": [
-      [ "rt", "g0", "gs" ],
-    ],
-    "gen": [
-      [ "l3", "d4" ],
-    ]
-  },
-  "A1": {
-    "learn": [
-      [ "l3", "m4", "d4" ],
-      [ "l3", "m3", "d4" ],
-      [ "l3", "l6", "m4" ],
-      [ "l3", "l5", "m4" ],
-      [ "l3", "d3", "v4" ],
-      [ "l3", "d4", "v4" ],
-    ],
-    "gen": [
-      [ "l3", "d4" ],
-      [ "v3", "l7" ],
-      [ "l6", "m3" ],
-      [ "d5", "l6" ],
-      [ "l3", "m3" ],
-    ]
-  },
-  "A2": {
-    "learn": [
-      [ "l3", "m4", "d4" ],
-      [ "d6", "m4", "d7" ],
-      [ "m5", "m4", "d6" ],
-      [ "l4", "m4", "d5" ],
-      [ "d5", "m4", "d6" ],
-      [ "l6", "m4", "d7" ],
-    ],
-    "gen": [
-      [ "d3", "m4" ],
-      [ "v4", "l4" ],
-      [ "m5", "m6" ],
-      [ "v6", "d3" ],
-      [ "l4", "m4" ],
-    ]
-  },
-  "A3": {
-    "learn": [
-      [ "l3", "m4", "m5" ],
-      [ "l3", "m3", "m4" ],
-      [ "l3", "l6", "m7" ],
-      [ "l3", "l5", "m6" ],
-      [ "l3", "d3", "m4" ],
-      [ "l3", "d4", "m5" ],
-    ],
-    "gen": [
-      [ "l3", "d4" ],
-      [ "v3", "l7" ],
-      [ "l6", "m3" ],
-      [ "d5", "l6" ],
-      [ "l3", "m3" ],
-    ]
-  },
-  "A4": {
-    "learn": [
-      [ "l3", "m4", "m5" ],
-      [ "d6", "m4", "v5" ],
-      [ "m5", "m4", "d5" ],
-      [ "l4", "m4", "m5" ],
-      [ "d5", "m4", "v5" ],
-      [ "l6", "m4", "m5" ],
-    ],
-    "gen": [
-      [ "d3", "m4" ],
-      [ "v4", "l4" ],
-      [ "m5", "m6" ],
-      [ "v6", "d3" ],
-      [ "l4", "m4" ],
-    ]
-  },
-  "B1": {
-    "learn": [
-      [ "l3", "l4", "l4" ],
-      [ "v3", "m5", "l5" ],
-      [ "m3", "v6", "l6" ],
-      [ "m5", "l3", "v3" ],
-      [ "d4", "m6", "v6" ],
-      [ "l6", "d4", "v4" ],
-    ],
-    "gen": [
-      [ "m3", "m4" ],
-      [ "d4", "l7" ],
-      [ "d3", "v6" ],
-      [ "m6", "l3" ],
-      [ "d3", "m7" ],
-      [ "l5", "m4" ],
-    ]
-  },
-  "B2": {
-    "learn": [
-      [ "l4", "l3", "l4" ],
-      [ "m5", "v3", "l5" ],
-      [ "v6", "m3", "l6" ],
-      [ "l3", "m5", "v3" ],
-      [ "m6", "d4", "v6" ],
-      [ "d4", "l6", "v4" ],
-    ],
-    "gen": [
-      [ "m4", "m3" ],
-      [ "l7", "d4" ],
-      [ "v6", "d3" ],
-      [ "l3", "m6" ],
-      [ "m7", "d3" ],
-      [ "m4", "l5" ],
-    ]
-  },
-  "C1": {
-    "learn": [
-      [ "l3", "m4", "m3" ],
-      [ "l6", "m3", "m6" ],
-      [ "l5", "m5", "m5" ],
-      [ "d3", "l3", "l3" ],
-      [ "d4", "l6", "l4" ],
-      [ "d5", "l4", "l5" ],
-    ],
-    "gen": [
-      [ "m3", "d5" ],
-      [ "d8", "l7" ],
-      [ "v5", "v4" ],
-      [ "v8", "v8" ],
-      [ "ms", "dd" ],
-      [ "vd", "vt" ],
-      [ "o6", "r3" ],
-      [ "r0", "g8" ],
-      [ "rs", "od" ],
-    ]
-  }
+
+// translate new config to old version
+let taskConfigs = {};
+taskConfigs[cond] = {};
+taskConfigs[cond]['learn'] = [];
+taskConfigs[cond]['gen'] = [];
+
+config.forEach(cfg => {
+  let task = [ encodeObj(cfg.agent), encodeObj(cfg.recipient) ];
+  (cfg.phase == 'learn')? task.push(encodeObj(cfg.result)): null;
+  taskConfigs[cond][cfg.phase].push(task)
+})
+
+// Add two random learning tasks for santity check/analysis
+const drawRdnNum = (upper=6, lower=1) => Math.floor(Math.random() * (upper-lower+1)) + lower
+let checkTasks = [];
+checkTasks.push(drawRdnNum());
+while(checkTasks.length < 2) {
+  let n = drawRdnNum();
+  (checkTasks.indexOf(n) < 0)? checkTasks.push(n): null
 }
+checkTasks.forEach(t => {
+  let task = config.filter(c=> c.phase==='learn'&c.trial===t)[0]
+  taskConfigs[cond]['gen'].push([encodeObj(task.agent), encodeObj(task.recipient)])
+})
+
 const allStones = getAllStones(allColors, allShapes);
 
-const learnTaskConfigs = getTaskConfigs(taskConfigs[cond].learn);
+const learnTaskConfigs = getTaskConfigs(taskConfigs[cond].learn, order);
 const nLearnTasks = Object.keys(learnTaskConfigs).length;
 
-const genTaskConfigs = getTaskConfigs(taskConfigs[cond].gen);
+const genTaskConfigs = getTaskConfigs(taskConfigs[cond].gen, order);
 const nGenTasks = Object.keys(genTaskConfigs).length;
 
 
 /** Instruction & comprehension */
-
 const descBtn = document.getElementById('desc-btn');
 descBtn.onclick = () => {
   hide("instruction");
@@ -253,6 +137,14 @@ createTextInputPanel("final", "none");
 createDebriefPage();
 
 /** Functions */
+function encodeObj (intObj) {
+  let edges = Math.floor(intObj / 10);
+  let shading = intObj % 10;
+
+  const shadingRanks = [ 'l', 'm', 'd', 'v'];
+  return shadingRanks[shading-1] + edges;
+}
+
 function createInitStones(config, parentDiv) {
   parentDiv.append(createStone("new-stone", `${config.taskId}-agent`, getOpts(config.agent, true)));
   parentDiv.append(createStone("new-stone", `${config.taskId}-recipient`, getOpts(config.recipient, false)));
@@ -272,7 +164,7 @@ function getOpts (style, isAgent) {
   opts["hasBorder"] = isAgent;
   if (shape[0] === "p") {
     const n = shape.split("_")[1];
-    opts["points"] = calcPolygon({n:n,r:len/2,a:0});
+    opts["points"] = calcPolygon(n);
   } else {
     switch (shape[2]) {
       case "0":
@@ -444,18 +336,26 @@ function createCircle (className, id, opts) {
   })
   return(circle);
 }
-function calcPolygon(input) {
+function calcPolygon(n) {
+  n = parseInt(n);
   let output = [];
-  if (input.n === "3") {
+  let adjust = (n===5)? 55 : 0;
+
+  if (n === 3) {
     output.push(`${len/2},${mar}`);
+    output.push(`${len-mar},${len-mar}`);
+    output.push(`${mar},${len-mar}`);
+  } else if (n === 4) {
+    output.push(`${mar},${mar}`);
+    output.push(`${len-mar},${mar}`);
     output.push(`${len-mar},${len-mar}`);
     output.push(`${mar},${len-mar}`);
   } else {
     // Adapted from https://gist.github.com/jonthesquirrel/e2807811d58a6627ded4
-    for (let i = 1; i <= input.n; i++) {
+    for (let i = 1; i <= n; i++) {
       output.push(
-        ((input.r * Math.cos(input.a + 2 * i * Math.PI / input.n)) + len/2).toFixed(0).toString() + "," +
-        ((input.r * Math.sin(input.a + 2 * i * Math.PI / input.n)) + len/2).toFixed(0).toString()
+        ((len/2 * Math.cos(adjust + 2 * i * Math.PI / n)) + len/2).toFixed(0).toString() + "," +
+        ((len/2 * Math.sin(adjust + 2 * i * Math.PI / n)) + len/2).toFixed(0).toString()
       )
     }
   }
@@ -700,35 +600,19 @@ function composeSelection (svgid, formid, checkBtnId) {
   let checkBtn = document.getElementById(checkBtnId);
   if (!(color === '--' || shape === '--' || confidence === '--')) checkBtn.disabled = false;
 }
-function getTaskConfigs (settings) {
+function shuffleArray(array) {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+  return array
+}
+function getTaskConfigs (settings, order) {
+  (order === 'allRand')? settings = shuffleArray(settings): null;
   const taskType = (settings[0].length > 2)? "learn" : "gen";
   const readStone = (str) => {
-    let shape = ((parseInt(str[1]) > 0)? "p" : "s") + '_' + str[1];
-    let color = "";
-    switch (str[0]) {
-      case "l":
-        color = "light";
-        break;
-      case "m":
-        color = "medium";
-        break;
-      case "d":
-        color = "dark";
-        break;
-      case "v":
-        color = "very_dark";
-        break;
-      case "r":
-        color = "red";
-        break;
-      case "g":
-        color = "green";
-        break;
-      case "o":
-        color = "orange";
-        break;
-    }
-    return color + ";" + shape;
+    const colorRef = {"l": "light", "m": "medium", "d": "dark", "v": "very_dark"};
+    return `${colorRef[str[0]]};p_${str[1]}`
   }
   const configureTask = (setting, index) => {
     let task = {};

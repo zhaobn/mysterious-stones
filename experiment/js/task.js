@@ -47,16 +47,17 @@ taskConfigs[cond]['gen'] = [];
 
 config.forEach(cfg => {
   let task = [ encodeObj(cfg.agent), encodeObj(cfg.recipient) ];
-  (cfg.phase == 'learn')? task.push(encodeObj(cfg.result)): null;
+  (cfg.phase === 'learn')? task.push(encodeObj(cfg.result)): null;
   taskConfigs[cond][cfg.phase].push(task)
 })
 
 // Add two random learning tasks for santity check/analysis
 const drawRdnNum = (upper=6, lower=1) => Math.floor(Math.random() * (upper-lower+1)) + lower
 let checkTasks = [];
-checkTasks.push(drawRdnNum());
+const upper = taskConfigs[cond]['learn'].length;
+checkTasks.push(drawRdnNum(upper));
 while(checkTasks.length < 2) {
-  let n = drawRdnNum();
+  let n = drawRdnNum(upper);
   (checkTasks.indexOf(n) < 0)? checkTasks.push(n): null
 }
 checkTasks.forEach(t => {
@@ -71,7 +72,6 @@ const nLearnTasks = Object.keys(learnTaskConfigs).length;
 
 const genTaskConfigs = getTaskConfigs(taskConfigs[cond].gen, order);
 const nGenTasks = Object.keys(genTaskConfigs).length;
-
 
 /** Instruction & comprehension */
 const descBtn = document.getElementById('desc-btn');

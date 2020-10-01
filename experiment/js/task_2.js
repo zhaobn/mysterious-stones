@@ -1,5 +1,6 @@
 
-console.log("Hi")
+const mode = 'dev' // '' for production, 'dev' for development
+console.log(`Hi, ${(mode==='dev')? 'dev': 'production'} mode :)`);
 
 /** Prep data */
 let learnSids = [];
@@ -59,14 +60,16 @@ let start_task_time = 0;
 
 /** Core: learn tasks */
 const coreLearnDiv = document.getElementById("core-learn-div");
+let learnClicked = Array(learnConfigs.length).fill(0);
 for(let i = 0; i < learnConfigs.length; i++ ) {
   const taskConfig = learnConfigs[i];
-  console.log(taskConfig)
-
-  const taskId = taskConfig[0];
-  const agent = taskConfig[2];
-  const recipient = taskConfig[3];
-  const result = taskConfig[4];
+  const config = {
+    'taskId': taskConfig[0],
+    'agent': taskConfig[2],
+    'recipient': taskConfig[3],
+    'result': taskConfig[4]
+  };
+  const taskId = config.taskId;
 
   let box = createCustomElement("div", "box", `box-${taskId}`);
   let taskBox = createCustomElement("div", "task-box", `taskbox-${taskId}`);
@@ -75,7 +78,7 @@ for(let i = 0; i < learnConfigs.length; i++ ) {
   taskBox.append(taskNum);
 
   let displayBox = createCustomElement("div", "display-box", `${taskId}-display-box`);
-  // displayBox = createInitStones(config, displayBox);
+  displayBox = createInitStones(config, displayBox);
 
   const buttonGroup = createCustomElement("div", "button-group-vc", `${taskId}-button-group`);
   buttonGroup.append(createBtn(`${taskId}-play-btn`, "Play", true));
@@ -85,8 +88,32 @@ for(let i = 0; i < learnConfigs.length; i++ ) {
   taskBox.append(buttonGroup);
   box.append(taskBox);
   coreLearnDiv.append(box);
-}
 
+  /** Button functionalities */
+  const playBtn = document.getElementById(`${taskId}-play-btn`);
+  const nextBtn = document.getElementById(`${taskId}-next-btn`);
+
+  playBtn.onclick = () => {
+    playBtn.disabled = true;
+    if (learnClicked[i] > 0) {
+      clearStones(config);
+      createInitStones(config, displayBox)
+    }
+    playEffects(config);
+    setTimeout(() => {
+      nextBtn.disabled = false;
+      playBtn.disabled = false;
+      // show summary stone in corresponding box
+    }, 1000);
+    learnClicked[i] += 1;
+  }
+  nextBtn.onclick = () => {
+    nextBtn.disabled = true;
+    const nextDiv = (i === learnConfigs.length-1)? "box-initial-input": `box-learn-${padNum(i+2)}`;
+    (mode === '')? hide(`box-${taskId}`): null;
+    showNext(nextDiv, 'flex');
+  }
+}
 
 /** Core: initial input form */
 

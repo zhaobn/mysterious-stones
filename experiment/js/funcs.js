@@ -5,10 +5,10 @@ const len = 60;
 
 /** Configurations */
 const colorDict = {
-  "very_dark": "#052e54",
-  "dark": "#1155cc",
-  "medium": "#6d9eeb",
   "light": "#c9daf8",
+  "medium": "#6d9eeb",
+  "dark": "#1155cc",
+  "very_dark": "#052e54",
 }
 const allColors = Object.keys(colorDict);
 
@@ -75,7 +75,7 @@ function disableFormInputs (formId) {
   const inputs = form.elements;
   (Object.keys(inputs)).forEach((input) => inputs[input].disabled = true);
 }
-function showNext(id, display = "flex") {
+function showNext(id, display = "flex", mode='') {
   let div = document.getElementById(id);
   div.style.display = display;
   div.scrollIntoView(mode === 'dev'? false: true);
@@ -195,6 +195,7 @@ function composeSelection (svgid, formid, checkBtnId) {
   let checkBtn = document.getElementById(checkBtnId);
   if (!(color === '--' || shape === '--' || confidence === '--')) checkBtn.disabled = false;
 }
+
 function createInitStones(config, parentDiv) {
   parentDiv.append(createStone("new-stone", `${config.taskId}-agent`, getOpts(config.agent, true)));
   parentDiv.append(createStone("new-stone", `${config.taskId}-recipient`, getOpts(config.recipient, false)));
@@ -224,7 +225,7 @@ function attachStone (svg, id, opts, shapeClass = 'shape') {
   }
   return svg
 }
-function createStone (stoneClass, id, opts, svgClass = 'test', shapeClass = 'shape') {
+function createStone (stoneClass, id, opts, svgClass = 'test') {
   let div = createCustomElement("div", stoneClass, id);
   let svg = createCustomElement("svg", svgClass, `${id}-svg`);
   svg = attachStone(svg, `${id}-stone`, opts);
@@ -261,4 +262,40 @@ function drawRdnNum(lower=1, upper=6, n=2) {
 }
 function padNum (counter, n=2) {
   return(counter.toString().padStart(n, '0'))
+}
+function getOpts(int, isAgent) {
+  const edges = Math.floor(int / 10);
+  const shading = int % 10;
+
+  let opts = {};
+  opts["color"] = colorDict[Object.keys(colorDict)[shading-1]]
+  opts["hasBorder"] = isAgent;
+  opts["points"] = calcPolygon(edges)
+  return opts
+}
+
+function calcPolygon(n) {
+  n = parseInt(n);
+  let output = [];
+  let adjust = (n===5)? 55 : 0;
+
+  if (n === 3) {
+    output.push(`${len/2},${mar}`);
+    output.push(`${len-mar},${len-mar}`);
+    output.push(`${mar},${len-mar}`);
+  } else if (n === 4) {
+    output.push(`${mar},${mar}`);
+    output.push(`${len-mar},${mar}`);
+    output.push(`${len-mar},${len-mar}`);
+    output.push(`${mar},${len-mar}`);
+  } else {
+    // Adapted from https://gist.github.com/jonthesquirrel/e2807811d58a6627ded4
+    for (let i = 1; i <= n; i++) {
+      output.push(
+        ((len/2 * Math.cos(adjust + 2 * i * Math.PI / n)) + len/2).toFixed(0).toString() + "," +
+        ((len/2 * Math.sin(adjust + 2 * i * Math.PI / n)) + len/2).toFixed(0).toString()
+      )
+    }
+  }
+  return output.join(" ")
 }

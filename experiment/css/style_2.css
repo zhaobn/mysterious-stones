@@ -87,6 +87,14 @@ h4 {
   font-size: 30px;
   width: 100%;
 }
+.task-box h3 {
+  text-align: left;
+  width: 100%;
+  color: black;
+  padding: 0;
+  margin: 0 0 5px 0;
+}
+
 .input-div {
   height: 400px;
   width: 100%;
@@ -104,7 +112,7 @@ h4 {
   display: flex;
 }
 
-.record-pan,  .selection-composer,
+.record-pan,
 .task-button,
 .instruction, .instruction h1 {
   background-color: #f4f4f4;
@@ -173,10 +181,11 @@ h4 {
   margin: 0px;
 }
 .selection-composer {
-  height: 95%;
-  width: 95%;
+  height: 98%;
+  width: 100%;
   display: flex;
   flex-direction: column;
+  align-items: center;
 }
 .selection-form-div,
 .selection-svg-div,
@@ -193,15 +202,15 @@ h4 {
 .selection-svg-div {
   /* margin: 6% 2%; */
   height: 80%;
-  width: 80%;
-  background-color: #fff;
+  width: 85%;
   display: flex;
   justify-content: center;
   align-items: center;
+  border: #bbbbbb solid .5px;
 }
 .selection-object {
-  height: 70px;
-  width: 70px;
+  height: 65px;
+  width: 65px;
 }
 
 .instruction {
@@ -436,4 +445,8 @@ flex-direction: column;
   border: #bbbbbb solid 2px;
   /* background-color: #bbbbbb; */
   align-items: center;
+}
+#core-gen-div {
+  display: flex;
+  flex-direction: column;
 }

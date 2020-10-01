@@ -1,5 +1,5 @@
 
-const mode = 'dev' // '' for production, 'dev' for development
+const mode = '' // '' for production, 'dev' for development
 console.log(`Hi, ${(mode==='dev')? 'dev': 'production'} mode :)`);
 
 /** Prep data */
@@ -128,19 +128,18 @@ for(let i = 0; i < learnConfigs.length; i++ ) {
   }
   nextBtn.onclick = () => {
     nextBtn.disabled = true;
-    const nextDiv = (i === learnConfigs.length-1)? "box-initial-input": `box-learn-${padNum(i+2)}`;
+    const nextDiv = (i === learnConfigs.length-1)? "core-learn-form-div": `box-learn-${padNum(i+2)}`;
     (mode === '')? hide(`box-${taskId}`): null;
     showNext(nextDiv, 'flex');
   }
 }
-
-
-coreLearnDiv.style.display = 'none';
+// coreLearnDiv.style.display = 'none';
 
 /** Core: initial input form */
 let initialInput = document.getElementById("core-learn-form-div");
 const initialFormName = 'initial';
 initialInput.append(createTextInputPanel(initialFormName));
+initialInput.style.display = (mode === '')? 'none': 'flex';
 
 const initSubmitBtn = document.getElementById(`${initialFormName}-input-submit-btn`);
 const initInputNextBtn = document.getElementById(`${initialFormName}-input-next-btn`);
@@ -159,6 +158,90 @@ initInputNextBtn.onclick = () => {
   hide("core-learn-form-div");
   showNext("core-gen-div")
 }
-/** Core: generalization tasks */
+initialInput.style.display = (mode==='dev')? 'flex': 'none';
+// initialInput.style.display = 'none';
 
-/** Core: finail input form */
+/** Core: generalization tasks */
+let genDiv = document.getElementById("core-gen-div");
+for(let i = 0; i < genConfigs.length; i++ ) {
+  const taskConfig = genConfigs[i];
+  const config = {
+    'taskId': taskConfig[0],
+    'agent': taskConfig[2],
+    'recipient': taskConfig[3],
+  };
+  const taskId = config.taskId;
+  let display = (mode==='dev'|i===0)? 'flex': 'none';
+
+  let box = createCustomElement("div", "box", `box-${taskId}`);
+  let taskBox = createCustomElement("div", "task-box", `taskbox-${taskId}`);
+
+  let taskNum = createText('h3', `${i+1}/${genConfigs.length}:
+    This active stone will turn this inactive stone into ...?`)
+  taskBox.append(taskNum);
+
+  let displayDiv = createCustomElement("div", "display-div", `${taskId}-display-div`);
+  let displayBox = createCustomElement("div", "display-box", `${taskId}-display-box`);
+  displayBox = createInitStones(config, displayBox);
+
+  displayDiv.append(displayBox);
+  displayDiv.append(createAnswerComposer(config));
+
+  taskBox.append(displayDiv);
+  box.append(taskBox);
+  genDiv.append(box);
+  box.style.display = display;
+
+  const selectionForm = document.getElementById(`${taskId}-selection-form`);
+  const confirmBtn = document.getElementById(`${taskId}-confirm-btn`);
+  const selNextBtn = document.getElementById(`${taskId}-selection-next-btn`);
+
+  selectionForm.onchange = () =>
+    composeSelection(`${taskId}-selection-svg`, `${taskId}-selection-form`, `${taskId}-confirm-btn`);
+  confirmBtn.onclick = () => {
+    let inputs = selectionForm.elements;
+    let selection = {};
+    Object.keys(inputs).forEach(id => selection[inputs[id].name] = inputs[id].value);
+    let stoneCode = parseInt(selection.shape.slice(1,) + selection.color.slice(1,));
+    trialData['result'].push(stoneCode);
+    trialData['confidence'].push(selection.conf);
+    disableFormInputs(`${taskId}-selection-form`);
+    selNextBtn.disabled = false;
+  }
+  selNextBtn.onclick = () => {
+    (mode==='')? hide(`box-${taskId}`): null;
+    if (i < genConfigs.length-1) {
+      showNext(`box-gen-${padNum(i+2)}`)
+    } else {
+      showNext("core-gen-form-div")
+    }
+  }
+}
+genDiv.style.display = (mode==='dev')? 'flex': "none";
+// genDiv.style.display = 'none';
+
+/** Core: final input form */
+let finalInput = document.getElementById("core-gen-form-div");
+const finalFormName = 'final';
+finalInput.append(createTextInputPanel(finalFormName));
+finalInput.style.display = (mode === '')? 'none': 'flex';
+
+const finalSubmitBtn = document.getElementById(`${finalFormName}-input-submit-btn`);
+const finalInputNextBtn = document.getElementById(`${finalFormName}-input-next-btn`);
+const finalInputFormId = finalFormName + '-input-form';
+const finalInputForm = document.getElementById(finalInputFormId);
+
+finalInputForm.onchange = () => isFilled(finalInputFormId)? finalSubmitBtn.disabled = false: null;
+finalSubmitBtn.onclick = () => {
+  let inputs = finalInputForm.elements;
+  Object.keys(inputs).forEach(id => subjetData[inputs[id].name] = inputs[id].value);
+  finalSubmitBtn.disabled = true;
+  disableFormInputs(finalInputFormId);
+  finalInputNextBtn.disabled = false;
+}
+finalInputNextBtn.onclick = () => {
+  hide("core-gen-form-div");
+  hide("showcase")
+  console.log("Proceed to debrief page")
+}
+finalInput.style.display = (mode==='dev')? 'flex': "none";

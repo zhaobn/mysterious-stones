@@ -189,11 +189,12 @@ function composeSelection (svgid, formid, checkBtnId) {
   const taskId = svgid.split('-').slice(0,2).join("-");
 
   if (!(color === "--" || shape === "--")) {
+    let stoneCode = parseInt(shape.slice(1,) + color.slice(1,))
     let svg = document.getElementById(svgid);
     if (svg.childNodes.length > 0) {
       clearElement(`${taskId}-test-stone`)
     };
-    svg = attachStone(svg, `${taskId}-test-stone`, getOpts(color+";"+shape));
+    svg = attachStone(svg, `${taskId}-test-stone`, getOpts(stoneCode));
   }
   let checkBtn = document.getElementById(checkBtnId);
   if (!(color === '--' || shape === '--' || confidence === '--')) checkBtn.disabled = false;
@@ -306,4 +307,58 @@ function calcPolygon(n, scale) {
     }
   }
   return output.join(" ")
+}
+function createAnswerComposer(config) {
+  const taskId = config.taskId;
+  let box = createCustomElement("div", "display-box", `${taskId}-selection-box`);
+  box.style.width = "48%";
+
+  box.innerHTML = `
+    <div class="selection-composer">
+      <div class="selection-form-div">
+        <form class="selection-form" id="${taskId}-selection-form">
+          <p>Shape:
+          <select id="shape" name="shape" class="selection-input">
+            <option value="--" SELECTED>--</option>
+            <option value="p3">Triangle</option>
+            <option value="p4">Square</option>
+            <option value="p5">Pentagon</option>
+            <option value="p6">Hexagon</option>
+            <option value="p7">Heptagon</option>
+          </select>
+          </p>
+          <p>Shading:
+          <select id="color" name="color" class="selection-input">
+            <option value="--" SELECTED>--</option>
+            <option value="s1">Light</option>
+            <option value="s2">Medium</option>
+            <option value="s3">Dark</option>
+            <option value="s4">Very dark</option>
+          </select>
+          <p>Your confidence:
+          <select id="conf" name="conf" class="selection-input">
+            <option value="--" SELECTED>--</option>
+            <option value="10">10 - Very confident</option>
+            <option value="9">9</option>
+            <option value="8">8</option>
+            <option value="7">7</option>
+            <option value="6">6</option>
+            <option value="5">5 - Moderately confident</option>
+            <option value="4">4</option>
+            <option value="3">3</option>
+            <option value="2">2</option>
+            <option value="1">1 - Not confident at all</option>
+          </select>
+          </p>
+        </form>
+      </div>
+      <div class="selection-svg-div">
+        <svg class="selection-object" id='${taskId}-selection-svg'></svg>
+      </div>
+      <div class="selection-buttons">
+        <button class="task-button" id="${taskId}-confirm-btn" disabled>Confirm</button>
+        <button class="task-button" id="${taskId}-selection-next-btn" disabled>Next</button>
+      </div>
+    </div>`
+  return box;
 }

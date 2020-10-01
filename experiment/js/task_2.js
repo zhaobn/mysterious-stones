@@ -1,8 +1,10 @@
 
-const mode = '' // '' for production, 'dev' for development
+const mode = 'dev' // '' for production, 'dev' for development
 console.log(`Hi, ${(mode==='dev')? 'dev': 'production'} mode :)`);
 
 /** Prep data */
+let subjetData = {};
+
 let learnSids = [];
 let genSigs = [];
 config.forEach(c => (c.phase==='learn')? learnSids.push(c.sid): genSigs.push(c.sid));
@@ -81,7 +83,7 @@ for(let i = 0; i < learnConfigs.length; i++ ) {
   boxWrapper.append(beforeBox);
   boxWrapper.append(afterBox);
   showBox.append(boxWrapper);
-  boxWrapper.style.display='none';
+  boxWrapper.style.display= (mode==='dev')? 'flex': 'none';
 
   /** Core: learn tasks */
   const taskId = config.taskId;
@@ -132,8 +134,31 @@ for(let i = 0; i < learnConfigs.length; i++ ) {
   }
 }
 
-/** Core: initial input form */
 
+coreLearnDiv.style.display = 'none';
+
+/** Core: initial input form */
+let initialInput = document.getElementById("core-learn-form-div");
+const initialFormName = 'initial';
+initialInput.append(createTextInputPanel(initialFormName));
+
+const initSubmitBtn = document.getElementById(`${initialFormName}-input-submit-btn`);
+const initInputNextBtn = document.getElementById(`${initialFormName}-input-next-btn`);
+const initInputFormId = initialFormName + '-input-form';
+const initInputForm = document.getElementById(initInputFormId);
+
+initInputForm.onchange = () => isFilled(initInputFormId)? initSubmitBtn.disabled = false: null;
+initSubmitBtn.onclick = () => {
+  let inputs = initInputForm.elements;
+  Object.keys(inputs).forEach(id => subjetData[inputs[id].name] = inputs[id].value);
+  initSubmitBtn.disabled = true;
+  disableFormInputs(initInputFormId);
+  initInputNextBtn.disabled = false;
+}
+initInputNextBtn.onclick = () => {
+  hide("core-learn-form-div");
+  showNext("core-gen-div")
+}
 /** Core: generalization tasks */
 
 /** Core: finail input form */

@@ -35,7 +35,20 @@ function setAttributes(el, attrs) {
     el.setAttribute(key, attrs[key]);
   }
 }
+function createTextInputPanel (taskId) {
+  let taskBox = createCustomElement("div", "input-div", `${taskId}-input`);
 
+  const displayBox = createCustomElement("div", "input-box", `${taskId}-input-box`);
+  displayBox.append(createInputForm(taskId));
+
+  const buttonGroup = createCustomElement("div", "button-group-vc", `${taskId}-button-group`);
+  buttonGroup.append(createBtn(`${taskId}-input-submit-btn`, "Submit", false));
+  buttonGroup.append(createBtn(`${taskId}-input-next-btn`, "Next", false));
+
+  taskBox.append(displayBox);
+  taskBox.append(buttonGroup);
+  return taskBox;
+}
 function createInputForm(taskId) {
   let form = createCustomElement("form", "input-form", `${taskId}-input-form`);
   const placeholderText = `Please type here`
@@ -74,6 +87,7 @@ function disableFormInputs (formId) {
   const inputs = form.elements;
   (Object.keys(inputs)).forEach((input) => inputs[input].disabled = true);
 }
+
 function showNext(id, display = "flex") {
   let div = document.getElementById(id);
   div.style.display = display;

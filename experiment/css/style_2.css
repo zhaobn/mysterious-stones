@@ -74,7 +74,7 @@ h4 {
   border-radius: 50%;
 }
 
-.task-box, .input-div {
+.task-box {
   min-width: 500px;
   height: 360px;
   margin: 10px;
@@ -87,6 +87,14 @@ h4 {
   font-size: 30px;
   width: 100%;
 }
+.input-div {
+  height: 400px;
+  width: 100%;
+}
+.input-box {
+  height: 90%;
+  margin: 0;
+}
 
 .display-box, .task-div,
 .button-group, .input-box, .hist-box,
@@ -96,7 +104,6 @@ h4 {
   display: flex;
 }
 
-.input-box,
 .record-pan,  .selection-composer,
 .task-button,
 .instruction, .instruction h1 {
@@ -277,21 +284,18 @@ h4 {
 
 .input-box {
   height: 90%;
-  width: 90%;
   padding: 0px;
 }
 
 .input-form {
   padding: 0px 10px;
-  width: 90%;
   height: 80%;
 }
 
 .input-form textarea {
   height: 60%;
-  width: 100%;
-  border: 0px;
-  background-color: #fff ;
+  width: 98%;
+  border: #bbbbbb solid 0.5px;
 }
 
 .edit-buttons {

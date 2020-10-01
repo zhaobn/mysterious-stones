@@ -1,7 +1,6 @@
 const svgElements = [ "svg", "polygon", "circle", "rect", "path" ];
-const borderWidth = "5px";
-const mar = 5;
-const len = 60;
+const defaultStone = { 'borderWidth': '5px', 'mar': 5, 'len': 60 };
+const smallStone = { 'borderWidth': '3px', 'mar': 3, 'len': 20 };
 
 /** Configurations */
 const colorDict = {
@@ -75,10 +74,10 @@ function disableFormInputs (formId) {
   const inputs = form.elements;
   (Object.keys(inputs)).forEach((input) => inputs[input].disabled = true);
 }
-function showNext(id, display = "flex", mode='') {
+function showNext(id, display = "flex") {
   let div = document.getElementById(id);
   div.style.display = display;
-  div.scrollIntoView(mode === 'dev'? false: true);
+  div.scrollIntoView(true);
 }
 function hide(id) {
   let div = document.getElementById(id);
@@ -132,18 +131,16 @@ function clearElement (id) {
   let clear = document.getElementById(id);
   clear.remove();
 }
-function createSummaryStones(config, parentDiv, stoneClass = "new-stone") {
-  createSumBox = (sumBox, type) => {
-    let textDiv = createCustomElement("div", "sum-text", `${config.taskId}-sumbox-${type}-text`);
-    textDiv.append(createText("h2", capFirstLetter(type)));
+function createSumBox(sumBox, type, config, stoneClass) {
+  let textDiv = createText("h2", capFirstLetter(type));
     let sumDiv = createCustomElement("div", "sum-display", `${config.taskId}-sumbox-${type}-display`);
     if (type === "before") {
-      sumDiv.append(createStone(stoneClass, `${config.taskId}-agent`, getOpts(config.agent, true)));
-      sumDiv.append(createStone(stoneClass, `${config.taskId}-recipient`, getOpts(config.recipient, false)));
+      sumDiv.append(createStone(stoneClass, `${config.taskId}-sum-before-agent`, getOpts(config.agent, true, 's'), 'sum'));
+      sumDiv.append(createStone(stoneClass, `${config.taskId}-sum-before-recipient`, getOpts(config.recipient, false, 's'), 'sum'));
       sumDiv.style.justifyContent = "space-between";
     } else if (type === "after") {
-      sumDiv.append(createStone(stoneClass, `${config.taskId}-agent`, getOpts(config.agent, true)));
-      sumDiv.append(createStone(stoneClass, `${config.taskId}-result`, getOpts(config.result, false)));
+      sumDiv.append(createStone(stoneClass, `${config.taskId}-sum-after-agent`, getOpts(config.agent, true, 's'), 'sum'));
+      sumDiv.append(createStone(stoneClass, `${config.taskId}-sum-after-result`, getOpts(config.result, false, 's'), 'sum'));
       sumDiv.style.justifyContent = "flex-end";
     } else {
       console.log("Summary type not match @createSummaryStones()")
@@ -151,16 +148,8 @@ function createSummaryStones(config, parentDiv, stoneClass = "new-stone") {
     sumBox.append(textDiv);
     sumBox.append(sumDiv);
     return sumBox;
-  }
-  let beforeBox = createCustomElement("div", "sum-box", `${config.taskId}-sumbox-before`);
-  let afterBox = createCustomElement("div", "sum-box", `${config.taskId}-sumbox-after`);
-
-  beforeBox = createSumBox(beforeBox, "before");
-  afterBox = createSumBox(afterBox, "after");
-  parentDiv.append(beforeBox);
-  parentDiv.append(afterBox);
-  return parentDiv;
 }
+
 function capFirstLetter (str) {
   let fl = str[0].toUpperCase();
   return(fl + str.slice(1,));
@@ -234,6 +223,7 @@ function createStone (stoneClass, id, opts, svgClass = 'test') {
 }
 function createPolygon(className, id, opts) {
   let polygon = createCustomElement("polygon", className, id);
+  let borderWidth = (opts.scale==='default')? defaultStone.borderWidth: smallStone.borderWidth;
   setAttributes(polygon, {
     "fill": opts.color,
     "points": opts.points,
@@ -263,21 +253,25 @@ function drawRdnNum(lower=1, upper=6, n=2) {
 function padNum (counter, n=2) {
   return(counter.toString().padStart(n, '0'))
 }
-function getOpts(int, isAgent) {
+function getOpts(int, isAgent, scale='default') {
   const edges = Math.floor(int / 10);
   const shading = int % 10;
 
   let opts = {};
   opts["color"] = colorDict[Object.keys(colorDict)[shading-1]]
   opts["hasBorder"] = isAgent;
-  opts["points"] = calcPolygon(edges)
+  opts["points"] = calcPolygon(edges, scale);
+  opts["scale"] = scale;
   return opts
 }
 
-function calcPolygon(n) {
+function calcPolygon(n, scale) {
   n = parseInt(n);
   let output = [];
   let adjust = (n===5)? 55 : 0;
+
+  const mar = (scale==='default')? defaultStone.mar: smallStone.mar;
+  const len = (scale==='default')? defaultStone.len: smallStone.len;
 
   if (n === 3) {
     output.push(`${len/2},${mar}`);

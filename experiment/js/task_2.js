@@ -1,5 +1,5 @@
 
-const mode = 'dev' // '' for production, 'dev' for development
+const mode = '' // '' for production, 'dev' for development
 console.log(`Hi, ${(mode==='dev')? 'dev': 'production'} mode :)`);
 
 /** Prep data */
@@ -56,11 +56,10 @@ genConfigs.forEach(c => {
 const start_time = Date.now();
 let start_task_time = 0;
 
-/** Showcase contents */
-
-/** Core: learn tasks */
+let showDiv = document.getElementById("showcase");
 const coreLearnDiv = document.getElementById("core-learn-div");
 let learnClicked = Array(learnConfigs.length).fill(0);
+
 for(let i = 0; i < learnConfigs.length; i++ ) {
   const taskConfig = learnConfigs[i];
   const config = {
@@ -69,7 +68,24 @@ for(let i = 0; i < learnConfigs.length; i++ ) {
     'recipient': taskConfig[3],
     'result': taskConfig[4]
   };
+
+  /** Showcase contents */
+  let showBox = document.getElementById(`showcase-${i+1}`);
+  let boxWrapper = createCustomElement("div", "sum-wrap", `${config.taskId}-sumwrap`);
+
+  let beforeBox = createCustomElement("div", "sum-box", `${config.taskId}-sumbox-before`);
+  let afterBox = createCustomElement("div", "sum-box", `${config.taskId}-sumbox-after`);
+  beforeBox = createSumBox(beforeBox, "before", config, 'sum');
+  afterBox = createSumBox(afterBox, "after", config, 'sum');
+
+  boxWrapper.append(beforeBox);
+  boxWrapper.append(afterBox);
+  showBox.append(boxWrapper);
+  boxWrapper.style.display='none';
+
+  /** Core: learn tasks */
   const taskId = config.taskId;
+  let display = (mode==='dev'|i===0)? 'flex': 'none';
 
   let box = createCustomElement("div", "box", `box-${taskId}`);
   let taskBox = createCustomElement("div", "task-box", `taskbox-${taskId}`);
@@ -87,6 +103,7 @@ for(let i = 0; i < learnConfigs.length; i++ ) {
   taskBox.append(displayBox);
   taskBox.append(buttonGroup);
   box.append(taskBox);
+  box.style.display = display;
   coreLearnDiv.append(box);
 
   /** Button functionalities */
@@ -103,8 +120,8 @@ for(let i = 0; i < learnConfigs.length; i++ ) {
     setTimeout(() => {
       nextBtn.disabled = false;
       playBtn.disabled = false;
-      // show summary stone in corresponding box
-    }, 1000);
+      boxWrapper.style.display = 'flex';
+    }, 2000);
     learnClicked[i] += 1;
   }
   nextBtn.onclick = () => {

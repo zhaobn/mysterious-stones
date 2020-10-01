@@ -96,7 +96,6 @@ h4 {
   display: flex;
 }
 
-.sum-box, .hist-box,
 .input-box,
 .record-pan,  .selection-composer,
 .task-button,
@@ -330,6 +329,11 @@ h4 {
   width: 80px;
 }
 
+.sum {
+  height: 20px;
+  width: 20px;
+}
+
 .shape {
   stroke: #BDBDBD;
   /* stroke: rgba(136, 136, 136, .5); */
@@ -340,21 +344,26 @@ h4 {
   position: relative;
   left: 0;
 }
+
 .sum-box {
-  border: solid 2px #bbbbbb;
-  /* background-color: #e0e0e0; */
-  height: 90%;
+  /* border: solid 1px #bbbbbb;
+  background-color: #fff; */
+  height: 80%;
   width: 45%;
   display: flex;
   flex-direction: column;
-  padding: 10px;
+  align-items: center;
+  padding: 1px;
 }
 .sum-display {
-  height: 90%;
-  width: 100%;
+  height: 80%;
+  width: 80%;
+  border: solid 1px #bbbbbb;
+  background-color: #fff;
   display: flex;
   flex-direction: row;
   align-items: center;
+  padding: 10px;
 }
 .sum-div {
   width: 100%;
@@ -407,8 +416,20 @@ flex-direction: column;
 }
 
 .case {
-  border: #bbbbbb solid 2px;
   height: 100px;
   width: 30%;
   margin: 10px;
+}
+
+.sum-wrap {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-evenly;
+  border: #bbbbbb solid 2px;
+  /* background-color: #bbbbbb; */
+  align-items: center;
 }

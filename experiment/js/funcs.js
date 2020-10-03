@@ -176,11 +176,6 @@ function currentSelection (formId) {
   });
   return selections.reverse().join(";")
 }
-function saveFormData (input, dataObj) {
-  let fieldName = input.name;
-  dataObj[fieldName] = input.value;
-  return dataObj;
-}
 function composeSelection (svgid, formid, checkBtnId) {
   const selections = currentSelection(formid).split(";");
   const confidence = selections[0];
@@ -391,39 +386,6 @@ function showCompletion(code) {
   let t = document.createTextNode(code);
   document.getElementById('completion-code').append(t);
 }
-function saveData (dataFile) {
-  if (mode === 'flask') {
-    const end_time = new Date();
-    let token = generateToken(8);
-
-    let clientData = {};
-    clientData.subject = {};
-    clientData.subject.condition = cond;
-
-    (Object.keys(dataFile.inputs)).forEach(el => clientData.subject[el] = dataFile.inputs[el]);
-    (Object.keys(dataFile.feedback)).forEach(el => clientData.subject[el] = dataFile.feedback[el]);
-
-    clientData.subject.date = formatDates(end_time, 'date');
-    clientData.subject.time = formatDates(end_time, 'time');
-    clientData.subject.instructions_duration = start_task_time - start_time,
-    clientData.subject.task_duration = end_time - start_task_time,
-    clientData.subject.token = token;
-
-    clientData.trials = dataFile.gen;
-
-    console.log(clientData);
-
-    fetch(root_string, {
-        method: 'POST',
-        body: JSON.stringify(clientData),
-    })
-    .then(() => showCompletion(token))
-    .catch((error) => console.log(error));
-  } else {
-    console.log(dataFile);
-    download(JSON.stringify(dataFile), 'data.txt', '"text/csv"');
-  }
-}
 function generateToken (length) {
   let tokens = '';
   let chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
@@ -441,4 +403,11 @@ function formatDates (date, option = 'date') {
   let sec = String(date.getSeconds() + 1).padStart(2, '0');
   dateParts = (option === 'date') ? [ year, month, day ] : [ hour, min, sec ];
   return dateParts.join('_');
+}
+function download(content, fileName, contentType) {
+  var a = document.createElement("a");
+  var file = new Blob([content], {type: contentType});
+  a.href = URL.createObjectURL(file);
+  a.download = fileName;
+  a.click();
 }

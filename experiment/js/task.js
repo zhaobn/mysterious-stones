@@ -1,8 +1,12 @@
 
 const mode = '' // '' for production, 'dev' for development
-console.log(`Hi, ${(mode==='dev')? 'dev': 'production'} mode :)`);
+const cond = config[0].group
+console.log(`Hi, ${(mode==='dev')? 'dev': 'production'} mode; condition ${cond}.`);
 
 /** Comprehension quiz */
+const start_time = Date.now();
+let start_task_time = 0;
+
 const descBtn = document.getElementById('desc-btn');
 descBtn.onclick = () => {
   hide("instruction");
@@ -23,7 +27,7 @@ passBtn.onclick = () => {
   start_task_time = Date.now();
   hide("pass");
   hide("comprehension");
-  showNext("tasks", "block")
+  showNext("tasks", "block");
 };
 retryBtn.onclick = () => {
   hide("retry");
@@ -35,7 +39,7 @@ document.getElementById('prequiz').onchange = () => compIsFilled() ? checkBtn.di
 
 
 /** Prep data */
-let subjetData = {};
+let subjectData = {};
 
 let learnSids = [];
 let genSigs = [];
@@ -77,18 +81,15 @@ learnConfigs.forEach(c => {
   trialData['agent'].push(c[2]);
   trialData['recipient'].push(c[3]);
   trialData['result'].push(c[4]);
-  trialData['confidence'].push(0);
+  trialData['confidence'].push('0');
 })
 genConfigs.forEach(c => {
-  trialData['phase'].push('learn');
+  trialData['phase'].push('gen');
   trialData['tid'].push(c[0]);
   trialData['sid'].push(c[1]);
   trialData['agent'].push(c[2]);
   trialData['recipient'].push(c[3]);
 })
-
-const start_time = Date.now();
-let start_task_time = 0;
 
 let showDiv = document.getElementById("showcase");
 const coreLearnDiv = document.getElementById("core-learn-div");
@@ -181,7 +182,7 @@ const initInputForm = document.getElementById(initInputFormId);
 initInputForm.onchange = () => isFilled(initInputFormId)? initSubmitBtn.disabled = false: null;
 initSubmitBtn.onclick = () => {
   let inputs = initInputForm.elements;
-  Object.keys(inputs).forEach(id => subjetData[inputs[id].name] = inputs[id].value);
+  Object.keys(inputs).forEach(id => subjectData[inputs[id].name] = inputs[id].value);
   initSubmitBtn.disabled = true;
   disableFormInputs(initInputFormId);
   initInputNextBtn.disabled = false;
@@ -266,7 +267,7 @@ const finalInputForm = document.getElementById(finalInputFormId);
 finalInputForm.onchange = () => isFilled(finalInputFormId)? finalSubmitBtn.disabled = false: null;
 finalSubmitBtn.onclick = () => {
   let inputs = finalInputForm.elements;
-  Object.keys(inputs).forEach(id => subjetData[inputs[id].name] = inputs[id].value);
+  Object.keys(inputs).forEach(id => subjectData[inputs[id].name] = inputs[id].value);
   finalSubmitBtn.disabled = true;
   disableFormInputs(finalInputFormId);
   finalInputNextBtn.disabled = false;
@@ -286,8 +287,30 @@ debriefForm.onchange = () => {
 }
 doneBtn.onclick = () => {
   let inputs = debriefForm.elements;
-  console.log('save data!')
-  // Object.keys(inputs).forEach(id => saveFormData(inputs[id], feedbackData));
-  // data["feedback"] = feedbackData;
-  // saveData(data);
+  Object.keys(inputs).forEach(id => subjectData[inputs[id].name] = inputs[id].value);
+
+  const end_time = new Date();
+  let token = generateToken(8);
+
+  let clientData = {};
+  clientData.subject = subjectData;
+  clientData.subject.condition = cond;
+  clientData.subject.date = formatDates(end_time, 'date');
+  clientData.subject.time = formatDates(end_time, 'time');
+  clientData.subject.instructions_duration = start_task_time - start_time,
+  clientData.subject.task_duration = end_time - start_task_time,
+  clientData.subject.token = token;
+  clientData.trials = trialData;
+
+  if (mode === 'flask') {
+    fetch(root_string, {
+        method: 'POST',
+        body: JSON.stringify(clientData),
+    })
+    .then(() => showCompletion(token))
+    .catch((error) => console.log(error));
+  } else {
+    console.log(clientData);
+    // download(JSON.stringify(clientData), 'data.txt', '"text/csv"');
+  }
 };

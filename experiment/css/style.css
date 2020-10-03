@@ -368,6 +368,9 @@ h4 {
   align-items: center;
   padding: 1px;
 }
+.sum-box h2 {
+  font-size: small;
+}
 .sum-display {
   height: 80%;
   width: 80%;
@@ -425,13 +428,13 @@ flex-direction: column;
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-evenly;
-  height: 240px;
+  height: 100%;
 }
 
 .case {
-  height: 100px;
+  height: 45%;
   width: 30%;
-  margin: 10px;
+  margin: 5px;
 }
 
 .sum-wrap {

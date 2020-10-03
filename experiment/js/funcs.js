@@ -362,3 +362,83 @@ function createAnswerComposer(config) {
     </div>`
   return box;
 }
+
+function checkComprehension() {
+  let inputs = [];
+  checks.map(check => {
+      const vals = document.getElementsByName(check);
+      inputs.push(vals[0].checked);
+  });
+  const pass = (inputs.join('') === answers.join(''));
+  showPostCheckPage(pass);
+}
+function showPostCheckPage (isPass) {
+  const pageDiv = isPass? 'pass' : 'retry';
+  document.getElementById('check-btn').style.display = 'none';
+  document.getElementById(pageDiv).style.display = 'flex';
+}
+function compIsFilled () {
+  let radios = document.getElementsByTagName('input');
+  let checked = 0;
+  for (let i = 0; i < radios.length; i++) {
+      checked += radios[i].checked;
+  }
+  return (checked > checks.length-1)
+}
+function showCompletion(code) {
+  hide("debrief")
+  showNext("completed")
+  let t = document.createTextNode(code);
+  document.getElementById('completion-code').append(t);
+}
+function saveData (dataFile) {
+  if (mode === 'flask') {
+    const end_time = new Date();
+    let token = generateToken(8);
+
+    let clientData = {};
+    clientData.subject = {};
+    clientData.subject.condition = cond;
+
+    (Object.keys(dataFile.inputs)).forEach(el => clientData.subject[el] = dataFile.inputs[el]);
+    (Object.keys(dataFile.feedback)).forEach(el => clientData.subject[el] = dataFile.feedback[el]);
+
+    clientData.subject.date = formatDates(end_time, 'date');
+    clientData.subject.time = formatDates(end_time, 'time');
+    clientData.subject.instructions_duration = start_task_time - start_time,
+    clientData.subject.task_duration = end_time - start_task_time,
+    clientData.subject.token = token;
+
+    clientData.trials = dataFile.gen;
+
+    console.log(clientData);
+
+    fetch(root_string, {
+        method: 'POST',
+        body: JSON.stringify(clientData),
+    })
+    .then(() => showCompletion(token))
+    .catch((error) => console.log(error));
+  } else {
+    console.log(dataFile);
+    download(JSON.stringify(dataFile), 'data.txt', '"text/csv"');
+  }
+}
+function generateToken (length) {
+  let tokens = '';
+  let chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  for (let i = 0; i < length; i ++) {
+      tokens += chars.charAt(Math.floor(Math.random() * chars.length))
+  }
+  return tokens;
+}
+function formatDates (date, option = 'date') {
+  let year = date.getFullYear();
+  let month = String(date.getMonth() + 1).padStart(2, '0');
+  let day = String(date.getDate() + 1).padStart(2, '0');
+  let hour = String(date.getHours()+ 1).padStart(2, '0');
+  let min = String(date.getMinutes() + 1).padStart(2, '0');
+  let sec = String(date.getSeconds() + 1).padStart(2, '0');
+  dateParts = (option === 'date') ? [ year, month, day ] : [ hour, min, sec ];
+  return dateParts.join('_');
+}

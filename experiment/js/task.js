@@ -1,5 +1,5 @@
 
-const mode = '' // '' for production, 'dev' for development
+const mode = 'dev' // '' for production, 'dev' for development
 const cond = config[0].group
 console.log(`Hi, ${(mode==='dev')? 'dev': 'production'} mode; condition ${cond}.`);
 
@@ -15,13 +15,21 @@ descBtn.onclick = () => {
 }
 
 const checkBtn = document.getElementById('check-btn');
-const checks = [ 'check1', 'check2', 'check3', 'check4', 'check5' ];
-const answers = [ false, true, false, true, true ];
+const checks = [ 'check1', 'check2', 'check3', 'check4' ];
+const answers = [ false, false, true, true ];
 
 const passBtn = document.getElementById('pass-btn');
 const retryBtn = document.getElementById('retry-btn');
 
-checkBtn.onclick = () => checkComprehension();
+checkBtn.onclick = () => {
+  let inputs = [];
+  checks.map(check => {
+    const vals = document.getElementsByName(check);
+    inputs.push(vals[0].checked);
+  });
+  const pass = (inputs.join('') === answers.join(''));
+  showPostCheckPage(pass);
+}
 
 passBtn.onclick = () => {
   start_task_time = Date.now();

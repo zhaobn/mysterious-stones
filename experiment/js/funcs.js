@@ -1,5 +1,5 @@
 const svgElements = [ "svg", "polygon", "circle", "rect", "path" ];
-const defaultStone = { 'borderWidth': '5px', 'mar': 5, 'len': 60 };
+const defaultStone = { 'borderWidth': '8px', 'mar': 5, 'len': 60 };
 const smallStone = { 'borderWidth': '3px', 'mar': 3, 'len': 20 };
 
 /** Configurations */
@@ -356,16 +356,6 @@ function createAnswerComposer(config) {
       </div>
     </div>`
   return box;
-}
-
-function checkComprehension() {
-  let inputs = [];
-  checks.map(check => {
-      const vals = document.getElementsByName(check);
-      inputs.push(vals[0].checked);
-  });
-  const pass = (inputs.join('') === answers.join(''));
-  showPostCheckPage(pass);
 }
 function showPostCheckPage (isPass) {
   const pageDiv = isPass? 'pass' : 'retry';

@@ -1,7 +1,7 @@
 
-const mode = 'dev' // '' for production, 'dev' for development
+const mode = 'dev' // '' for production, 'dev' for development, 'flask' for flask-app
 const cond = config[0].group
-console.log(`Hi, ${(mode==='dev')? 'dev': 'production'} mode; condition ${cond}.`);
+console.log(`Hi, ${mode} mode; condition ${cond}.`);
 
 /** Comprehension quiz */
 const start_time = Date.now();
@@ -170,7 +170,7 @@ for(let i = 0; i < learnConfigs.length; i++ ) {
   nextBtn.onclick = () => {
     nextBtn.disabled = true;
     const nextDiv = (i === learnConfigs.length-1)? "core-learn-form-div": `box-learn-${padNum(i+2)}`;
-    (mode === '')? hide(`box-${taskId}`): null;
+    (mode !== 'dev')? hide(`box-${taskId}`): null;
     showNext(nextDiv, 'flex');
   }
 }
@@ -250,7 +250,7 @@ for(let i = 0; i < genConfigs.length; i++ ) {
     selNextBtn.disabled = false;
   }
   selNextBtn.onclick = () => {
-    (mode==='')? hide(`box-${taskId}`): null;
+    (mode!=='dev')? hide(`box-${taskId}`): null;
     if (i < genConfigs.length-1) {
       showNext(`box-gen-${padNum(i+2)}`)
     } else {

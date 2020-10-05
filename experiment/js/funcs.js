@@ -42,8 +42,8 @@ function createTextInputPanel (taskId) {
   displayBox.append(createInputForm(taskId));
 
   const buttonGroup = createCustomElement("div", "button-group-vc", `${taskId}-button-group`);
-  buttonGroup.append(createBtn(`${taskId}-input-submit-btn`, "Submit", false));
-  buttonGroup.append(createBtn(`${taskId}-input-next-btn`, "Next", false));
+  buttonGroup.append(createBtn(`${taskId}-input-submit-btn`, "OK", false));
+  // buttonGroup.append(createBtn(`${taskId}-input-next-btn`, "Next", false));
 
   taskBox.append(displayBox);
   taskBox.append(buttonGroup);
@@ -351,8 +351,7 @@ function createAnswerComposer(config) {
         <svg class="selection-object" id='${taskId}-selection-svg'></svg>
       </div>
       <div class="selection-buttons">
-        <button class="task-button" id="${taskId}-confirm-btn" disabled>Confirm</button>
-        <button class="task-button" id="${taskId}-selection-next-btn" disabled>Next</button>
+        <button class="task-button" id="${taskId}-confirm-btn" disabled>OK</button>
       </div>
     </div>`
   return box;

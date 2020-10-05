@@ -1,5 +1,5 @@
 
-const mode = 'dev' // '' for production, 'dev' for development, 'flask' for flask-app
+const mode = '' // '' for production, 'dev' for development, 'flask' for flask-app
 const cond = config[0].group
 console.log(`Hi, ${mode} mode; condition ${cond}.`);
 
@@ -189,7 +189,7 @@ initialInput.append(createTextInputPanel(initialFormName));
 initialInput.style.display = (mode === '')? 'none': 'flex';
 
 const initSubmitBtn = document.getElementById(`${initialFormName}-input-submit-btn`);
-const initInputNextBtn = document.getElementById(`${initialFormName}-input-next-btn`);
+// const initInputNextBtn = document.getElementById(`${initialFormName}-input-next-btn`);
 const initInputFormId = initialFormName + '-input-form';
 const initInputForm = document.getElementById(initInputFormId);
 
@@ -199,12 +199,14 @@ initSubmitBtn.onclick = () => {
   Object.keys(inputs).forEach(id => subjectData[inputs[id].name] = inputs[id].value);
   initSubmitBtn.disabled = true;
   disableFormInputs(initInputFormId);
-  initInputNextBtn.disabled = false;
-}
-initInputNextBtn.onclick = () => {
+  // initInputNextBtn.disabled = false;
   hide("core-learn-form-div");
   showNext("core-gen-div")
 }
+// initInputNextBtn.onclick = () => {
+//   hide("core-learn-form-div");
+//   showNext("core-gen-div")
+// }
 initialInput.style.display = (mode==='dev')? 'flex': 'none';
 // initialInput.style.display = 'none';
 
@@ -241,7 +243,7 @@ for(let i = 0; i < genConfigs.length; i++ ) {
 
   const selectionForm = document.getElementById(`${taskId}-selection-form`);
   const confirmBtn = document.getElementById(`${taskId}-confirm-btn`);
-  const selNextBtn = document.getElementById(`${taskId}-selection-next-btn`);
+  // const selNextBtn = document.getElementById(`${taskId}-selection-next-btn`);
 
   selectionForm.onchange = () =>
     composeSelection(`${taskId}-selection-svg`, `${taskId}-selection-form`, `${taskId}-confirm-btn`);
@@ -253,9 +255,7 @@ for(let i = 0; i < genConfigs.length; i++ ) {
     trialData['result'].push(stoneCode);
     trialData['confidence'].push(selection.conf);
     disableFormInputs(`${taskId}-selection-form`);
-    selNextBtn.disabled = false;
-  }
-  selNextBtn.onclick = () => {
+    // selNextBtn.disabled = false;
     (mode!=='dev')? hide(`box-${taskId}`): null;
     if (i < genConfigs.length-1) {
       showNext(`box-gen-${padNum(i+2)}`)
@@ -263,6 +263,14 @@ for(let i = 0; i < genConfigs.length; i++ ) {
       showNext("core-gen-form-div")
     }
   }
+  // selNextBtn.onclick = () => {
+  //   (mode!=='dev')? hide(`box-${taskId}`): null;
+  //   if (i < genConfigs.length-1) {
+  //     showNext(`box-gen-${padNum(i+2)}`)
+  //   } else {
+  //     showNext("core-gen-form-div")
+  //   }
+  // }
 }
 genDiv.style.display = (mode==='dev')? 'flex': "none";
 // genDiv.style.display = 'none';
@@ -274,7 +282,7 @@ finalInput.append(createTextInputPanel(finalFormName));
 finalInput.style.display = (mode === '')? 'none': 'flex';
 
 const finalSubmitBtn = document.getElementById(`${finalFormName}-input-submit-btn`);
-const finalInputNextBtn = document.getElementById(`${finalFormName}-input-next-btn`);
+// const finalInputNextBtn = document.getElementById(`${finalFormName}-input-next-btn`);
 const finalInputFormId = finalFormName + '-input-form';
 const finalInputForm = document.getElementById(finalInputFormId);
 
@@ -284,12 +292,14 @@ finalSubmitBtn.onclick = () => {
   Object.keys(inputs).forEach(id => subjectData[inputs[id].name] = inputs[id].value);
   finalSubmitBtn.disabled = true;
   disableFormInputs(finalInputFormId);
-  finalInputNextBtn.disabled = false;
-}
-finalInputNextBtn.onclick = () => {
+  // finalInputNextBtn.disabled = false;
   hide("tasks")
   showNext("debrief", "block")
 }
+// finalInputNextBtn.onclick = () => {
+//   hide("tasks")
+//   showNext("debrief", "block")
+// }
 finalInput.style.display = (mode==='dev')? 'flex': "none";
 
 /** Debrief page */

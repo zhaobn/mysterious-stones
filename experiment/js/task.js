@@ -1,5 +1,5 @@
 
-const mode = '' // '' for production, 'dev' for development, 'flask' for flask-app
+const mode = 'dev' // '' for production, 'dev' for development, 'flask' for flask-app
 const cond = config[0].group
 console.log(`Hi, ${mode} mode; condition ${cond}.`);
 

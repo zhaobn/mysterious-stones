@@ -310,19 +310,22 @@ function createAnswerComposer(config) {
 
   box.innerHTML = `
     <div class="selection-composer">
+      <div class="selection-svg-div">
+        <svg class="selection-object" id='${taskId}-selection-svg'></svg>
+      </div>
       <div class="selection-form-div">
         <form class="selection-form" id="${taskId}-selection-form">
-          <p>Shape:
+          <p>Sides:
           <select id="shape" name="shape" class="selection-input">
             <option value="--" SELECTED>--</option>
-            <option value="p3">Triangle</option>
-            <option value="p4">Square</option>
-            <option value="p5">Pentagon</option>
-            <option value="p6">Hexagon</option>
-            <option value="p7">Heptagon</option>
+            <option value="p3">3 (triangle)</option>
+            <option value="p4">4 (square)</option>
+            <option value="p5">5 (pentagon)</option>
+            <option value="p6">6 (hexagon)</option>
+            <option value="p7">7 (heptagon)</option>
           </select>
-          </p>
-          <p>Shading:
+          &nbsp;&nbsp;
+          Shading:
           <select id="color" name="color" class="selection-input">
             <option value="--" SELECTED>--</option>
             <option value="s1">Light</option>
@@ -330,7 +333,8 @@ function createAnswerComposer(config) {
             <option value="s3">Dark</option>
             <option value="s4">Very dark</option>
           </select>
-          <p>Your confidence:
+          </p>
+          <p>Confidence:
           <select id="conf" name="conf" class="selection-input">
             <option value="--" SELECTED>--</option>
             <option value="10">10 - Very confident</option>
@@ -346,9 +350,6 @@ function createAnswerComposer(config) {
           </select>
           </p>
         </form>
-      </div>
-      <div class="selection-svg-div">
-        <svg class="selection-object" id='${taskId}-selection-svg'></svg>
       </div>
       <div class="selection-buttons">
         <button class="task-button" id="${taskId}-confirm-btn" disabled>OK</button>

@@ -198,7 +198,7 @@ ol li {
   margin: 0px;
 }
 .selection-form select {
-  width: 40%;
+  width: 20%;
 }
 .selection-svg-div {
   /* margin: 6% 2%; */
@@ -453,4 +453,8 @@ flex-direction: column;
 #core-gen-div {
   display: flex;
   flex-direction: column;
+}
+.light-col {
+  background-color: red;
+  color: #116466 ;
 }

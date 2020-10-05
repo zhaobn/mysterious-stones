@@ -7,9 +7,15 @@ console.log(`Hi, ${mode} mode; condition ${cond}.`);
 const start_time = Date.now();
 let start_task_time = 0;
 
-const descBtn = document.getElementById('desc-btn');
-descBtn.onclick = () => {
-  hide("instruction");
+document.getElementById('desc-next-btn').onclick = () => {
+  hide("box-desc-1")
+  showNext("box-desc-2", "block")
+}
+
+document.getElementById('desc-btn').onclick = () => {
+  hide("box-desc-2");
+  showNext("box-desc-1", "block");
+  hide('instruction');
   showNext("comprehension", "block");
   showNext("check-btn");
 }

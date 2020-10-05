@@ -3,11 +3,9 @@ body {
   font-family: Arial, Helvetica, sans-serif;
   background-color: #e0e0e0;
 }
-
 h1 {
   margin: 50px 100px 0px 100px;
 }
-
 h2 {
   margin: 0 auto;
   text-align: center;
@@ -19,6 +17,9 @@ h3 {
 h4 {
   margin: 10px 100px 0px 100px;
   font-weight: 300;
+}
+ol li {
+  margin-bottom: 15px;
 }
 
 .section-page h1 {

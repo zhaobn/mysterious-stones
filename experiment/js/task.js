@@ -361,7 +361,7 @@ doneBtn.onclick = () => {
 
   /** Give feedback */
   const truths = genConfigs.map(c => c[4])
-  const predicted = trialData.result.slice(learnConfigs.length-1,);
+  const predicted = trialData.result.slice(learnConfigs.length,);
   let correct = 0;
   truths.forEach((t, i) => (t===predicted[i])? correct+=1: null);
   clientData.subject.correct = correct;

@@ -226,8 +226,10 @@ for(let i = 0; i < genConfigs.length; i++ ) {
   let taskBox = createCustomElement("div", "task-box", `taskbox-${taskId}`);
 
   let taskNum = createText('h3', `${i+1}/${genConfigs.length}:
-    This active stone will turn this inactive stone into ...?`)
+    This active stone will turn this inactive stone into ...?`);
+  let incentive = createText('h4', `$.10 bonus for each guess you make correctly (according to the true hidden powers of the stones)`)
   taskBox.append(taskNum);
+  taskBox.append(incentive);
 
   let displayDiv = createCustomElement("div", "display-div", `${taskId}-display-div`);
   let displayBox = createCustomElement("div", "display-box", `${taskId}-display-box`);
@@ -277,25 +279,51 @@ genDiv.style.display = (mode==='dev')? 'flex': "none";
 
 /** Core: final input form */
 let finalInput = document.getElementById("core-gen-form-div");
-const finalFormName = 'final';
-finalInput.append(createTextInputPanel(finalFormName));
-finalInput.style.display = (mode === '')? 'none': 'flex';
 
-const finalSubmitBtn = document.getElementById(`${finalFormName}-input-submit-btn`);
-// const finalInputNextBtn = document.getElementById(`${finalFormName}-input-next-btn`);
-const finalInputFormId = finalFormName + '-input-form';
-const finalInputForm = document.getElementById(finalInputFormId);
+let fiBox = createCustomElement("div", "input-div", `final-input`);
+let fiButtonGroup = createCustomElement("div", "button-group", `final-button-group`);
+fiButtonGroup.append(createBtn(`final-input-submit-btn`, "OK", false));
 
-finalInputForm.onchange = () => isFilled(finalInputFormId)? finalSubmitBtn.disabled = false: null;
-finalSubmitBtn.onclick = () => {
-  let inputs = finalInputForm.elements;
-  Object.keys(inputs).forEach(id => subjectData[inputs[id].name] = inputs[id].value);
-  finalSubmitBtn.disabled = true;
-  disableFormInputs(finalInputFormId);
-  // finalInputNextBtn.disabled = false;
+let finalForm = createCustomElement("form", "input-form", `final-input-form`);
+finalForm.innerHTML = `
+  <p><b>Has your impression about how these mysterious stones work changed?</b>
+    <select name="final_change" id="final_change" class="input-rule">
+      <option value="--" SELECTED>
+      <option value="1">Yes</option>
+      <option value="0">No</option>
+    </select>
+  </p>`
+
+finalInput.append(finalForm);
+finalInput.append(fiButtonGroup);
+
+const fiBtn = document.getElementById('final-input-submit-btn');
+finalForm.onchange = (e) => fiBtn.disabled = (e.target.value === '--')? true: false;
+fiBtn.onclick = () => {
+  subjectData['final_changed'] = document.getElementById('final_change').value;
   hide("tasks")
   showNext("debrief", "block")
 }
+
+
+// finalInput.append(createTextInputPanel(finalFormName));
+// finalInput.style.display = (mode === '')? 'none': 'flex';
+
+// const finalSubmitBtn = document.getElementById(`${finalFormName}-input-submit-btn`);
+// // const finalInputNextBtn = document.getElementById(`${finalFormName}-input-next-btn`);
+// const finalInputFormId = finalFormName + '-input-form';
+// const finalInputForm = document.getElementById(finalInputFormId);
+
+// finalInputForm.onchange = () => isFilled(finalInputFormId)? finalSubmitBtn.disabled = false: null;
+// finalSubmitBtn.onclick = () => {
+//   let inputs = finalInputForm.elements;
+//   Object.keys(inputs).forEach(id => subjectData[inputs[id].name] = inputs[id].value);
+//   finalSubmitBtn.disabled = true;
+//   disableFormInputs(finalInputFormId);
+//   // finalInputNextBtn.disabled = false;
+//   hide("tasks")
+//   showNext("debrief", "block")
+// }
 // finalInputNextBtn.onclick = () => {
 //   hide("tasks")
 //   showNext("debrief", "block")

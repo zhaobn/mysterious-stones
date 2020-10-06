@@ -72,6 +72,8 @@ function createInputForm(taskId) {
       (Please refer to stones as <i>active</i> and <i>inactive</i>,
       and be specific about <i>what properties you think matter or do not matter for the effects,
       and how they do so</i>.)
+      <br />
+      <span class="incentive">$.50 bonus if you write the correct hidden causal power</span>
     </p>
     <textarea name="${taskId}_input" id="${taskId}-input" placeholder="${placeholderText}"></textarea>
     <p>How certain are you?

@@ -123,7 +123,7 @@
         <button class='big-button' id='retry-btn'>&lt;&lt;Instructions</button>
       </div>
     </div>
-    <div id="tasks" >
+    <div id="tasks" style="display:none">
       <div id="showcase" class="frame" style="height:200px;padding:5px;">
         <div id="showcase-1" class="case"></div>
         <div id="showcase-2" class="case"></div>
@@ -139,7 +139,7 @@
         <div id="core-gen-form-div"></div>
       </div>
     </div>
-    <div id="debrief" class="box" style="display:none">
+    <div id="debrief" class="box">
       <h1>Thank you for your contributions to science</h1>
       <h4>You will be eligible for full payment once you answer the following questions.</h4>
       <h4><b>Note</b>: To continue, please answer <span style="color:red">all questions</span>.</h4>
@@ -201,9 +201,11 @@
         <button class='big-button' id='done-btn' disabled>Done</button>
       </div>
     </div>
-    <div id="completed" style="display:none">
-      <h1>Your completion code is:</h1>
-      <h1 id="completion-code"></h1>
+    <div id="completed">
+      <div id="code-div">
+        <h1>Your completion code is:</h1>
+        <h1 id="completion-code"></h1>
+      </div>
     </div>
   </body>
   <script type='text/javascript' src='../js/configs/test.js'></script>

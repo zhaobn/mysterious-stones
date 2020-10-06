@@ -372,11 +372,15 @@ function compIsFilled () {
   }
   return (checked > checks.length-1)
 }
-function showCompletion(code) {
+function showCompletion(code, nCorrect) {
   hide("debrief")
   showNext("completed")
   let t = document.createTextNode(code);
+  let co = createText('p', `You got ${nCorrect} predictions correct!
+  You will get $${nCorrect * 0.1} bonus on top of your base pay.
+  Bonus on writing the correct causal power will be paid later after manual checks.`)
   document.getElementById('completion-code').append(t);
+  document.getElementById('completed').append(co);
 }
 function generateToken (length) {
   let tokens = '';

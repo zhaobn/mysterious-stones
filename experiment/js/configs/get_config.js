@@ -17,7 +17,7 @@
  */
 
 let config = [];
-const condition = 'A4';
+const condition = 'all';
 
 const fixed_obj = 42;
 const varied_obj = [ 31, 53, 62, 33, 52, 61 ].sort();
@@ -38,7 +38,7 @@ if (condition=='all') {
 }
 
 // console.log(config);
-console.log(JSON.stringify(config))
+// console.log(JSON.stringify(config))
 
 /** Functions that do the real job */
 function getExpConfig (condition) {
@@ -65,7 +65,7 @@ function getExpConfig (condition) {
     gen_recipients.forEach(r => pairs.push([a, r]))
   })
   pairs.forEach((pair, idx) => {
-    configArr.push(formatConfig(idx+1, condition, 'gen', pair[0], pair[1]))
+    configArr.push(formatConfig(idx+1, condition, 'gen', pair[0], pair[1], rule))
   })
 
   return configArr

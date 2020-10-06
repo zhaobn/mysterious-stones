@@ -470,3 +470,16 @@ flex-direction: column;
 #final-button-group {
   margin: 15px 0px;
 }
+#code-div {
+  display: flex;
+  flex-direction: row;
+}
+#completed {
+  display: flex;
+  flex-direction: column;
+}
+#completed p {
+  margin: 50px 100px 0px 100px;
+  font-weight: bold;
+  font-size: 25px;
+}

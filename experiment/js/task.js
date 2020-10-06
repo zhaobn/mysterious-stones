@@ -1,5 +1,11 @@
 
 const mode = 'dev' // '' for production, 'dev' for development, 'flask' for flask-app
+
+/** Pick a condition */
+// const conditions = [ 'A1', 'A2', 'A3', 'A4' ];
+// const cond = conditions[drawRdnNum(0,3,1)]
+// config = config.filter(c => c.group === cond);
+
 const cond = config[0].group
 console.log(`Hi, ${mode} mode; condition ${cond}.`);
 
@@ -76,7 +82,7 @@ let genConfigs = []
 genSigs.forEach((sid, idx) => {
   let cfg = (config.filter(c => c.sid === sid))[0];
   let taskId = 'gen-' + padNum(idx+1);
-  genConfigs.push([taskId, sid, cfg.agent, cfg.recipient])
+  genConfigs.push([taskId, sid, cfg.agent, cfg.recipient, cfg.result])
 })
 
 let trialData = {
@@ -305,7 +311,6 @@ fiBtn.onclick = () => {
   showNext("debrief", "block")
 }
 
-
 // finalInput.append(createTextInputPanel(finalFormName));
 // finalInput.style.display = (mode === '')? 'none': 'flex';
 
@@ -354,14 +359,21 @@ doneBtn.onclick = () => {
   clientData.subject.token = token;
   clientData.trials = trialData;
 
+  /** Give feedback */
+  const truths = genConfigs.map(c => c[4])
+  const predicted = trialData.result.slice(learnConfigs.length-1,);
+  let correct = 0;
+  truths.forEach((t, i) => (t===predicted[i])? correct+=1: null);
+
   if (mode === 'flask') {
     fetch(root_string, {
         method: 'POST',
         body: JSON.stringify(clientData),
     })
-    .then(() => showCompletion(token))
+    .then(() => showCompletion(token, correct))
     .catch((error) => console.log(error));
   } else {
+    showCompletion(token, correct);
     console.log(clientData);
     // download(JSON.stringify(clientData), 'data.txt', '"text/csv"');
   }

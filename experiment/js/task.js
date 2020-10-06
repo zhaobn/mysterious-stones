@@ -1,13 +1,13 @@
 
-const mode = 'dev' // '' for production, 'dev' for development, 'flask' for flask-app
+const mode = '' // '' for production, 'dev' for development, 'flask' for flask-app
 
 /** Pick a condition */
-// const conditions = [ 'A1', 'A2', 'A3', 'A4' ];
-// const cond = conditions[drawRdnNum(0,3,1)]
-// config = config.filter(c => c.group === cond);
+const conditions = [ 'A1', 'A2', 'A3', 'A4' ];
+const cond = conditions[drawRdnNum(0,3,1)]
+config = config.filter(c => c.group === cond);
 
-const cond = config[0].group
-console.log(`Hi, ${mode} mode; condition ${cond}.`);
+// const cond = config[0].group
+console.log(`${mode} mode; condition ${cond}.`);
 
 /** Comprehension quiz */
 const start_time = Date.now();
@@ -264,8 +264,8 @@ for(let i = 0; i < genConfigs.length; i++ ) {
     trialData['confidence'].push(selection.conf);
     disableFormInputs(`${taskId}-selection-form`);
     // selNextBtn.disabled = false;
-    (mode!=='dev')? hide(`box-${taskId}`): null;
     if (i < genConfigs.length-1) {
+      (mode!=='dev')? hide(`box-${taskId}`): null;
       showNext(`box-gen-${padNum(i+2)}`)
     } else {
       showNext("core-gen-form-div")
@@ -364,6 +364,7 @@ doneBtn.onclick = () => {
   const predicted = trialData.result.slice(learnConfigs.length-1,);
   let correct = 0;
   truths.forEach((t, i) => (t===predicted[i])? correct+=1: null);
+  clientData.subject.correct = correct;
 
   if (mode === 'flask') {
     fetch(root_string, {

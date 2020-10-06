@@ -5,7 +5,7 @@
     <title>Experiment</title>
   </head>
   <body>
-    <div id='instruction' style="display:none;">
+    <div id='instruction'>
       <h1>Instructions</h1>
       <div id="box-desc-1">
         <div class="frame">
@@ -139,7 +139,7 @@
         <div id="core-gen-form-div"></div>
       </div>
     </div>
-    <div id="debrief" class="box">
+    <div id="debrief" class="box" style="display:none;">
       <h1>Thank you for your contributions to science</h1>
       <h4>You will be eligible for full payment once you answer the following questions.</h4>
       <h4><b>Note</b>: To continue, please answer <span style="color:red">all questions</span>.</h4>
@@ -201,14 +201,14 @@
         <button class='big-button' id='done-btn' disabled>Done</button>
       </div>
     </div>
-    <div id="completed">
+    <div id="completed" style="display:none;">
       <div id="code-div">
         <h1>Your completion code is:</h1>
         <h1 id="completion-code"></h1>
       </div>
     </div>
   </body>
-  <script type='text/javascript' src='../js/configs/test.js'></script>
+  <script type='text/javascript' src='../js/configs/get_config.js'></script>
   <script type='text/javascript' src='../js/funcs.js'></script>
   <script type='text/javascript' src='../js/task.js'></script>
  </html>

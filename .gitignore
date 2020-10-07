@@ -19,3 +19,6 @@
 *.bbl
 *.blg
 .Rproj.user
+
+# Local env
+.vscode/

@@ -28,8 +28,8 @@ dbExistsTable(con, participantTableName)
 ## Then you can pull the task data from postgreSQL 
 td <- dbGetQuery(con, paste("SELECT * from ", taskTableName))
 
-pilot_start = 20
-pilot_end = 36
+pilot_start = 4
+pilot_end = 12
 
 subject <- td$subject[c(pilot_start:pilot_end)]
 trials <- td$trials[c(pilot_start:pilot_end)]
@@ -54,7 +54,16 @@ inv_fromJSON <- function(js, opt) {
   }
   return(fromJSON(js))
 }
-
+trim<-function(data, i) {
+  js<-data[i]
+  js <- chartr("\'\"","\"\'",js)
+  js <- fromJSON(js)
+  if (length(js[['result']])>24) {
+    print(paste0(i, ' exceeding 24!'))
+    js[['result']]<-js[['result']][seq(24)]
+  }
+  return(js)
+}
 
 ## Create dataframes
 df.sw.aux = as.data.frame(inv_fromJSON(subject[1], TRUE))
@@ -64,14 +73,13 @@ for (i in 2:nsubs) {
   sj = as.data.frame(inv_fromJSON(subject[i], TRUE))
   df.sw.aux = rbind(df.sw.aux, sj)
 }
+write.csv(df.sw.aux, file='pilot.csv')
+
 for (i in 2:nsubs) {
-  tj = as.data.frame(inv_fromJSON(trials[i], FALSE))
+  tj<-as.data.frame(trim(trials, i))
+  # tj = as.data.frame(inv_fromJSON(trials[i], FALSE))
   df.tw.aux = rbind(df.tw.aux, tj)
 }
-# Weird redundency
-# df.tw.aux <- df.tw.aux[-c(6, 22, 23, 64, 85), ] #A1A2
-df.tw.aux <- df.tw.aux[-c(16, 22, 28, 74), ] #A3A4
-N = nlevels(df.tw.aux[[1]]) # 5
 
 ## And append them to the id and upis
 df.sw <- data.frame(ix=td$id,

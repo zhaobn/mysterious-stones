@@ -218,6 +218,10 @@ ol li {
   align-items: center;
   border: #bbbbbb solid .5px;
 }
+.selectiion-svg-div {
+  display: flex;
+  flex-direction: row;
+}
 .selection-object {
   height: 65px;
   width: 65px;

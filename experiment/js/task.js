@@ -111,6 +111,9 @@ genConfigs.forEach(c => {
   trialData['recipient'].push(c[3]);
 })
 
+console.log(trialData)
+console.log(trialData['result'].length)
+
 let showDiv = document.getElementById("showcase");
 const coreLearnDiv = document.getElementById("core-learn-div");
 let learnClicked = Array(learnConfigs.length).fill(0);
@@ -263,6 +266,7 @@ for(let i = 0; i < genConfigs.length; i++ ) {
     trialData['result'].push(stoneCode);
     trialData['confidence'].push(selection.conf);
     disableFormInputs(`${taskId}-selection-form`);
+    confirmBtn.disabled = true;
     // selNextBtn.disabled = false;
     if (i < genConfigs.length-1) {
       (mode!=='dev')? hide(`box-${taskId}`): null;

@@ -310,10 +310,15 @@ function createAnswerComposer(config) {
   let box = createCustomElement("div", "display-box", `${taskId}-selection-box`);
   box.style.width = "48%";
 
+  let colorScales = Object.values(colorDict).map(c => `<div style="width:25%;height:100%;background-color:${c}"></div>`)
+
   box.innerHTML = `
     <div class="selection-composer">
       <div class="selection-svg-div">
         <svg class="selection-object" id='${taskId}-selection-svg'></svg>
+      </div>
+      <div style="width:85%;height:8px;display:flex;flex-direction:row">
+        ${colorScales.join('\n')}
       </div>
       <div class="selection-form-div">
         <form class="selection-form" id="${taskId}-selection-form">

@@ -1,5 +1,5 @@
 
-const mode = '' // '' for production, 'dev' for development, 'flask' for flask-app
+const mode = 'dev' // '' for production, 'dev' for development, 'flask' for flask-app
 
 /** Pick a condition */
 const conditions = [ 'A1', 'A2', 'A3', 'A4' ];
@@ -92,7 +92,6 @@ let trialData = {
   "agent": [],
   "recipient": [],
   "result": [],
-  "confidence": [],
 };
 learnConfigs.forEach(c => {
   trialData['phase'].push('learn');
@@ -101,7 +100,6 @@ learnConfigs.forEach(c => {
   trialData['agent'].push(c[2]);
   trialData['recipient'].push(c[3]);
   trialData['result'].push(c[4]);
-  trialData['confidence'].push('0');
 })
 genConfigs.forEach(c => {
   trialData['phase'].push('gen');
@@ -262,7 +260,6 @@ for(let i = 0; i < genConfigs.length; i++ ) {
     Object.keys(inputs).forEach(id => selection[inputs[id].name] = inputs[id].value);
     let stoneCode = parseInt(selection.shape.slice(1,) + selection.color.slice(1,));
     trialData['result'].push(stoneCode);
-    trialData['confidence'].push(selection.conf);
     disableFormInputs(`${taskId}-selection-form`);
     confirmBtn.disabled = true;
     // selNextBtn.disabled = false;

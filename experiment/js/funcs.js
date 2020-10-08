@@ -2,6 +2,8 @@ const svgElements = [ "svg", "polygon", "circle", "rect", "path" ];
 const defaultStone = { 'borderWidth': '8px', 'mar': 5, 'len': 60 };
 const smallStone = { 'borderWidth': '3px', 'mar': 3, 'len': 20 };
 
+const reverseColorScale = Math.random() > 0.5
+
 /** Configurations */
 const colorDict = {
   "light": "#c9daf8",
@@ -68,12 +70,12 @@ function createInputForm(taskId) {
   `
   form.innerHTML = `
     <p>
-      <b>What is your ${taskId} impression about how these mysterious stones work?</b>
+      <b>What is your best guess about how these mysterious stones work?</b>
       (Please refer to stones as <i>active</i> and <i>inactive</i>,
       and be specific about <i>what properties you think matter or do not matter for the effects,
       and how they do so</i>.)
       <br />
-      <span class="incentive">$.50 bonus if you write the correct hidden causal power</span>
+      <span class="incentive">Remember there is a $0.50 bonus if you guess correctly, and nonsense answers will result in a zero bonus or hit rejection.</span>
     </p>
     <textarea name="${taskId}_input" id="${taskId}-input" placeholder="${placeholderText}"></textarea>
     <p>How certain are you?
@@ -180,9 +182,8 @@ function currentSelection (formId) {
 }
 function composeSelection (svgid, formid, checkBtnId) {
   const selections = currentSelection(formid).split(";");
-  const confidence = selections[0];
-  const color = selections[1];
-  const shape = selections[2];
+  const color = selections[0];
+  const shape = selections[1];
   const taskId = svgid.split('-').slice(0,2).join("-");
 
   if (!(color === "--" || shape === "--")) {
@@ -194,7 +195,7 @@ function composeSelection (svgid, formid, checkBtnId) {
     svg = attachStone(svg, `${taskId}-test-stone`, getOpts(stoneCode));
   }
   let checkBtn = document.getElementById(checkBtnId);
-  if (!(color === '--' || shape === '--' || confidence === '--')) checkBtn.disabled = false;
+  if (!(color === '--' || shape === '--')) checkBtn.disabled = false;
 }
 
 function createInitStones(config, parentDiv) {
@@ -310,19 +311,18 @@ function createAnswerComposer(config) {
   let box = createCustomElement("div", "display-box", `${taskId}-selection-box`);
   box.style.width = "48%";
 
-  let colorScales = Object.values(colorDict).map(c => `<div style="width:25%;height:100%;background-color:${c}"></div>`)
+  let colorKeys = Object.values(colorDict);
+  reverseColorScale? colorKeys = colorKeys.reverse(): null;
+  const colorScales = colorKeys.map(c => `<div style="width:25%;height:100%;background-color:${c}"></div>`)
 
   box.innerHTML = `
     <div class="selection-composer">
       <div class="selection-svg-div">
         <svg class="selection-object" id='${taskId}-selection-svg'></svg>
       </div>
-      <div style="width:85%;height:8px;display:flex;flex-direction:row">
-        ${colorScales.join('\n')}
-      </div>
       <div class="selection-form-div">
         <form class="selection-form" id="${taskId}-selection-form">
-          <p>Sides:
+          <p><b>Sides</b>:
           <select id="shape" name="shape" class="selection-input">
             <option value="--" SELECTED>--</option>
             <option value="p3">3 (triangle)</option>
@@ -331,8 +331,8 @@ function createAnswerComposer(config) {
             <option value="p6">6 (hexagon)</option>
             <option value="p7">7 (heptagon)</option>
           </select>
-          &nbsp;&nbsp;
-          Shading:
+          </p>
+          <p><b>Shading</b>:
           <select id="color" name="color" class="selection-input">
             <option value="--" SELECTED>--</option>
             <option value="s1">Light</option>
@@ -341,22 +341,10 @@ function createAnswerComposer(config) {
             <option value="s4">Very dark</option>
           </select>
           </p>
-          <p>Confidence:
-          <select id="conf" name="conf" class="selection-input">
-            <option value="--" SELECTED>--</option>
-            <option value="10">10 - Very confident</option>
-            <option value="9">9</option>
-            <option value="8">8</option>
-            <option value="7">7</option>
-            <option value="6">6</option>
-            <option value="5">5 - Moderately confident</option>
-            <option value="4">4</option>
-            <option value="3">3</option>
-            <option value="2">2</option>
-            <option value="1">1 - Not confident at all</option>
-          </select>
-          </p>
         </form>
+      </div>
+      <div style="width:85%;height:8px;display:flex;flex-direction:row">
+        ${colorScales.join('\n')}
       </div>
       <div class="selection-buttons">
         <button class="task-button" id="${taskId}-confirm-btn" disabled>OK</button>

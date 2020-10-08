@@ -205,7 +205,8 @@ ol li {
   margin: 0px;
 }
 .selection-form select {
-  width: 20%;
+  font-size: large;
+  width: 50%;
 }
 .selection-svg-div {
   /* margin: 6% 2%; */

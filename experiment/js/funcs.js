@@ -3,6 +3,7 @@ const defaultStone = { 'borderWidth': '8px', 'mar': 5, 'len': 60 };
 const smallStone = { 'borderWidth': '3px', 'mar': 3, 'len': 20 };
 
 const reverseColorScale = Math.random() > 0.5
+const shuffleSelecter = Math.random() > 0.5
 
 /** Configurations */
 const colorDict = {
@@ -314,38 +315,39 @@ function createAnswerComposer(config) {
   let colorKeys = Object.values(colorDict);
   reverseColorScale? colorKeys = colorKeys.reverse(): null;
   const colorScales = colorKeys.map(c => `<div style="width:25%;height:100%;background-color:${c}"></div>`)
+  const colorScaleDiv = `<div style="width:85%;height:8px;display:flex;flex-direction:row">` +
+    colorScales.join('\n') + `\n</div>`
 
+  const sidesSelector = `<p><b>Sides</b>:
+    <select id="shape" name="shape" class="selection-input">
+      <option value="--" SELECTED>--</option>
+      <option value="p3">3 (triangle)</option>
+      <option value="p4">4 (square)</option>
+      <option value="p5">5 (pentagon)</option>
+      <option value="p6">6 (hexagon)</option>
+      <option value="p7">7 (heptagon)</option>
+    </select></p>`;
+  const shadesSelector = `<p><b>Shading</b>:
+    <select id="color" name="color" class="selection-input">
+      <option value="--" SELECTED>--</option>
+      <option value="s1" style="background-color:red">Light</option>
+      <option value="s2">Medium</option>
+      <option value="s3">Dark</option>
+      <option value="s4">Very dark</option>
+    </select></p>`
   box.innerHTML = `
     <div class="selection-composer">
       <div class="selection-svg-div">
         <svg class="selection-object" id='${taskId}-selection-svg'></svg>
       </div>
+      ${shuffleSelecter? '': colorScaleDiv}
       <div class="selection-form-div">
         <form class="selection-form" id="${taskId}-selection-form">
-          <p><b>Sides</b>:
-          <select id="shape" name="shape" class="selection-input">
-            <option value="--" SELECTED>--</option>
-            <option value="p3">3 (triangle)</option>
-            <option value="p4">4 (square)</option>
-            <option value="p5">5 (pentagon)</option>
-            <option value="p6">6 (hexagon)</option>
-            <option value="p7">7 (heptagon)</option>
-          </select>
-          </p>
-          <p><b>Shading</b>:
-          <select id="color" name="color" class="selection-input">
-            <option value="--" SELECTED>--</option>
-            <option value="s1">Light</option>
-            <option value="s2">Medium</option>
-            <option value="s3">Dark</option>
-            <option value="s4">Very dark</option>
-          </select>
-          </p>
+        ${shuffleSelecter? sidesSelector: shadesSelector}
+        ${shuffleSelecter? shadesSelector: sidesSelector}
         </form>
       </div>
-      <div style="width:85%;height:8px;display:flex;flex-direction:row">
-        ${colorScales.join('\n')}
-      </div>
+      ${shuffleSelecter? colorScaleDiv: ''}
       <div class="selection-buttons">
         <button class="task-button" id="${taskId}-confirm-btn" disabled>OK</button>
       </div>

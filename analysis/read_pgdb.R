@@ -28,8 +28,9 @@ dbExistsTable(con, participantTableName)
 ## Then you can pull the task data from postgreSQL 
 td <- dbGetQuery(con, paste("SELECT * from ", taskTableName))
 
-pilot_start = 4
-pilot_end = 12
+# Pilot 
+pilot_start = 14
+pilot_end = 22
 
 subject <- td$subject[c(pilot_start:pilot_end)]
 trials <- td$trials[c(pilot_start:pilot_end)]
@@ -61,6 +62,7 @@ trim<-function(data, i) {
   if (length(js[['result']])>24) {
     print(paste0(i, ' exceeding 24!'))
     js[['result']]<-js[['result']][seq(24)]
+    js[['confidence']]<-js[['confidence']][seq(24)]
   }
   return(js)
 }
@@ -73,15 +75,16 @@ for (i in 2:nsubs) {
   sj = as.data.frame(inv_fromJSON(subject[i], TRUE))
   df.sw.aux = rbind(df.sw.aux, sj)
 }
-write.csv(df.sw.aux, file='pilot.csv')
+write.csv(df.sw.aux, file='pilot_2.csv')
 
 for (i in 2:nsubs) {
-  tj<-as.data.frame(trim(trials, i))
-  # tj = as.data.frame(inv_fromJSON(trials[i], FALSE))
+  #tj<-as.data.frame(trim(trials, i))
+  tj = as.data.frame(inv_fromJSON(trials[i], FALSE))
   df.tw.aux = rbind(df.tw.aux, tj)
 }
 
 ## And append them to the id and upis
+N=24
 df.sw <- data.frame(ix=td$id,
                     id=td$participant)
 df.sw <- df.sw[c(pilot_start:pilot_end),]
@@ -91,21 +94,17 @@ df.tw <- cbind(ix=rep(df.sw$ix, each=N), id=rep(df.sw$id, each=N), df.tw.aux)
 ## Append condtions to tw, get trial id
 conditions <- df.sw %>% select(ix, condition)
 df.tw <- df.tw %>% left_join(conditions, by='ix')
-df.tw <- df.tw %>% mutate(trial=substr(taskId, 6, 6))
-df.tw <- df.tw %>% select(ix, condition, trial, shape, color, conf,
-                          agent_shape, agent_color, recipient_shape, recipient_color, id)
 
 ## Formats
 df.sw$age<-as.numeric(as.character(df.sw$age))
 df.sw$instructions_duration<-as.numeric(as.character(df.sw$instructions_duration))
 df.sw$task_duration<-as.numeric(as.character(df.sw$task_duration))
 df.sw$initial_certainty<-as.numeric(as.character(df.sw$initial_certainty))
-df.sw$final_certainty<-as.numeric(as.character(df.sw$final_certainty))
 
-df.tw$trial<-as.numeric(as.character(df.tw$trial))
+df.tw$confidence<-as.numeric(as.character(df.tw$confidence))
 df.tw$condition<-as.character(df.tw$condition)
 ## Save data
-save(df.sw, df.tw, file='../data/mturk_20200418_A3A4.Rdata') # ../data/mturk_20200416_A1A2.Rdata
+save(df.sw, df.tw, file='../data/mturk_20201008.Rdata') # ../data/mturk_20200416_A1A2.Rdata
 # load(file="../data/mturk_20200416_A1A2_18.Rdata")
 
 # Combine data

@@ -1,27 +1,27 @@
 
 library(dplyr)
-workers<-read.csv('pilot_mturk.csv')
+workers<-read.csv('bonus_raw.csv')
 
-mInfo<-workers[,c(1,2,5)]
-colnames(mInfo)<-c('worker_id', 'token', 'assignment_id')
-taskInfo<-workers[,3:4]
+mInfo<-workers[,c(1,2,3)]
+colnames(mInfo)<-c('assignment_id', 'worker_id', 'token')
+taskInfo<-workers[,4:5]
 
 info<-taskInfo%>%full_join(mInfo, by='token')
-# found a mising worker token
-info[7,'worker_id']<-info[10, 'worker_id']
-info[7,'assignment_id']<-info[10, 'assignment_id']
-info<-info[-10,]
 
-# generate commands
+# First check account balance: 
+#     aws mturk get-account-balance
+
+# Generate bonus commands
+output = data.frame(aws=character(0))
 for (i in 1:nrow(info)) {
   cmd<-paste0('aws mturk send-bonus ',
               '--worker-id ', info[i,'worker_id'], ' ',
               '--bonus-amount ', info[i, 'bonus'], ' ',
               '--assignment-id ', info[i, 'assignment_id'], ' ',
               '--reason "bonus for mysterious stone task"')
-  print(cmd)
+  output<-rbind(output, data.frame(aws=cmd))
 }
-
+write.csv(output, 'bonus')
 
 
 

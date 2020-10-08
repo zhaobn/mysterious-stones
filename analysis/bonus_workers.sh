@@ -1,5 +1,0 @@
-aws mturk send-bonus --worker-id AMELYCC59JKB0 --bonus-amount 1.8 --assignment-id 3RSDURM96CDZKR8X351ZXM8LJ8SYEL --reason "bonus for mysterious stone task"
-aws mturk send-bonus --worker-id A1FCOOO4XRP36A --bonus-amount 0.7 --assignment-id 3DR23U6WE7533593TZE0P5G646ATER --reason "bonus for mysterious stone task"
-aws mturk send-bonus --worker-id AUIV308RYU12K --bonus-amount 0.4 --assignment-id 3TK8OJTYM3CMDO2I78UQKZ3VFYTPVP --reason "bonus for mysterious stone task"
-aws mturk send-bonus --worker-id AMTTB8JUWRRM7 --bonus-amount 0.9 --assignment-id 3ND9UOO81MT91SNP5Q6FPKDPHXTLWW --reason "bonus for mysterious stone task"
-aws mturk send-bonus --worker-id A2O040KR3U0LY2 --bonus-amount 0.2 --assignment-id 3S96KQ6I9OVYBZV3X43GJNYL4U9TDY --reason "bonus for mysterious stone task"

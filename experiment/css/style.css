@@ -484,3 +484,7 @@ flex-direction: column;
   font-weight: bold;
   font-size: 25px;
 }
+#sure-btn {
+  background-color: #116466;
+  color: #e0e0e0;
+}

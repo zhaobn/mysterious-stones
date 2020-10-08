@@ -5,24 +5,24 @@
     <title>Experiment</title>
   </head>
   <body>
-    <div id='instruction' class="base" style="display:none">
+    <div id='instruction' class="base">
       <h1>Instructions</h1>
       <div id="box-desc-1">
         <div class="frame">
           <p>
-            Imagine that you are on an astrological field trip.
-            Space scientists have just discovered curious stones with mysterious powers!
-            The stones do not all look the same,
-            and how they look seems important for how they interact with one another.
+            In this task you are playing the role of a space scientist on an astrological field trip.
+            You have just discovered some curious stones with mysterious powers!
+            The stones do not all look the same, and how they look seems to be important for how they interact with one another.
           </p>
+          <p>The stones discovered so far:</p>
           <ul>
-            <li>The stones discovered so far come in a <b><em>range of shades</em></b> including some that are:
+            <li>come in a range of shades:
               <span style="color: #c9daf8; font-weight: bold;">light</span>,
               <span style="color: #6d9eeb; font-weight: bold;">medium</span>,
               <span style="color: #1155cc; font-weight: bold;">dark</span>, to
-              <span style="color: #052e54; font-weight: bold;">very dark</span>.
+              <span style="color: #052e54; font-weight: bold;">very dark</span>;
             </li>
-            <li>And to come in a variety of shapes with different <b><em>numbers of sides</em></b> -
+            <li>and a variety of shapes:
               triangular <svg height="20px" width="20px"><polygon fill="#6d9eeb" points="10,1 19,19 1,19"></polygon></svg>,
               square <svg height="20px" width="20px"><polygon fill="#6d9eeb" points="1,1 1,19 19,19 19,1"></polygon></svg>,
               pentagon <svg height="20px" width="20px"><polygon fill="#6d9eeb" points="13,20 2,16 2,4 13,0 20,10"></polygon></svg>,
@@ -33,10 +33,12 @@
           <p>
             Sometimes the stones go into an <b><em>active state</em></b> in which they glow with a strange light
             <svg height="24px" width="24px"><polygon fill="#6d9eeb" stroke-width="3px" stroke="yellow" points="12,2 22,22 2,22"></polygon></svg>.
-            When an active stone is tapped against an inactive stone, the properties of the inactive stone often seem to change.
+            When an active stone is tapped against an inactive stone, it causes the properties of the inactive stone to change.
           </p>
           <p>Any of the mysterious stones can be active or inactive.</p>
-          <p>You are part of this scientific team to come up with theories about <b><em>what determines these changes</em></b>.</p>
+          <p>Your task is to come up with theories about what determines these changes,
+            and make some predictions about how some novel stones will affect one another.
+          </p>
         </div>
         <div class='button-group-vc'>
           <button class='big-button' id='desc-next-btn'>Next</button>
@@ -48,32 +50,28 @@
             Your task will have three phases:
             <ol>
               <li>
-                First, you will observe 6 test interactions between Active and Inactive stones.
+                First you will perform 6 tests in which you hit an active stone against an inactive stone and see what happens.
                 <div id="instruction-demo-display">
                   <svg height="50px" width="50px"><polygon fill="#c9daf8" stroke-width="8px" stroke="yellow" points="5,5 5,45, 45,45 45,5"></polygon></svg>
                   <svg height="50px" width="50px"><polygon fill="#6d9eeb" stroke-width="0px" points="5,5 5,45, 45,45 45,5"></polygon></svg>
                 </div>
-                You can click the "Play" button to watch the phenomena.
-                After the effects are played, you will then see a summary showing
-                what the Active stone looked like,
-                what the Inactive stone looked like <i>before</i> the Active stone hit it,
-                and again <i>after</i> the Active stone hit it</b>.
+                You can hit the "test" button to knock the active stone against the inactive stone and see what happens.
+                You will then see a summary showing what the stones looked like before and after the interaction.
               </li>
-              <li>Then, you will be asked to write your initial impression of how the phenomena works.
-                <b><em>What is it about the Active stone and the Inactive stone that makes the changes you observed occur?</em></b>
-                  What changes would you expect for other pairs of Active and Inactive stones that might look different to these ones?
-                <b><em>You will be paid <span style="color:red">$0.50 bonus if you write the correct hidden causal relation</span>.</em></b>
+              <li>Then, you will be asked to write your best guess of how the phenomena works:
+                <b><em>what causal rule (or rules) determine when, whether and how the Active stones change the Inactive stones?</em></b>
+                You will be paid <span style="color:red;font-weight:bold;font-style:italic">$0.50 bonus</span> if you write the correct hidden causal relation.
               </li>
                 <li>
-                Finally, you will see several new pairs of Active and Inactive stones and make a guess about what the Inactive stone will look like after being hit by the Active stone.
-                You can compose your answer by selecting from the provided drop-down menus. A color scale will be presented to help you identify the color shades.
-                <b><em>You will be paid <span style="color:red">$0.10 bonus for each guess that you make correctly</span> (according to the true hidden powers of the stones)</em></b>
-                <!-- You will be able to select how you think the Inactive stone will look using drop-down menus. -->
+                  You will then see 16 new pairs of Active and Inactive stones and make predictions about what will happen to the Inactive stone if it is hit by the Active stone.
+                  <!-- You can compose your answer by selecting from the provided drop-down menus. A color scale will be presented to help you identify the color shades. -->
+                  You will be paid <span style="color:red"><b><em>$0.10 bonus</em></b></span> for each guess that you make correctly (according to the true hidden powers of the stones).
               </li>
             </ol>
           </p>
           <p>While making these predictions, the summaries you saw earlier will still be shown at the top of the page.</p>
-          <p>Think carefully. Your predictions are important for science!</p>
+          <p>Think carefully, your predictions are important for science.
+            <span style="color:red;font-weight:bold;font-style:italic">Also note that your answers will be human checked.  Nonsensical or copy pasted responses will result in a zero bonus, or outright rejection of the HIT.</span></p>
         </div>
         <div class='button-group-vc'>
           <button class='big-button' id='desc-btn'>>> Comprehension questions</button>
@@ -140,7 +138,7 @@
         <div id="core-gen-form-div"></div>
       </div>
     </div>
-    <div id="debrief" class="base" >
+    <div id="debrief" class="base" style="display:none;">
       <h1>Thank you for your contributions to science</h1>
       <h4>You will be eligible for full payment once you answer the following questions.</h4>
       <h4><b>Note</b>: To continue, please answer <span style="color:red">all questions</span>.</h4>

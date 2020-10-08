@@ -152,7 +152,7 @@ for(let i = 0; i < learnConfigs.length; i++ ) {
   displayBox = createInitStones(config, displayBox);
 
   const buttonGroup = createCustomElement("div", "button-group-vc", `${taskId}-button-group`);
-  buttonGroup.append(createBtn(`${taskId}-play-btn`, "Play", true));
+  buttonGroup.append(createBtn(`${taskId}-play-btn`, "Test", true));
   buttonGroup.append(createBtn(`${taskId}-next-btn`, "Next", false));
 
   taskBox.append(displayBox);
@@ -175,6 +175,7 @@ for(let i = 0; i < learnConfigs.length; i++ ) {
     setTimeout(() => {
       nextBtn.disabled = false;
       playBtn.disabled = false;
+      playBtn.innerText = 'Test again'
       boxWrapper.style.display = 'flex';
     }, 2000);
     learnClicked[i] += 1;

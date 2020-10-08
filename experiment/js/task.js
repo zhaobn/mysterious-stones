@@ -1,5 +1,5 @@
 
-const mode = 'dev' // '' for production, 'dev' for development, 'flask' for flask-app
+const mode = '' // '' for production, 'dev' for development, 'flask' for flask-app
 
 /** Pick a condition */
 const conditions = [ 'A1', 'A2', 'A3', 'A4' ];

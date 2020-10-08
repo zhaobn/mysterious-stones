@@ -33,7 +33,7 @@ ol li {
   background-color: #fff;
   margin: 10px 0px;
   font-size: 18px;
-  /* min-height: 300px; */
+  /* min-height: 400px; */
 }
 
 .frame p,
@@ -207,6 +207,9 @@ ol li {
 .selection-form select {
   font-size: large;
   width: 50%;
+}
+.input-box select {
+  font-size: large;
 }
 .selection-svg-div {
   /* margin: 6% 2%; */

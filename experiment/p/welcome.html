@@ -74,7 +74,7 @@
       </div>
       <div id="reminder" class="base" style="display:none;">
         <h1>Thank you for participating in this study</h1>
-        <div class="frame">
+        <div class="frame" style="height:400px;">
           <p>Please note that:</p>
           <ul>
             <li>You will have to pass a test on your understanding before you can start the experiment.</li>
@@ -93,12 +93,10 @@
     const checkScrollHeight = (text, btn) => ((text.scrollTop + text.offsetHeight) >= text.scrollHeight) ? btn.disabled = false : null;
     const consentBtn = document.getElementById("consent-btn");
     const consentText = document.getElementById("consent-info");
-    const reminderBtn = document.getElementById("reminder-btn");
     consentText.addEventListener("scroll", () => checkScrollHeight(consentText, consentBtn), false);
     consentBtn.onclick = () => {
       document.getElementById("landing").style.display = "none";
       document.getElementById("reminder").style.display = "block";
     }
-    reminderBtn.onclick = () => location.href = "instruction.html"
   </script>
 </html>

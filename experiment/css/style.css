@@ -3,9 +3,6 @@ body {
   font-family: Arial, Helvetica, sans-serif;
   background-color: #e0e0e0;
 }
-h1 {
-  margin: 50px 100px 0px 100px;
-}
 h2 {
   margin: 0 auto;
   text-align: center;
@@ -15,13 +12,15 @@ h3 {
   color: darkorange;
 }
 h4 {
-  margin: 10px 100px 0px 100px;
   font-weight: 300;
 }
 ol li {
   margin-bottom: 15px;
 }
-
+.base {
+  width:800px;
+  margin:0 auto;
+}
 .section-page h1 {
   margin: 200px;
   text-align: center;
@@ -32,7 +31,7 @@ ol li {
   padding: 20px;
   border-radius: 5px;
   background-color: #fff;
-  margin: 20px 100px;
+  margin: 10px 0px;
   font-size: 18px;
   /* min-height: 300px; */
 }
@@ -76,7 +75,6 @@ ol li {
 }
 
 .task-box {
-  min-width: 500px;
   height: 360px;
   margin: 10px;
   display: flex;
@@ -483,7 +481,6 @@ flex-direction: column;
   flex-direction: column;
 }
 #completed p {
-  margin: 50px 100px 0px 100px;
   font-weight: bold;
   font-size: 25px;
 }

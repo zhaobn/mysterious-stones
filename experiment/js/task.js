@@ -111,9 +111,6 @@ genConfigs.forEach(c => {
   trialData['recipient'].push(c[3]);
 })
 
-console.log(trialData)
-console.log(trialData['result'].length)
-
 let showDiv = document.getElementById("showcase");
 const coreLearnDiv = document.getElementById("core-learn-div");
 let learnClicked = Array(learnConfigs.length).fill(0);

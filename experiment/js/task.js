@@ -232,9 +232,8 @@ for(let i = 0; i < genConfigs.length; i++ ) {
 
   let taskNum = createText('h3', `${i+1}/${genConfigs.length}:
     This active stone will turn this inactive stone into ...?`);
-  let incentive = createText('h4', `$.10 bonus for each guess you make correctly (according to the true hidden powers of the stones)`)
+  let incentive = createText('h4', `$0.10 bonus for each guess you make correctly (according to the true hidden powers of the stones)`)
   taskBox.append(taskNum);
-  taskBox.append(incentive);
 
   let displayDiv = createCustomElement("div", "display-div", `${taskId}-display-div`);
   let displayBox = createCustomElement("div", "display-box", `${taskId}-display-box`);
@@ -244,6 +243,8 @@ for(let i = 0; i < genConfigs.length; i++ ) {
   displayDiv.append(createAnswerComposer(config));
 
   taskBox.append(displayDiv);
+  taskBox.append(incentive);
+
   box.append(taskBox);
   genDiv.append(box);
   box.style.display = display;

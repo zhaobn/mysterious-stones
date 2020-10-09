@@ -2,7 +2,6 @@ const svgElements = [ "svg", "polygon", "circle", "rect", "path" ];
 const defaultStone = { 'borderWidth': '8px', 'mar': 5, 'len': 60 };
 const smallStone = { 'borderWidth': '3px', 'mar': 3, 'len': 20 };
 
-const reverseColorScale = Math.random() > 0.5
 const shuffleSelecter = Math.random() > 0.5
 
 /** Configurations */
@@ -76,9 +75,9 @@ function createInputForm(taskId) {
       and be specific about <i>what properties you think matter or do not matter for the effects,
       and how they do so</i>.)
       <br />
-      <span class="incentive">Remember there is a $0.50 bonus if you guess correctly, and nonsense answers will result in a zero bonus or hit rejection.</span>
     </p>
     <textarea name="${taskId}_input" id="${taskId}-input" placeholder="${placeholderText}"></textarea>
+    <p class="incentive">Remember there is a $0.50 bonus if you guess correctly, and nonsense answers will result in a zero bonus or hit rejection.</p>
     <p>How certain are you?
       <select name="${taskId}_certainty" id="${taskId}-certainty" class="input-rule">
         ${options}
@@ -183,8 +182,8 @@ function currentSelection (formId) {
 }
 function composeSelection (svgid, formid, checkBtnId) {
   const selections = currentSelection(formid).split(";");
-  const color = selections[0];
-  const shape = selections[1];
+  const color = shuffleSelecter? selections[0]: selections[1];
+  const shape = shuffleSelecter? selections[1]: selections[0];
   const taskId = svgid.split('-').slice(0,2).join("-");
 
   if (!(color === "--" || shape === "--")) {
@@ -312,11 +311,11 @@ function createAnswerComposer(config) {
   let box = createCustomElement("div", "display-box", `${taskId}-selection-box`);
   box.style.width = "48%";
 
-  let colorKeys = Object.values(colorDict);
-  reverseColorScale? colorKeys = colorKeys.reverse(): null;
-  const colorScales = colorKeys.map(c => `<div style="width:25%;height:100%;background-color:${c}"></div>`)
-  const colorScaleDiv = `<div style="width:85%;height:8px;display:flex;flex-direction:row">` +
-    colorScales.join('\n') + `\n</div>`
+  // let colorKeys = Object.values(colorDict);
+  // reverseColorScale? colorKeys = colorKeys.reverse(): null;
+  // const colorScales = colorKeys.map(c => `<div style="width:25%;height:100%;background-color:${c}"></div>`)
+  // const colorScaleDiv = `<div style="width:85%;height:8px;display:flex;flex-direction:row">` +
+  //   colorScales.join('\n') + `\n</div>`
 
   const sidesSelector = `<p><b>Sides</b>:
     <select id="shape" name="shape" class="selection-input">
@@ -340,14 +339,12 @@ function createAnswerComposer(config) {
       <div class="selection-svg-div">
         <svg class="selection-object" id='${taskId}-selection-svg'></svg>
       </div>
-      ${shuffleSelecter? '': colorScaleDiv}
       <div class="selection-form-div">
         <form class="selection-form" id="${taskId}-selection-form">
         ${shuffleSelecter? sidesSelector: shadesSelector}
         ${shuffleSelecter? shadesSelector: sidesSelector}
         </form>
       </div>
-      ${shuffleSelecter? colorScaleDiv: ''}
       <div class="selection-buttons">
         <button class="task-button" id="${taskId}-confirm-btn" disabled>OK</button>
       </div>

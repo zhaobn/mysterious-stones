@@ -96,7 +96,7 @@ ol li {
 .task-box h4, .incentive {
   color: red;
   font-style: italic;
-  font-weight: bold;
+  /* font-weight: bold; */
   padding: 0px;
   margin: 0px;
   text-align: left;

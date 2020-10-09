@@ -5,7 +5,7 @@
     <title>Experiment</title>
   </head>
   <body>
-    <div id='instruction' class="base" style="display: none">
+    <div id='instruction' class="base">
       <h1>Instructions</h1>
       <div id="box-desc-1">
         <div class="frame">
@@ -47,7 +47,7 @@
       <div id="box-desc-2" style="display:none;">
         <div class="frame">
           <p>
-            Your task will have three phases:
+            Your task has three phases:
             <ol>
               <li>
                 First you will perform 6 tests in which you hit an active stone against an inactive stone and see what happens.
@@ -62,14 +62,15 @@
                 <b><em>what causal rule (or rules) determine when, whether and how the Active stones change the Inactive stones?</em></b>
                 You will be paid <span style="color:red;font-weight:bold;font-style:italic">$0.50 bonus</span> if you write the correct hidden causal relation.
               </li>
-                <li>
-                  You will then see 16 new pairs of Active and Inactive stones and make predictions about what will happen to the Inactive stone if it is hit by the Active stone.
-                  <!-- You can compose your answer by selecting from the provided drop-down menus. A color scale will be presented to help you identify the color shades. -->
-                  You will be paid <span style="color:red"><b><em>$0.10 bonus</em></b></span> for each guess that you make correctly (according to the true hidden powers of the stones).
+              <li>
+                You will then see 16 new pairs of Active and Inactive stones and make predictions about what will happen to the Inactive stone if it is hit by the Active stone.
+                <!-- You can compose your answer by selecting from the provided drop-down menus. A color scale will be presented to help you identify the color shades. -->
+                You will be paid <span style="color:red"><b><em>$0.10 bonus</em></b></span> for each guess that you make correctly (according to the true hidden powers of the stones).
+                While making these predictions, the summaries you saw earlier will still be shown at the top of the page.
               </li>
             </ol>
           </p>
-          <p>While making these predictions, the summaries you saw earlier will still be shown at the top of the page.</p>
+          <p>You will see how many predictions you get correct, and how much bonus you will be paid after completing the task.</p>
           <p>Think carefully, your predictions are important for science.
             <span style="color:red;font-weight:bold;font-style:italic">Also note that your answers will be human checked.  Nonsensical or copy pasted responses will result in a zero bonus, or outright rejection of the HIT.</span></p>
         </div>
@@ -127,7 +128,7 @@
         <button class='big-button' id='retry-btn'>&lt;&lt;Instructions</button>
       </div>
     </div>
-    <div id="tasks" class="base">
+    <div id="tasks" class="base" style="display: none">
       <div id="showcase" class="frame" style="height:200px;padding:5px;">
         <div id="showcase-1" class="case"></div>
         <div id="showcase-2" class="case"></div>

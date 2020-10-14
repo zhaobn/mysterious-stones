@@ -399,3 +399,8 @@ function download(content, fileName, contentType) {
   a.download = fileName;
   a.click();
 }
+function weightedChoice(array, weights) {
+  let s = weights.reduce((a, e) => a + e);
+  let r = Math.random() * s;
+  return array.find((e, i) => (r -= weights[i]) < 0);
+}

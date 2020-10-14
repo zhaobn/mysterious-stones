@@ -1,16 +1,16 @@
 
 library(dplyr)
-workers<-read.csv('bonus_raw.csv')
+workers<-read.csv('to_bonus.csv')
 
-mInfo<-workers[,c(1,2,3)]
+mInfo<-workers[,3:5]
 colnames(mInfo)<-c('assignment_id', 'worker_id', 'token')
-taskInfo<-workers[,4:5]
+taskInfo<-workers[,1:2]
 
 info<-taskInfo%>%full_join(mInfo, by='token')
+info <- info %>% filter(bonus > 0 & !is.na(worker_id))
 
 # First check account balance: 
 #     aws mturk get-account-balance
-
 # Generate bonus commands
 output = data.frame(aws=character(0))
 for (i in 1:nrow(info)) {
@@ -21,7 +21,7 @@ for (i in 1:nrow(info)) {
               '--reason "bonus for mysterious stone task"')
   output<-rbind(output, data.frame(aws=cmd))
 }
-write.csv(output, 'bonus')
+write.csv(output, 'bonus_cmd')
 
 
 

@@ -2,9 +2,9 @@
 const mode = '' // '' for production, 'dev' for development, 'flask' for flask-app
 
 /** Pick a condition */
-const conditions = [ 'A1', 'A2', 'A3', 'A4' ];
-const cond = conditions[drawRdnNum(0,3,1)]
+const cond = weightedChoice(['A1', 'A2', 'A3', 'A4'], [3,2,3,6])
 config = config.filter(c => c.group === cond);
+
 
 // const cond = config[0].group
 console.log(`${mode} mode; condition ${cond}.`);

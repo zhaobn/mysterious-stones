@@ -29,8 +29,8 @@ dbExistsTable(con, participantTableName)
 td <- dbGetQuery(con, paste("SELECT * from ", taskTableName))
 
 # Pilot 
-pilot_start = 14
-pilot_end = 22
+pilot_start = 131
+pilot_end = 174
 
 subject <- td$subject[c(pilot_start:pilot_end)]
 trials <- td$trials[c(pilot_start:pilot_end)]
@@ -43,6 +43,9 @@ prep_JSON <- function(str) {
   str = gsub(", '", ', \"', str)
   str = gsub("',", '\",', str)
   str = gsub("'}", '\"},', str)
+  str = gsub("'}", '\"},', str)
+  str = gsub('\\n', ' ', str, fixed=T)
+  str = gsub("\\'", "'", str, fixed=T)
   return(str)
 }
 
@@ -55,28 +58,23 @@ inv_fromJSON <- function(js, opt) {
   }
   return(fromJSON(js))
 }
-trim<-function(data, i) {
-  js<-data[i]
-  js <- chartr("\'\"","\"\'",js)
-  js <- fromJSON(js)
-  if (length(js[['result']])>24) {
-    print(paste0(i, ' exceeding 24!'))
-    js[['result']]<-js[['result']][seq(24)]
-    js[['confidence']]<-js[['confidence']][seq(24)]
-  }
-  return(js)
-}
+# Manual cleanups
+subject[3]<-gsub("didn't", 'didnt', subject[3], fixed=T)
+subject[3]<-gsub("'dark'", 'dark', subject[3], fixed=T)
+
 
 ## Create dataframes
-df.sw.aux = as.data.frame(inv_fromJSON(subject[1], TRUE))
-df.tw.aux = as.data.frame(inv_fromJSON(trials[1], FALSE))
 nsubs = length(subject);
+
+df.sw.aux = as.data.frame(inv_fromJSON(subject[1], TRUE))
 for (i in 2:nsubs) {
   sj = as.data.frame(inv_fromJSON(subject[i], TRUE))
   df.sw.aux = rbind(df.sw.aux, sj)
 }
-write.csv(df.sw.aux, file='pilot_2.csv')
+write.csv(df.sw.aux, file='main_3.csv')
 
+
+df.tw.aux = (as.data.frame(inv_fromJSON(trials[1], FALSE)))
 for (i in 2:nsubs) {
   #tj<-as.data.frame(trim(trials, i))
   tj = as.data.frame(inv_fromJSON(trials[i], FALSE))
@@ -96,36 +94,36 @@ conditions <- df.sw %>% select(ix, condition)
 df.tw <- df.tw %>% left_join(conditions, by='ix')
 
 ## Formats
+rownames(df.sw)<-NULL
 df.sw$age<-as.numeric(as.character(df.sw$age))
 df.sw$instructions_duration<-as.numeric(as.character(df.sw$instructions_duration))
 df.sw$task_duration<-as.numeric(as.character(df.sw$task_duration))
 df.sw$initial_certainty<-as.numeric(as.character(df.sw$initial_certainty))
-
-df.tw$confidence<-as.numeric(as.character(df.tw$confidence))
+df.sw$final_changed<-as.numeric(as.character(df.sw$final_changed))
 df.tw$condition<-as.character(df.tw$condition)
 ## Save data
-save(df.sw, df.tw, file='../data/mturk_20201008.Rdata') # ../data/mturk_20200416_A1A2.Rdata
-# load(file="../data/mturk_20200416_A1A2_18.Rdata")
+save(df.sw, df.tw, file='../data/mturk/main_batches/mturk_20201013.Rdata') 
 
 # Combine data
 b.sw<-df.sw
 b.tw<-df.tw
 df.sw<-rbind(df.sw, b.sw)
+#df.tw<-df.tw%>%select(colnames(b.tw))
 df.tw<-rbind(df.tw, b.tw)
-save(df.sw, df.tw, file='../data/mturk_20200419_A.Rdata')
+save(df.sw, df.tw, file='../data/mturk/mturk_main.Rdata')
 
-# Get free responses
-save_free_resp <- function (cond) {
-  free_resp<-df.sw%>%filter(condition==cond)%>%
-    select(ix, condition, initial_input, initial_certainty, 
-           final_input, final_certainty, id)
-  write.csv(file=paste0("../data/free_resp_", cond, ".csv"), free_resp)
-}
-save_free_resp("A4")
+# Clean up duplicated lines
+df.sw <- df.sw %>% arrange(ix)
+rownames(df.sw)<-NULL
 
+rownames(df.tw)<-NULL
+test<-df.tw[-c(1873:1920),]
+df.tw<-test
 
-
-
+# Add rule_ok labels
+labels<-read.csv('label.csv')
+df.sw<-select(df.sw,-'rule_ok')
+df.sw<-df.sw%>%left_join(labels, by='token')
 
 
 

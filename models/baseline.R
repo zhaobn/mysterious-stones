@@ -1,14 +1,13 @@
 
-library(dplyr)
-library(ggplot2)
+library(tidyverse)
 library(viridis)
 source('./shared.R')
 
 # Get experiment data
-tasks<-read.csv('../data/pilot_setup.csv')
+tasks<-read.csv('../data/setup/main.csv')
 fetch_task<-function(group_name, phase_name, trial_id, type='list', source=tasks) {
   task_data<-source%>%
-    filter(group==group_name&phase==phase_name&trial==trial_id)%>%
+    filter(condition==group_name&phase==phase_name&task==trial_id)%>%
     select(agent, recipient, result)
   if (type=='s') return(paste(task_data, collapse=',')) else return(as.list(task_data))
 }
@@ -16,14 +15,14 @@ fetch_task<-function(group_name, phase_name, trial_id, type='list', source=tasks
 listify_task<-function(task_str) {
   if (typeof(task_str)=='list') return(task_str) else {
     task_els<-strsplit(task_str, ',')[[1]]
-    if (task_els[3]=='NA') task_els[3]<-NA
+    if (task_els[3]==0) task_els[3]<-NA
     return(list(agent=task_els[1], recipient=task_els[2], result=task_els[3]))
   }
 }
 
 # Learning: get posterior
-get_group_post<-function(group_name, source=hypos_grouped) {
-  hypos<-source%>%select(hypo=shortest, prior)
+get_group_post<-function(group_name, source=df.hypos) {
+  hypos<-source%>%select(hypo, prior)
   final_col<-paste0('post_', group_name)
   for (i in seq(6)) {
     data<-fetch_task(group_name, 'learn', i, 's')
@@ -37,6 +36,13 @@ get_group_post<-function(group_name, source=hypos_grouped) {
   hypos[,final_col]<-hypos$post_6
   return(hypos[,c('hypo', final_col)])
 }
+df.post<-get_group_post('A1')
+for (i in 2:4) {
+  post<-get_group_post(paste0('A',i))
+  df.post<-df.post%>%left_join(post,by='hypo')
+}
+df.hypos<-df.hypos%>%left_join(df.post, by='hypo')
+save(df.hypos, file='hypos.Rdata')
 
 # Generalization predictions
 get_one_gen_pred<-function(group_name, trial_id, learn_post) {
@@ -56,16 +62,17 @@ effects_grouped=df.effects.grouped
 init_result<-data.frame(group=character(0), phase=character(0), trial=numeric(0), pred=character(0), pred=numeric(0))
 
 ce_preds<-init_result
-for (i in seq(2)) {
+for (i in 2:4) {
   group_name=paste0('A', i)
-  learned<-get_group_post(group_name, effects_grouped)
+  learned<-df.hypos[,c('hypo', paste0('post_', group_name))]
   prediction<-get_one_gen_pred(group_name, 1, learned)
-  for (j in 2:5) {
+  for (j in 2:16) {
     prediction<-rbind(prediction, get_one_gen_pred(group_name, j, learned))
   }
   ce_preds<-rbind(ce_preds, prediction)
 }
 ce_preds<-ce_preds%>%mutate(source='causal_grouped')%>%select(group, trial, object, prob=pred, source)
+save(ce_preds, file='models.Rdata')
 
 # Sanity checks with non-grouped uni-effects
 x<-unique(c(unlist(effects_grouped$shortest), unlist(effects_grouped$hypos)))

@@ -9,6 +9,26 @@ ggplot(ce_preds, aes(x=object, y=trial, fill=pred)) + geom_tile() +
   scale_fill_gradient(low='white', high='#293352') +
   facet_grid(~group)
 
+# Plot with behavorial data
+extras<-all%>%
+  select(condition, fixed, rule)%>%
+  group_by(condition, fixed, rule)%>%summarise(n=n())%>%
+  select(condition, fixed, rule)%>%ungroup()
+
+plain<-ce_preds%>%
+  select(condition=group,
+         trial,
+         result=object,
+         prob=pred)%>%
+  mutate(label='plain')%>%
+  left_join(extras, by='condition')%>%
+  select(condition, trial, result, prob, label, fixed, rule)
+
+ggplot(bind_rows(passed, plain), aes(x=result, y=trial, fill=prob)) + geom_tile() + 
+  labs(x='object', y='task') +
+  scale_y_continuous(trans="reverse", breaks=1:16) + 
+  scale_fill_gradient(low='white', high='#293352') +
+  facet_grid(label~condition)
 
 # multi plot
 ppt<-df.ppt%>%mutate(source='pilot')%>%select(group, trial, object, prob=freq, source)

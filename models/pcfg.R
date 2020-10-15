@@ -36,7 +36,7 @@ generate_hypo<-function() {
 }
 
 # effects<-list()
-# for (i in seq(20000)) effects[[i]]<-generate_hypo()
+# for (i in seq(100000)) effects[[i]]<-generate_hypo()
 # effects<-unique(effects)
 # save(effects, file='effects.Rdata')
 
@@ -80,7 +80,7 @@ universal_effects<-function(hypo, data) {
 ################################################################
 # Group by causal equivalence
 #load('effects.Rdata')
-some_hypos<-effects
+some_hypos<-effects[seq(10)]
 data_strs<-all_data_str
 
 #list_info<-data.frame(current=0)
@@ -117,7 +117,7 @@ for (i in 2:length(ut)) {
   # write.csv(ut_info, 'ut_info.csv')
   # save up
   df<-rbind(df, group_hypos(i, results))
-  save(df, file='effects_grouped.Rdata')
+  # save(df, file='effects_grouped.Rdata')
 }
 
 
@@ -184,12 +184,40 @@ df.effects.posts<-x
 save(df.effects.grouped, df.effects.posts, file='../data/effects_grouped.Rdata')
 
 
+# systematically generate basic ones
+g_edges<-c()
+for (r in c('==', '!=', '>', '<')) {
+  for (m in c('3', '4', '5', '6', '7', 
+              'edges(A)', 'edges(R)', 
+              'edges(A)+1', 'edges(R)+1', 'edges(A)-1', 'edges(R)-1')) {
+    if (!((r=='>' & m=='7') | (r=='<' & m=='3')))
+      g_edges<-c(g_edges, paste0('edges(M)', r, m))
+  }
+}
+g_shades<-c()
+for (r in c('==', '!=', '>', '<')) {
+  for (m in c('1', '2', '3', '4', 
+              'shades(A)', 'shades(R)', 
+              'shades(A)+1', 'shades(R)+1', 'shades(A)-1', 'shades(R)-1')) {
+    if (!((r=='>' & m=='4') | (r=='<' & m=='1')))
+      g_shades<-c(g_shades, paste0('shades(M)', r, m))
+  }
+}
+combos<-c()
+for (e in g_edges) {
+  for (s in g_shades) {
+    combos<-c(combos, (paste0('and(', e, ', ', s, ')')))
+  }
+}
 
 
-
-
-
-
+# unify them, get prior, clean up
+hypos<-c(g_edges, g_shades, combos)
+df.hypos<-data.frame(hypo=hypos) %>%
+  mutate(hypo=paste0("list(cause='',effect='", hypo, "')"))
+df.hypos$prior<-mapply(pcfg_prior, df.hypos$hypo)
+df.hypos$prior<-normalize(df.hypos$prior)
+save(df.hypos, file='hypos.Rdata')
 
 
 

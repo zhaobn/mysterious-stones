@@ -6,7 +6,7 @@ options(scipen = 10)
 #### Glabal variables ####
 # configs
 feature_setting<-list()
-feature_setting[['edges']]<-seq(3,8)
+feature_setting[['edges']]<-seq(3,7)
 feature_setting[['shades']]<-seq(4)
 
 # defined according to configs

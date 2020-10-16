@@ -72,6 +72,7 @@ for (i in 2:4) {
   ce_preds<-rbind(ce_preds, prediction)
 }
 ce_preds<-ce_preds%>%mutate(source='causal_grouped')%>%select(group, trial, object, prob=pred, source)
+ce_preds$object<-as.numeric(as.character(ce_preds$object))
 save(ce_preds, file='models.Rdata')
 
 # Sanity checks with non-grouped uni-effects

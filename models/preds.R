@@ -1,8 +1,8 @@
 
 source('shared.R')
-tasks<-read.csv('../data/pilot_setup.csv')
-n_learn_obs<-length(unique((tasks%>%filter(phase=='learn'))$trial))
-n_gen_obs<-length(unique((tasks%>%filter(phase=='gen'))$trial))
+tasks<-read.csv('../data/setup/main.csv')
+n_learn_obs<-length(unique((tasks%>%filter(phase=='learn'))$task))
+n_gen_obs<-length(unique((tasks%>%filter(phase=='gen'))$task))
 
 # Helpers ####
 read_cats<-function(states_source, burn_in=0, thinning=1, base='') {
@@ -27,7 +27,7 @@ prep_preds<-function(funcs, cond) {
   for (f in names(funcs)) {
     preds[[f]]<-list()
     for (d in 1:n_gen_obs) {
-      data<-as.list(tasks%>%filter(group==cond&phase=='gen'&trial==d)%>%select(agent, recipient))
+      data<-as.list(tasks%>%filter(condition==cond&phase=='gen'&task==d)%>%select(agent, recipient))
       preds[[f]][[d]]<-causal_mechanism(funcs[[f]], data)
     }
   }
@@ -37,8 +37,8 @@ prep_preds<-function(funcs, cond) {
 # Get predictions dataframe for a condition
 get_cond_preds<-function(cond, learned_cats, func_preds, alpha, beta, grouping) {
   # Shared values
-  learn_tasks<-tasks%>%filter(group==cond&phase=='learn')%>%select(agent, recipient)
-  gen_tasks<-tasks%>%filter(group==cond&phase=='gen')%>%select(agent, recipient)
+  learn_tasks<-tasks%>%filter(condition==cond&phase=='learn')%>%select(agent, recipient)
+  gen_tasks<-tasks%>%filter(condition==cond&phase=='gen')%>%select(agent, recipient)
   
   # Functions to get predictions
   # One c_i makes prediction for a gen task
@@ -104,9 +104,9 @@ get_cond_preds<-function(cond, learned_cats, func_preds, alpha, beta, grouping) 
   return(df)
 }
 
-# cats<-read_cats(x[[1]], 200, 5)
+# cats<-read_cats(x[[1]], 500, 1)
 # func_preds<-prep_preds(x[[2]], 'A1')
-# y<-get_cond_preds("A1", cats, func_preds, 1, .1, 'A')
+# y<-get_cond_preds("A1", cats, func_preds, 1, 1/9, 'A')
   
   
 

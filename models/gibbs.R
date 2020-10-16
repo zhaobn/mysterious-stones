@@ -1,12 +1,32 @@
 
 source('shared.R')
-tasks<-read.csv('../data/pilot_setup.csv')
-load('../data/effects_grouped.Rdata') # hypothesis
+tasks<-read.csv('../data/setup/main.csv')
+load('hypos.Rdata') 
 
-run_gibbs_sampler<-function(cond, grouping, alpha, beta, limit, logging=T, hypo_source=df.effects.posts) {
+# Prep hypo table
+get_hypo_posts<-function(cond, task_source=tasks, hypo_source=df.hypos) {
+  task_obs<-tasks%>%filter(condition==cond&phase=='learn')%>%select(agent, recipient, result)
+  df<-hypo_source%>%select(hypo, prior)
+  
+  for (i in seq(nrow(task_obs))) {
+    d<-paste(task_obs[i,], collapse=',')
+    post_col<-paste0('post_',i)
+    df[,post_col]<-mapply(get_likeli, df$hypo, rep(d, nrow(df))) # likelihoods
+    df[,post_col]<-df[,post_col]*df$prior
+    df[,post_col]<-normalize(df[,post_col])
+  }
+  
+  df$condition=cond
+  return(df)
+}
+# df.posts<-get_hypo_posts('A1')
+# for (i in 2:4) df.posts<-rbind(df.posts, get_hypo_posts(paste0('A',i)))
+# save(df.hypos, df.posts, file='hypos.Rdata')
+
+run_gibbs_sampler<-function(cond, grouping, alpha, beta, limit, logging=T, hypo_source=df.posts) {
   # Task setup
-  task_obs<-tasks%>%filter(group==cond&phase=='learn')%>%select(agent, recipient, result)
-  hypos<-hypo_source%>%filter(group==cond)
+  task_obs<-tasks%>%filter(condition==cond&phase=='learn')%>%select(agent, recipient, result)
+  hypos<-hypo_source%>%filter(condition==cond)
   #non_empty<-hypos%>%filter(post_1>0&post_2>0&post_3>0&post_4>0&post_5>0&post_6>0)
 
   # Pre-calculated values
@@ -38,18 +58,8 @@ run_gibbs_sampler<-function(cond, grouping, alpha, beta, limit, logging=T, hypo_
 
   n<-1
   while (n<limit) {
-    # Choose which one to update
-    probs<-sapply(seq(nobs), function(i) {
-      obs<-which(state==state[i])
-      crp<-if (length(obs)==nobs) 1 else length(obs)/(nobs-1+alpha)
-      catdir<-dir_likeli(i, obs)
-      likeli<-get_likeli(func_refs[[state[i]]], as.list(task_obs[i,]))
-      return(crp*catdir*likeli)
-    })
-    if (Reduce('+', probs)==0) probs<-rep(1, nobs) else probs<-1/exp(probs)
-    
-    #to_update<-sample(seq(nobs), 1) # index
-    to_update<-sample(seq(nobs), 1, prob=probs)
+    to_update<- n %% 6
+    to_update<- if (to_update==0) 6 else to_update
     obs_to_update<-as.list(task_obs[to_update,])
     self_resemblance<-dir_likeli(to_update, to_update)
     
@@ -119,7 +129,7 @@ run_gibbs_sampler<-function(cond, grouping, alpha, beta, limit, logging=T, hypo_
   return(list(state=states, funcs=func_refs))
 }
 
-# x<-run_gibbs_sampler('A1', 'AR', 1, .1, 1000, T)
+# x<-run_gibbs_sampler('A1', 'A', 1, 1/9, 10000, T)
 # df<-data.frame(matrix(unlist(x[[1]]), nrow=length(x[[1]]), byrow=T))
 # df<-df%>%group_by(X1, X2, X3, X4, X5, X6)%>%summarise(n=n())%>%ungroup()
 

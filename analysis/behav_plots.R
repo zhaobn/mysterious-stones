@@ -56,9 +56,9 @@ ggplot(rbind(all, ok, bots, passed), aes(x=result, y=trial, fill=prob)) + geom_t
 
 # Measure congruency
 max_var<-var(c(1, rep(0,19)))
-fc_data<-f_data %>% 
+fc_data<-passed %>% 
   group_by(condition, trial) %>% 
-  summarise(congruency = var(freq)/max_var)
+  summarise(congruency = var(prob)/max_var)
 
 ggplot(fc_data,
        aes(x=(reorder(condition, desc(condition))), y=congruency, fill=condition)) +
@@ -100,9 +100,9 @@ s_data<-df.tw %>%
   mutate(Fixed=if_else(condition %in% c('A1', 'A3'), 'Fixed Agent', 'Fixed Recipient'),
          Rule=if_else(condition %in% c('A1', 'A2'), 'edge(A)+1, shade(R)+1', 'shade(A)+1, edge(R)+1'))
   
-sc_data<-s_data %>% 
+sc_data<-passed %>% 
   group_by(condition, trial) %>% 
-  summarise(congruency = var(freq)/max_var)
+  summarise(congruency = var(prob)/max_var)
 
 ggplot(sc_data,
        aes(x=(reorder(condition, desc(condition))), y=congruency, fill=condition)) +
@@ -120,6 +120,14 @@ t.test(filter(sc_data, condition %in% c('A1', 'A3'))%>%pull(congruency),
 t.test(filter(sc_data, condition %in% c('A1', 'A2'))%>%pull(congruency),
        filter(sc_data, condition %in% c('A3', 'A4'))%>%pull(congruency), paired = T)
 
+# compare with naive model
+pc_data<-ce_preds %>% 
+  group_by(group, trial) %>% 
+  summarise(congruency = var(pred)/max_var)
+t.test(filter(pc_data, group=='A1')%>%pull(congruency),
+       filter(pc_data, group=='A2')%>%pull(congruency), paired = T)
+t.test(filter(pc_data, group=='A3')%>%pull(congruency),
+       filter(pc_data, group=='A4')%>%pull(congruency), paired = T)
 
 
 

@@ -492,3 +492,10 @@ flex-direction: column;
   background-color: #116466;
   color: #e0e0e0;
 }
+#draw {
+  background-color: #fff;
+  display: flex;
+  flex-direction: row;
+  padding: 20px;
+  /* justify-content: space-evenly; */
+}

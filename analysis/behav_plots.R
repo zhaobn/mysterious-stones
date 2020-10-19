@@ -56,6 +56,16 @@ ggplot(rbind(all, ok, bots, passed), aes(x=result, y=trial, fill=prob)) + geom_t
 
 # Measure congruency
 max_var<-var(c(1, rep(0,19)))
+
+ok %>% 
+  group_by(condition, trial) %>% 
+  summarise(congruency = var(prob)/max_var) %>%
+  ggplot(aes(x=(reorder(condition, desc(condition))), y=congruency, fill=condition)) +
+  geom_boxplot() +
+  coord_flip() + 
+  labs(x='condition', y='', title='Congruency measure on non-bot data')
+
+
 fc_data<-passed %>% 
   group_by(condition, trial) %>% 
   summarise(congruency = var(prob)/max_var)
@@ -64,11 +74,17 @@ ggplot(fc_data,
        aes(x=(reorder(condition, desc(condition))), y=congruency, fill=condition)) +
   geom_boxplot() +
   coord_flip() + 
-  labs(x='condition', y='', title='Congruency measure')
+  labs(x='condition', y='', title='Congruency measure on pass-checks data')
 
 # statistical test
 t.test(filter(fc_data, condition=='A1')%>%pull(congruency),
        filter(fc_data, condition=='A2')%>%pull(congruency), paired = F)
+t.test(filter(fc_data, condition=='A3')%>%pull(congruency),
+       filter(fc_data, condition=='A4')%>%pull(congruency), paired = F)
+t.test(filter(fc_data, condition %in% c('A1', 'A3'))%>%pull(congruency),
+       filter(fc_data, condition %in% c('A2', 'A4'))%>%pull(congruency), paired = F)
+t.test(filter(fc_data, condition %in% c('A1', 'A2'))%>%pull(congruency),
+       filter(fc_data, condition %in% c('A3', 'A4'))%>%pull(congruency), paired = F)
 
 
 # Compare correction rate for gen trials
@@ -79,46 +95,6 @@ df.sw %>%
   summarise(correct=sum(correct), n=n()) %>%
   mutate(correct_rate=correct/(n*18))
 
-# What if you filter people by getting the check trial correct  
-df.sw %>% count(condition)
-df.sw %>% filter(rule_ok==1) %>% count(condition)
-df.sw %>% filter(pass==1) %>% count(condition)
-
-s_data<-df.tw %>%
-  filter(phase=='gen' & grepl('gen', sid) & ix %in% pass) %>%
-  mutate(trial=as.numeric(substr(sid,8,9))) %>%
-  select(ix, condition, trial, result) %>%
-  arrange(condition, trial) %>%
-  group_by(condition, trial, result) %>%
-  summarise(count=n()) %>%
-  ungroup() %>%
-  right_join(default, by=c('condition', 'trial', 'result')) %>%
-  mutate(count=replace_na(count, 0)) %>%
-  group_by(condition, trial, result) %>%
-  summarise(n = sum(count)) %>%
-  mutate(freq = n / sum(n), result=as.character(result), label='ok') %>%
-  mutate(Fixed=if_else(condition %in% c('A1', 'A3'), 'Fixed Agent', 'Fixed Recipient'),
-         Rule=if_else(condition %in% c('A1', 'A2'), 'edge(A)+1, shade(R)+1', 'shade(A)+1, edge(R)+1'))
-  
-sc_data<-passed %>% 
-  group_by(condition, trial) %>% 
-  summarise(congruency = var(prob)/max_var)
-
-ggplot(sc_data,
-       aes(x=(reorder(condition, desc(condition))), y=congruency, fill=condition)) +
-  geom_boxplot() +
-  coord_flip() + 
-  labs(x='', y='', title='Selection Congruency')
-
-# statistical test
-t.test(filter(sc_data, condition=='A1')%>%pull(congruency),
-       filter(sc_data, condition=='A2')%>%pull(congruency), paired = T)
-t.test(filter(sc_data, condition=='A3')%>%pull(congruency),
-       filter(sc_data, condition=='A4')%>%pull(congruency), paired = T)
-t.test(filter(sc_data, condition %in% c('A1', 'A3'))%>%pull(congruency),
-       filter(sc_data, condition %in% c('A2', 'A4'))%>%pull(congruency), paired = T)
-t.test(filter(sc_data, condition %in% c('A1', 'A2'))%>%pull(congruency),
-       filter(sc_data, condition %in% c('A3', 'A4'))%>%pull(congruency), paired = T)
 
 # compare with naive model
 pc_data<-ce_preds %>% 

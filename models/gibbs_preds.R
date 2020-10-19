@@ -41,7 +41,7 @@ ggplot(preds, aes(x=object, y=trial, fill=prob)) + geom_tile() +
 
 
 # Look ups
-cats<-read_cats(a1.a[[1]])
+cats<-read_cats(results[[1]][[1]])
 nrow(cats%>%filter(n>5))
 
 cats2<-read_cats(a2.a[[1]])
@@ -62,6 +62,8 @@ dps<-preds%>%
 
 combined<-bind_rows(ppt, plain, dps)
 combined$type=factor(combined$type, levels=c('plain', 'AR', 'A', 'ppt'))
+combined$object<-as.character(combined$object)
+
 ggplot(combined, aes(x=object, y=task, fill=prob)) + geom_tile() + 
   scale_y_continuous(trans="reverse", breaks=1:16) + 
   scale_fill_gradient(low='white', high='#293352') +

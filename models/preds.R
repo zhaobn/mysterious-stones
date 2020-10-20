@@ -1,5 +1,6 @@
 
 source('shared.R')
+# load('hypos.Rdata')
 tasks<-read.csv('../data/setup/main.csv')
 n_learn_obs<-length(unique((tasks%>%filter(phase=='learn'))$task))
 n_gen_obs<-length(unique((tasks%>%filter(phase=='gen'))$task))
@@ -24,11 +25,12 @@ read_cats<-function(states_source, burn_in=0, thinning=1, base='') {
 }
 prep_preds<-function(funcs, cond) {
   preds<-list()
+  cond_idx<-as.numeric(substr(cond, 2, 2))
   for (f in names(funcs)) {
     preds[[f]]<-list()
+    h<-funcs[[f]]
     for (d in 1:n_gen_obs) {
-      data<-as.list(tasks%>%filter(condition==cond&phase=='gen'&task==d)%>%select(agent, recipient))
-      preds[[f]][[d]]<-causal_mechanism(funcs[[f]], data)
+      preds[[f]][[d]]<-all_preds[[h]][[cond_idx]][[d]]
     }
   }
   return(preds)
@@ -107,12 +109,36 @@ get_cond_preds<-function(cond, learned_cats, func_preds, alpha, beta, grouping) 
 # cats<-read_cats(x[[1]], 500, 1)
 # func_preds<-prep_preds(x[[2]], 'A1')
 # y<-get_cond_preds("A1", cats, func_preds, 1, 1/9, 'A')
-  
-  
 
+# all_preds<-list()
+# for (h in df.hypos$hypo) {
+#   all_preds[[h]]<-list()
+#   for (t in 1:4) {
+#     all_preds[[h]][[t]]<-list()
+#     for (i in 1:16) {
+#       tk<-tasks%>%
+#         filter(condition==paste0('A',t)&phase=='gen'&task==i)%>%
+#         select(agent, recipient)%>%
+#         as.list()
+#       all_preds[[h]][[t]][[i]]<-causal_mechanism(h, tk)
+#     }
+#   }
+# }  
+# save(df.hypos, df.posts, all_preds, file='hypos.Rdata')
 
-
-
+# # Test how long to make a full prediction
+# preds<-data.frame(group=character(0),
+#                   trial=numeric(0),
+#                   object=numeric(0),
+#                   prob=numeric(0),
+#                   type=character(0))
+# x<-results[[1]]
+# cats<-read_cats(x[[1]], base=softmax_base, burn_in=drop, thinning=slice)
+# func_preds<-prep_preds(x[[2]], 'A1')
+# start_pred<-Sys.time()
+# y<-get_cond_preds('A1', cats, func_preds, .1, 1/9, 'A')
+# done_pred<-Sys.time()
+# print(done_pred-start_pred)
 
 
 

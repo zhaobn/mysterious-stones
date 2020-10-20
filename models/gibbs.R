@@ -1,7 +1,7 @@
 
 source('shared.R')
 tasks<-read.csv('../data/setup/main.csv')
-load('hypos.Rdata') 
+# load('hypos.Rdata') 
 
 # Prep hypo table
 get_hypo_posts<-function(cond, task_source=tasks, hypo_source=df.hypos) {

@@ -31,7 +31,7 @@ for (c in 1:4) {
 preds$object<-as.numeric(as.character(preds$object))
 save(ce_preds, results, preds, file='models.Rdata')
 
-
+preds$object<-as.character(preds$object)
 ggplot(preds, aes(x=object, y=trial, fill=prob)) + geom_tile() + 
   scale_y_continuous(trans="reverse", breaks=1:16) + 
   scale_fill_gradient(low='white', high='#293352') +

@@ -2,8 +2,8 @@
 library(tidyverse)
 load('../data/mturk/mturk_main.Rdata')
 
-badEntries<-df.sw%>%filter(rule_ok==0)%>%pull(id)%>%as.character()
-passed<-df.sw%>%filter(pass>0)%>%pull(id)%>%as.character()
+badEntries<-df.sw.all%>%filter(rule_ok==0)%>%pull(id)%>%as.character()
+passedId<-df.sw%>%filter(pass>0)%>%pull(id)%>%as.character()
 
 all_results<-c()
 for (e in 3:7) {
@@ -36,10 +36,10 @@ prep_plot<-function(data, l) {
     select(condition, trial, result, prob=freq, label, fixed, rule)
   return(data)
 }
-all<-prep_plot(df.tw, 'all')
-ok<-prep_plot(filter(df.tw, !(id %in% badEntries)), 'ok')
-bots<-prep_plot(filter(df.tw, id %in% badEntries), 'bot')
-passed<-prep_plot(filter(df.tw, id %in% passed), 'passed')
+all<-prep_plot(df.tw.all, 'all')
+ok<-prep_plot(df.tw, 'ok')
+bots<-prep_plot(filter(df.tw.all, id %in% badEntries), 'bot')
+passed<-prep_plot(filter(df.tw, id %in% passedId), 'passed')
 
 ggplot(ok, aes(x=result, y=trial, fill=prob)) + geom_tile() + 
   labs(x='object', y='task') +
@@ -75,6 +75,7 @@ ggplot(fc_data,
   geom_boxplot() +
   coord_flip() + 
   labs(x='condition', y='', title='Congruency measure on pass-checks data')
+
 
 # statistical test
 t.test(filter(fc_data, condition=='A1')%>%pull(congruency),

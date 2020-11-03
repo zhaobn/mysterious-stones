@@ -3,151 +3,159 @@ options()$scipen
 
 library(dplyr)
 library(ggplot)
+theme_set(theme_bw())
 rm(list=ls())
 
 # Print mean ± sd
-ms<-function(vec, time=F) print(paste0(round(mean(vec), 2), ' ± ', round(sd(vec),2)))
+ms<-function(vec) print(paste0(round(mean(vec), 2), ' ± ', round(sd(vec),2)))
 
-# Get filtered data
-df.fs<-df.sw%>%filter(rule_ok>0)
-df.bs<-df.sw%>%filter(rule_ok==0)
-df.ps<-df.sw%>%filter(pass>0)
+# Overall checks
+df.sw.all %>% filter(bot==1) %>% nrow()
+df.sw.all %>% filter(rule_like==0) %>% nrow()
 
-# Condition sizes
-df.sw%>%count(condition)
-df.fs%>%count(condition)
+df.sw.all %>% filter(rule_like==1) %>% count(condition)
 
 # Demographics
-df.sw%>%filter(sex=='female')%>%nrow() # 48/163 = 29%
-df.fs%>%filter(sex=='female')%>%nrow() # 37/101 = 36%
+df.sw %>% count(sex)
+ms(df.sw$age)
+ms(df.sw$task_duration/60000)
+ms(df.sw$instructions_duration/60000)
 
-ms(df.sw$age) # 36.39 ± 10.33
-ms(df.fs$age) # 34.83 ± 9.63
+# Accuracy
+bind_rows(
+  filter(df.sw.all, rule_like==0|bot==1) %>% 
+    group_by(condition) %>%
+    summarise(acc=sum(correct), n=n()) %>%
+    mutate(acc=acc/(n*18), data='excluded'),
+  filter(df.sw.all, rule_like==1) %>% 
+    group_by(condition) %>%
+    summarise(acc=sum(correct), n=n()) %>%
+    mutate(acc=acc/(n*18), data='approved')
+) %>%
+  mutate(data=factor(data, levels=c('excluded', 'approved')),
+         condition=factor(condition, levels=c('A1','A3','A2','A4'))) %>%
+  ggplot(aes(x=data, y=acc, fill=condition)) +
+  geom_bar(stat='identity', position='dodge') +
+  geom_hline(yintercept=1/20) +
+  geom_text(aes(2.4, 1/20, label='Random = 5%'), vjust=-.8) +
+  geom_text(aes(label=paste0(round(acc*100),'%')), 
+            position=position_dodge(width=.9), 
+            size=4,
+            vjust=-.5) +
+  labs(x='', y='', title='Accuracy') +
+  theme(text = element_text(size=20)) +
+  scale_fill_brewer(palette="Paired")
 
-# Task duration
-ms(df.sw$task_duration/60000) # 10.48 ± 6.77
-ms(df.fs$task_duration/60000) # 10.51 ± 7.37
+acc_data<-df.sw %>% 
+  mutate(fix=if_else(condition %in% c('A1', 'A3'), 'A', 'R'),
+         self_change=if_else(condition %in% c('A1', 'A2'), 'shade', 'edge')) %>%
+  select(ix, correct, fix, self_change, condition)
 
-# Mind-change
-sum(df.sw$final_changed)/nrow(df.sw) # 60%
-sum(df.fs$final_changed)/nrow(df.fs) # 43%
-sum(df.bs$final_changed)/nrow(df.bs) # 89%
-sum(df.ps$final_changed)/nrow(df.ps) # 45%
-data.frame(type=c('all', 'non-bot', 'bot', 'pass'), mind_change=c(.6, .43, .89, .45)) %>%
-  ggplot(aes(x=type, fill=type, y=mind_change)) +
-  geom_bar(stat='identity') +
-  geom_text(aes(label=paste0(mind_change*100, '%')))
-  labs(x='', y='', title='Mind-change rate')
-
-# Correction rates
-sum(df.sw$correct)/(nrow(df.sw)*18) # 29%
-sum(df.fs$correct)/(nrow(df.fs)*18) # 42%
-sum(df.bs$correct)/(nrow(df.bs)*18) # 7% ~ 5%
-sum(df.ps$correct)/(nrow(df.ps)*18) # 7% ~ 5%
-
-c<-bind_rows(
-  df.sw %>% group_by(condition) %>% 
-    summarise(correct=sum(correct),n=n())%>%mutate(type='all'),
-  filter(df.sw, rule_ok<1) %>% group_by(condition) %>% 
-    summarise(correct=sum(correct),n=n())%>%mutate(type='bot'),
-  filter(df.sw, rule_ok>0) %>% group_by(condition) %>% 
-    summarise(correct=sum(correct),n=n())%>%mutate(type='non-bot'),
-  filter(df.sw, pass>0) %>% group_by(condition) %>% 
-    summarise(correct=sum(correct),n=n())%>%mutate(type='passed'),
-)
-c$correction_rate<-c$correct/(c$n*18)
-c$condition<-factor(c$condition, levels=c('A1','A2','A3','A4'))
-
-ggplot(c, aes(x=type, y=correction_rate, fill=type)) +
-  geom_bar(position="dodge", stat="identity") +
-  geom_text(aes(label=paste0(round(correction_rate*100),'%')), position=position_dodge(width=0.4), vjust=0.5) +
-  geom_hline(yintercept = 1/20) +
-  facet_wrap(~condition) +
-  labs(x='', y='', title='Correction rate')
-  
-
-# Measure pass-rate of checking trials
-ixes<-df.tw%>%pull(ix)%>%unique()
-df.checks<-data.frame(ix=numeric(0), check_trials=character(0), selection=numeric(0), answer=numeric(0))
-for (i in ixes) {
-  x<-df.tw%>%filter(ix==i & grepl('learn', sid))%>%arrange(sid)
-  gens_sid<-x%>%filter(phase=='gen')%>%pull(sid)
-  correct_answer<-
-    df.checks<-rbind(df.checks, 
-                     data.frame(ix=i, 
-                                check_trials=gens_sid, 
-                                selection=x%>%filter(phase=='gen')%>%pull(result), 
-                                answer=x%>%filter(phase=='learn'&sid%in%gens_sid)%>%pull(result)))
-}
-df.checks<-df.checks%>%
-  left_join(df.tw%>%select(ix, condition)%>%unique(), by='ix')
-df.checks$correct<-as.numeric(df.checks$selection==df.checks$answer)
-
-pass<-df.checks %>%
-  group_by(ix) %>%
-  summarise(correct=sum(correct)) %>%
-  filter(correct==2) %>%
-  pull(ix)
-df.sw<-df.sw%>%mutate(pass=if_else(ix %in% pass, 1, 0))
-
-x<-bind_rows(
-  filter(df.sw, rule_ok<1) %>% group_by(condition) %>% 
-    summarise(n=n()) %>% mutate(type='bot'),
-  filter(df.sw, rule_ok>0 & pass<1) %>% group_by(condition) %>% 
-    summarise(n=n()) %>% mutate(type='not_pass'),
-  filter(df.sw, pass>0) %>% group_by(condition) %>% 
-    summarise(n=n()) %>% mutate(type='pass')) %>%
-  ungroup() %>%
-  mutate(condition=factor(condition, levels=c('A1','A2','A3','A4')))
-
-ggplot(x, aes(x=condition, y=n, fill=type)) + 
-  geom_bar(position="stack", stat="identity") +
-  geom_text(aes(label=n), position=position_stack(), vjust=-0.25) +
-  scale_fill_brewer(palette="Set2") +
-  theme_bw()
+summary(lm(correct~condition, acc_data))
+summary(lm(correct~fix + self_change, acc_data))
+summary(lm(correct~fix + self_change + fix * self_change, acc_data))
 
 
-df.sw %>% count(condition)
+# Have a look at response labels
+library(dplyr)
+library(ggplot2)
+theme_set(theme_bw())
+rm(list=ls())
 
-# Have a look at response lables
-responses<-read.csv('../data/responses_labeled.csv') %>%
-  mutate(grouping=replace_na(grouping, 0)) %>%
-  mutate(grouping=factor(grouping, levels=c(1,0)))
-responses %>% 
-  group_by(condition) %>% 
-  count(reported_rule) %>%
-  ggplot(aes(x=condition, y=n, fill=reported_rule)) +
-  geom_bar(position="fill", stat="identity")
+responses<-read.csv('../data/responses.csv')
+responses<-responses%>%
+  mutate(grouping=factor(grouping, levels=c('A', 'R', 'AR', 'none')),
+         condition=factor(condition, levels=c('A1', 'A3', 'A2', 'A4')),
+         features.A=factor(features.A, levels=c('edge', 'shade', 'both', 'none')),
+         features.R=factor(features.R, levels=c('edge', 'shade', 'both', 'none')),
+         reported_rule=factor(reported_rule, levels=c(
+           'true_relative', 'true_minimal', 'partial', 'wrong', 'unclear'
+         ))) 
 
-responses %>% 
-  group_by(condition) %>% 
-  count(selection_rule) %>%
-  ggplot(aes(x=condition, y=n, fill=selection_rule)) +
-  geom_bar(position="fill", stat="identity")
-
-responses %>% 
-  filter(features %in% c('edge', 'shade')) %>%
-  group_by(condition) %>% 
-  count(features) %>%
-  ggplot(aes(x=condition, y=n, fill=features)) +
-  geom_bar(position="fill", stat="identity")
-
-# Grouping words
-responses %>% 
-  group_by(condition, grouping, pass) %>% 
-  summarise(n=n()) %>%
-  ggplot(aes(x=condition, y=n, fill=grouping)) +
-  geom_bar(position="stack", stat="identity") + 
-  facet_wrap(~pass)
-
-
-# People that select different from said - are they more accurate: yes
+# Grouping
 responses %>%
-  filter(selection_rule!=reported_rule) %>%
-  group_by(condition) 
+  filter(grouping!='') %>%
+  ggplot(aes(x=condition, fill=grouping)) + 
+  geom_bar(stat='count', position='fill') +
+  labs(x='', y='') +
+  scale_fill_brewer(palette="Paired")
+
+# Features
+library(ggpubr)
+
+A<-responses %>%
+  filter(!(features.A=='')) %>%
+  ggplot(aes(x=condition, fill=features.A)) +
+  geom_bar(stat='count', position='fill') +
+  labs(x='', y='') +
+  scale_fill_manual(values=c("#E69F00", "#56B4E9", "darkblue", "#999999"))
+
+R<-responses %>%
+  filter(!(features.R=='')) %>%
+  ggplot(aes(x=condition, fill=features.R)) +
+  geom_bar(stat='count', position='fill') +
+  labs(x='', y='') +
+  scale_fill_manual(values=c("#E69F00", "#56B4E9", "darkblue", "#999999"))
+
+ggarrange(A, R, 
+          labels = c("Features of A", "Features of R"),
+          ncol = 2)
+
+# Rule types
+responses %>%
+  ggplot(aes(x=condition, fill=reported_rule)) +
+  geom_bar(stat='count', position='fill') +
+  labs(x='', y='') +
+  scale_fill_brewer(palette="Spectral")
+
+# Same stats on the passed set of data
+passed<-df.sw %>% filter(pass>0) %>% pull(ix)
+
+responses %>%
+  filter(grouping!='', ix %in% passed) %>%
+  ggplot(aes(x=condition, fill=grouping)) + 
+  geom_bar(stat='count', position='fill') +
+  labs(x='', y='') +
+  scale_fill_brewer(palette="Paired")
+
+PA<-responses %>%
+  filter(!(features.A==''), ix %in% passed) %>%
+  ggplot(aes(x=condition, fill=features.A)) +
+  geom_bar(stat='count', position='fill') +
+  labs(x='', y='') +
+  scale_fill_manual(values=c("#E69F00", "#56B4E9", "darkblue", "#999999"))
+
+PR<-responses %>%
+  filter(!(features.R==''), ix %in% passed) %>%
+  ggplot(aes(x=condition, fill=features.R)) +
+  geom_bar(stat='count', position='fill') +
+  labs(x='', y='') +
+  scale_fill_manual(values=c("#E69F00", "#56B4E9", "darkblue", "#999999"))
+
+ggarrange(PA, PR, 
+          labels = c("Features of A", "Features of R"),
+          ncol = 2)
+
+responses %>%
+  filter(ix %in% passed) %>%
+  ggplot(aes(x=condition, fill=reported_rule)) +
+  geom_bar(stat='count', position='fill') +
+  labs(x='', y='') +
+  scale_fill_brewer(palette="Spectral")
 
 
+# Separate data
+df.sw.all<-df.sw
+df.tw.all<-df.tw
+save(df.sw.all, df.tw.all, file='../data/mturk/mturk_all.Rdata')
 
+df.sw<-df.sw %>% filter(rule_ok>0)
+df.tw<-df.tw %>% filter(id %in% df.sw$id)
+save(df.sw, df.tw, file='../data/mturk/mturk_main.Rdata')
+
+df.sw.pass<-df.sw%>%filter(pass>0)
+df.tw.pass<-df.tw%>%filter(id %in% df.sw.pass$id)
+save(df.sw.pass, df.tw.pass, file='../data/mturk/mturk_pass.Rdata')
 
 
 

@@ -96,6 +96,7 @@ df.tw <- df.tw %>% left_join(conditions, by='ix')
 ## Formats
 rownames(df.sw)<-NULL
 df.sw$age<-as.numeric(as.character(df.sw$age))
+df.sw$condition<-as.character(df.sw$condition)
 df.sw$instructions_duration<-as.numeric(as.character(df.sw$instructions_duration))
 df.sw$task_duration<-as.numeric(as.character(df.sw$task_duration))
 df.sw$initial_certainty<-as.numeric(as.character(df.sw$initial_certainty))
@@ -121,11 +122,6 @@ df.sw<-df.sw[-c(112:113),]
 rownames(df.tw)<-NULL
 test<-df.tw[-c(2689:2736),]
 df.tw<-test
-
-# Add rule_ok labels
-labels<-read.csv('labels.csv')
-df.sw<-select(df.sw,-'rule_ok')
-df.sw<-df.sw%>%left_join(labels, by='token')
 
 # Read task setups
 tasks <-

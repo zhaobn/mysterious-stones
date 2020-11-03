@@ -4,9 +4,9 @@ alphas<-c(1:10, 2^(4:10))
 betas<-c(seq(0,1,.1), 2^(1:10))
 set.seed(231)
 
-drop<-100
+drop<-500
 slice<-1
-iter<-200
+iter<-10000
 softmax_base<-''
 
 source('shared.R')

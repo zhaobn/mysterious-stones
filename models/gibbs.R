@@ -1,8 +1,4 @@
 
-source('shared.R')
-tasks<-read.csv('../data/setup/main.csv')
-# load('hypos.Rdata') 
-
 # Prep hypo table
 get_hypo_posts<-function(cond, task_source=tasks, hypo_source=df.hypos) {
   task_obs<-tasks%>%filter(condition==cond&phase=='learn')%>%select(agent, recipient, result)
@@ -33,7 +29,7 @@ run_gibbs_sampler<-function(cond, grouping, alpha, beta, limit, logging=T, hypo_
   nobs<-nrow(task_obs)
   join_new<-alpha/(nobs-1+alpha)
   feats<-list()
-  for (i in seq(nobs)) feats[[i]]<-read_feature(as.list(task_obs[i,]), grouping)
+  for (i in seq(nobs)) feats[[i]]<-read_data_feature(as.list(task_obs[i,]), grouping)
   # Helper function that calculates mean-feature similarity using feats
   dir_likeli<-function(ob_idx, cat_obs_idx) {
     cat_feat<-init_feat_dist(beta)
@@ -45,8 +41,7 @@ run_gibbs_sampler<-function(cond, grouping, alpha, beta, limit, logging=T, hypo_
   # initialize
   states<-list()
   func_refs<-list()
-  print(paste0('Start sampling for ', limit, ' iterations:',
-               'of ', cond, ' grouped by ', grouping))
+  print(paste0('Start sampling ', limit, ' iterations of ', cond))
   start_sampler<-Sys.time()
   
   # Initalization
@@ -59,6 +54,7 @@ run_gibbs_sampler<-function(cond, grouping, alpha, beta, limit, logging=T, hypo_
   n<-1
   while (n<limit) {
     to_update<- n %% 6
+    
     to_update<- if (to_update==0) 6 else to_update
     obs_to_update<-as.list(task_obs[to_update,])
     self_resemblance<-dir_likeli(to_update, to_update)
@@ -108,18 +104,23 @@ run_gibbs_sampler<-function(cond, grouping, alpha, beta, limit, logging=T, hypo_
         propto[[cat]]<-join_new*self_resemblance*post_likeli
       } 
     }
-    # Filter out zero probs to avoid sample() error
-    t<-propto[unlist(lapply(propto, function(x) x>0))]
-    t<-normalize(t)
-    # Sample new category
-    sampled<-if (length(t)==1) names(t)[1] else sample(names(t), 1, prob=unlist(t))
-    state[to_update]<-sampled
-    if (logging) print(paste0(n, ': ', 'sampling ', to_update, ' | ', 
-                              paste(state, collapse=',')))
-    # Save everything for developing
-    # Play with burn-in and thinning in the pred.R script
-    # For the final version do built-in burn-in and thinning here
-    states[[n]]<-state
+    if (Reduce('+', propto)==0) {
+      print('Warining: zero sum!')
+      next
+    } else {
+      # Filter out zero probs to avoid sample() error
+      t<-propto[unlist(lapply(propto, function(x) x>0))]
+      t<-normalize(t)
+      # Sample new category
+      sampled<-if (length(t)==1) names(t)[1] else sample(names(t), 1, prob=unlist(t))
+      state[to_update]<-sampled
+      if (logging) print(paste0(n, ': ', 'sampling ', to_update, ' | ', 
+                                paste(state, collapse=',')))
+      # Save everything for developing
+      # Play with burn-in and thinning in the pred.R script
+      # For the final version do built-in burn-in and thinning here
+      states[[n]]<-state 
+    }
     # Go to the next iteration
     n<-n+1
   }

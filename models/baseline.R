@@ -72,7 +72,7 @@ for (i in 2:4) {
   ce_preds<-rbind(ce_preds, prediction)
 }
 ce_preds<-ce_preds%>%mutate(source='causal_grouped')%>%select(group, trial, object, prob=pred, source)
-ce_preds$object<-as.numeric(as.character(ce_preds$object))
+ce_preds$object<-as.character(ce_preds$object)
 save(ce_preds, file='models.Rdata')
 
 # Sanity checks with non-grouped uni-effects
@@ -97,10 +97,55 @@ for (i in seq(4)) {
 ug_preds<-ug_preds%>%mutate(source='un_grouped')%>%select(group, trial, object, prob=pred, source)
 
 
+# Fit a softmax and check likelihood
+baseline_ll<-nrow(df.sw)*16*log(1/20)
 
+counts<-df.tw %>%
+  filter(phase=='gen'&grepl('gen', sid)) %>%
+  mutate(
+    group=condition,
+    trial=as.numeric(substr(sid,8,9)), 
+    object=as.character(result)) %>%
+  group_by(group, trial, object) %>%
+  summarise(count=n()) %>%
+  ungroup() %>%
+  right_join(ce_preds, by=c('group', 'trial', 'object')) %>%
+  mutate(count=ifelse(is.na(count), 0, count)) %>%
+  select(group, trial, object, count, prob=pred)
 
+fit_ll<-function(b, data, type='fit') {
+  softed<-filter(data, group=='A1', trial==1)%>%mutate(soft=softmax(prob, b))
+  for (c in 1:4) {
+    for (i in 1:16) {
+      if (!(c==1 & i==1)) {
+        softed<-rbind(softed, 
+                      filter(data, group==paste0('A',c), trial==i)%>%mutate(soft=softmax(prob, b)))
+      }
+    }
+  }
+  if (type=='fit') {
+    return(-sum(softed$count*log(softed$soft)))
+  } else {
+    return(softed)
+  }
+}
+fit_ll(1, counts)
+# 101*16*log(1/20) # -4841.103
+out<-optim(par=0, fn=fit_ll, data=counts, method='Brent', lower=0, upper=100)
+out$par #3.19
+out$value #3706.359
 
+plain_model<-fit_ll(3.19, counts, '')
+passed_short<-passed %>% select(condition, trial, result, prob, label)
+plain<-plain_model %>%
+  mutate(condition=group, result=object, label='plain') %>%
+  select(condition, trial, result, prob, label)
 
+ggplot(bind_rows(passed_short, plain), aes(x=result, y=trial, fill=prob)) + geom_tile() + 
+  labs(x='object', y='task') +
+  scale_y_continuous(trans="reverse", breaks=1:16) + 
+  scale_fill_gradient(low='white', high='#293352') +
+  facet_grid(label~condition)
 
 
 

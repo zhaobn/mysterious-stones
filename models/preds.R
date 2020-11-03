@@ -1,10 +1,4 @@
 
-source('shared.R')
-# load('hypos.Rdata')
-tasks<-read.csv('../data/setup/main.csv')
-n_learn_obs<-length(unique((tasks%>%filter(phase=='learn'))$task))
-n_gen_obs<-length(unique((tasks%>%filter(phase=='gen'))$task))
-
 # Helpers ####
 read_cats<-function(states_source, burn_in=0, thinning=1, base='') {
   df<-data.frame(matrix(unlist(states_source), nrow=length(states_source), byrow=T))
@@ -55,10 +49,10 @@ get_cond_preds<-function(cond, learned_cats, func_preds, alpha, beta, grouping) 
       
       group_feats<-init_feat_dist(beta)
       for (i in group_idx) {
-        obs_feats<-read_feature(as.list(learn_tasks[i,]), grouping)
+        obs_feats<-read_data_feature(as.list(learn_tasks[i,]), grouping)
         group_feats<-as.list(unlist(group_feats)+unlist(obs_feats))
       } 
-      dir_ll<-Reduce('+', Map('*', read_feature(task, grouping), group_feats))/Reduce('+',group_feats)
+      dir_ll<-Reduce('+', Map('*', read_data_feature(task, grouping), group_feats))/Reduce('+',group_feats)
       
       preds<-lapply(preds, function(x) x*crp*dir_ll)
       return(preds)
@@ -85,16 +79,19 @@ get_cond_preds<-function(cond, learned_cats, func_preds, alpha, beta, grouping) 
       cat_preds<-Map('*', pred_by_cat(tid, cond_groups), cond_prob)
       preds<-Map('+', preds, cat_preds)
     }
-    #return(normalize(preds)) # should be good
-    return(preds)
+    # return(normalize(preds)) # should be good
+    # return(preds)
+    # Add a noise term to avoid empty entries
+    noisy_preds<-sapply(preds, function(x) x+abs(rnorm(1,0,.001)))
+    return(normalize(noisy_preds))
   }
   # Format prediction for one task into a dataframe
   format_task_preds<-function(tid) {
     x<-pred_by_task(tid)
     df<-data.frame(object=names(x), prob=unlist(x)); rownames(df)<-c()
     df<-df%>%mutate(object=as.character(object))%>%
-      mutate(group=cond, trial=tid, type=grouping)%>%
-      select(group, trial, object, prob, type)
+      mutate(group=cond, trial=tid)%>%
+      select(group, trial, object, prob)
     return(df)
   }
   
@@ -104,6 +101,21 @@ get_cond_preds<-function(cond, learned_cats, func_preds, alpha, beta, grouping) 
   for (i in 2:n_gen_obs) df<-rbind(df, format_task_preds(i))
   
   return(df)
+}
+
+data_likeli<-function(b, data) {
+  ds<-filter(data, group=='A1', trial==1) %>% mutate(softmaxed=softmax(prob, b))
+  for (c in 1:4) {
+    for (i in 1:16) {
+      if (!(c==1 & i==1)) {
+        ds<-rbind(ds,
+                  filter(data, group==paste0('A', c), trial==i) %>% 
+                    mutate(softmaxed=softmax(prob, b)))
+      }
+    }
+  }
+  ll<-sum(ds$count*log(ds$softmaxed))
+  return(-ll)
 }
 
 # cats<-read_cats(x[[1]], 500, 1)

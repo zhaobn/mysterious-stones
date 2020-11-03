@@ -1,7 +1,7 @@
 
 #### libraries ####
 library(dplyr)
-options(scipen = 10)
+options(scipen=10)
 
 #### Glabal variables ####
 # configs
@@ -129,10 +129,10 @@ init_feat_dist<-function(beta=0) {
 
 read_feature<-function(data, type='A') {
   if (typeof(data)!='list') data<-listify_data(data)
-  # init
   feat_dist<-init_feat_dist(0)
   if (type=='A') data<-data[c('agent')] else
-    if (type=='AR') data<-data[c('agent', 'recipient')]
+    if (type=='AR') data<-data[c('agent', 'recipient')] else
+      if (type=='R') data<-data[c('recipient')]
   # read obs feature value
   for (i in 1:length(data)) {
     edge_val<-paste0('e',edges(data[[i]]))
@@ -144,6 +144,13 @@ read_feature<-function(data, type='A') {
   return(feat_dist)
 }
 
+# Gamma is constraint to 0 to 1
+# Use sigmoid function if fit this to unconstrained values
+read_data_feature<-function(data, gamma) {
+  feat_a<-lapply(read_feature(data, 'A'), function(x) x * gamma)
+  feat_r<-lapply(read_feature(data, 'R'), function(x) x * (1-gamma))
+  return(mapply(sum, feat_a, feat_r, SIMPLIFY=F))
+}
 
 
 

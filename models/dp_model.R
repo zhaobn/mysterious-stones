@@ -1,15 +1,20 @@
 
 source('gibbs.R')
 source('preds.R')
+source('shared.R')
 
-alpha=5
-beta=.4
+alpha=1024
+beta=0
 softmax_base=''
-drop=100
+drop=500
 slice=1
-iter=500
+iter=10000
+set.seed(123)
 
 load('hypos.Rdata')
+tasks<-read.csv('../data/setup/main.csv')
+n_gen_obs<-16
+n_learn_obs<-6
 
 results<-list()
 preds<-data.frame(group=character(0),
@@ -18,7 +23,7 @@ preds<-data.frame(group=character(0),
                   prob=numeric(0),
                   type=character(0))
 for (c in 1:4) {
-  for (g in c('A', 'AR')) {
+  for (g in c(1, 0)) {
     cond<-paste0('A', c)
     n<-if (g=='A') c*2-1 else c*2
 
@@ -150,6 +155,43 @@ ggplot(all_data, aes(x=object, y=trial, fill=prob)) + geom_tile() +
   #scale_fill_viridis(option="E", direction=-1) + 
   theme_linedraw() +
   facet_grid(type~group)
+
+# Debug
+by_a<-list()
+dpr_preds<-data.frame(
+  group=character(0), trial=numeric(0), object=numeric(0), 
+  prob=numeric(0), type=character(0)
+)
+for (c in 1:4) {
+  cond<-paste0('A', c)
+  x<-run_gibbs_sampler(cond, 1, alpha, beta, iter, F)
+  cats<-read_cats(x[[1]], base=softmax_base, burn_in=drop, thinning=slice)
+  # func_preds<-prep_preds(x[[2]], cond)
+  # dpr_preds<-rbind(dpr_preds, 
+  #                  get_cond_preds(cond, cats, func_preds, alpha, beta, 1))
+  by_a[[c]]<-x
+}
+by_a[['preds']]<-dpr_preds
+
+by_r<-list()
+dpr_preds<-data.frame(
+  group=character(0), trial=numeric(0), object=numeric(0), 
+  prob=numeric(0), type=character(0)
+)
+for (c in 1:4) {
+  cond<-paste0('A', c)
+  x<-run_gibbs_sampler(cond, 0, alpha, beta, iter, F)
+  # cats<-read_cats(x[[1]], base=softmax_base, burn_in=drop, thinning=slice)
+  # func_preds<-prep_preds(x[[2]], cond)
+  # dpr_preds<-rbind(dpr_preds, 
+  #                  get_cond_preds(cond, cats, func_preds, alpha, beta, 0))
+  by_r[[c]]<-x
+}
+by_r[['preds']]<-dpr_preds
+save(by_a, by_r, file = 'debug.Rata')
+
+
+
 
 
 

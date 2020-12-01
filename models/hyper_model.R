@@ -1,5 +1,5 @@
 
-gamma=1
+gamma=0
 alphas<-c(1:10, 2^(4:10))
 betas<-c(seq(0,1,.1), 2^(1:10))
 set.seed(231)
@@ -109,3 +109,51 @@ for (n in 1:nrow(full_grid)) {
 
   save(dp_grid, dp_raw_preds, file='../results/dp.Rdata')
 }
+
+
+# Put model fit results together
+model_refs<-expand.grid(alpha=alphas, beta=betas, gamma=gammas)
+model_refs$id=1:nrow(model_refs)
+model_refs<-model_refs%>%select(id, alpha, beta, gamma)
+
+# Put together fit results
+get_model_fits<-function(df, g) {
+  data<-model_refs %>%
+    filter(gamma==g) %>%
+    left_join((df %>% mutate(gamma=g, oid=id) %>% select(-id)), 
+              by=c('alpha', 'beta', 'gamma'))
+  return(data)
+}
+
+model_fits<-get_model_fits(dpa_grid_2, 1)
+model_fits<-rbind(model_fits, get_model_fits(dpr_grid_2, 0))
+model_fits<-rbind(model_fits, get_model_fits(dp25_grid, .25))
+model_fits<-rbind(model_fits, get_model_fits(dp50_grid, .5))
+model_fits<-rbind(model_fits, get_model_fits(dp75_grid, .75))
+model_fits<-model_fits %>% arrange(id)
+
+# Put together raw predictions
+model_preds<-vector('list', length=nrow(model_refs))
+
+for (i in 1:length(dpa_raw_preds_2)) {
+  id<-model_fits%>%filter(gamma==1, oid==i) %>% pull(id)
+  model_preds[[id]]<-dpa_raw_preds_2[[i]]
+}
+for (i in 1:length(dpr_raw_preds_2)) {
+  id<-model_fits%>%filter(gamma==0, oid==i) %>% pull(id)
+  model_preds[[id]]<-dpr_raw_preds_2[[i]]
+}
+for (i in 1:length(dp25_raw_preds)) {
+  dp25_ref_id<-model_fits%>%filter(gamma==.25, oid==i) %>% pull(id)
+  dp50_ref_id<-model_fits%>%filter(gamma==.5, oid==i) %>% pull(id)
+  dp75_ref_id<-model_fits%>%filter(gamma==.75, oid==i) %>% pull(id)
+
+  model_preds[[dp25_ref_id]]<-dp25_raw_preds[[i]]
+  model_preds[[dp50_ref_id]]<-dp50_raw_preds[[i]]
+  model_preds[[dp75_ref_id]]<-dp25_raw_preds[[i]]
+}
+
+# Save data
+save(model_refs, model_fits, model_preds, file='../data/hdp.Rdata')
+
+

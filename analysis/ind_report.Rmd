@@ -1,0 +1,146 @@
+---
+title: "Individual analysis"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+```{r lib, message=F}
+library(dplyr)
+library(ggplot2)
+library(mclust)
+```
+
+```{r load_data}
+load('../data/results/individual_best_fits.Rdata')
+load('../data/labels.Rdata')
+load('ind_ndp_fits.Rdata')
+```
+
+```{r prep_data}
+ind<-do.call(rbind.data.frame, individual_best_fits)
+ind$ix<-rownames(ind)
+rownames(ind)<-NULL
+ind<-ind %>%
+  mutate(ix=as.numeric(as.character(substr(ix, 2, nchar(ix))))) %>%
+  select(ix, alpha, beta, gamma, base, raw_ll, fitted_ll, id) %>%
+  left_join(labels, by='ix') %>%
+  select(ix, condition, alpha, beta, gamma, base, raw_ll, fitted_ll, id, categorization) %>%
+  mutate(
+    fix=if_else(condition %in% c('A1', 'A3'), 'A', 'R'),
+    fix_cond=if_else(condition %in% c('A1', 'A3'), 'Fix A', 'Fix R'),
+    rule_change=if_else(condition %in% c('A1','A2'), 'edge', 'shade'),
+    rule_change_cond=if_else(condition %in% c('A1','A2'), 'Rule edge(A)', 'Rule shade(A)'))
+
+# Add BIC
+rand_bic_val=-2*(log(1/20)*16)
+ind$dp_bic=4*log(16)-2*ind$fitted_ll
+ind$rand_bic=rand_bic_val
+
+# Add non-dp model
+ind_bics<-ind_ndp_fits %>%
+  select(ix, ndp_raw_ll=raw_ll, ndp_base=base, ndp_fitted_ll=fitted_ll) %>%
+  left_join(ind, by='ix') %>%
+  select(ix, rand_bic, 
+         dp_raw_ll=raw_ll, dp_fitted_ll=fitted_ll, dp_bic,
+         ndp_raw_ll, ndp_fitted_ll)
+
+ind_bics$ndp_bic=1*log(16)-2*ind_bics$ndp_fitted_ll
+
+ind_bics <- ind_bics %>%
+  mutate(m_bic=ifelse(dp_bic<ndp_bic, dp_bic, ndp_bic)) %>%
+  mutate(label=ifelse(rand_bic_val<m_bic, 'Rand',
+                          ifelse(dp_bic<ndp_bic, 'DP', 'Universal')))
+```
+
+
+Most participants are (still) best fitted by DP model.
+
+```{r mbic_perc}
+ind_bics%>%count(label) %>% mutate(perc=100*n/sum(n))
+```
+
+```{r plot_indbic}
+ind_bics %>%
+  mutate(bic_label=ifelse(rand_bic_val<m_bic, 'DP < Rand',
+                          ifelse(dp_bic<ndp_bic, 'DP', 'Universal'))) %>%
+  mutate(bic_label=factor(bic_label, levels=c('Universal', 'DP', 'DP < Rand'))) %>%
+  ggplot(aes(x=reorder(as.character(ix), m_bic), y=m_bic, fill=bic_label)) +
+  geom_bar(stat='identity') +
+  geom_hline(yintercept=rand_bic_val) +
+  labs(x='', y='', title='Best model BIC per individual') +
+  theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(),
+        legend.title=element_blank()) +
+  scale_fill_manual(values=c("red4", "royalblue4", "#999999"))
+```
+
+
+For those that are best fitted by DP model, use `mclust` package to fit a Gaussian Mixture model on the fitted alpha, beta, gamma, base parameters. 
+
+```{r mclust}
+dp_fitted<-ind_bics %>% filter(dp_bic<rand_bic, dp_bic<ndp_bic) %>% pull(ix)
+dp_best<-ind %>% filter(ix %in% dp_fitted)
+
+Y<-dp_best %>% select(alpha, beta, gamma, base)
+BIC<-mclustBIC(Y)
+mod1 <- Mclust(Y, x = BIC)
+```
+
+
+It leads to `r mod1$G` clusters:
+
+```{r mclust_summary}
+summary(mod1, parameters=TRUE)
+```
+
+
+Plot alpha, beta (in log-scale for visual convenience) and gamma per cluster:
+
+```{r mclust_plot}
+dp_best$mod1<-mod1$classification
+a<-dp_best %>%
+  ggplot(aes(x=log(alpha), y=log(beta), 
+             color=factor(gamma,levels=c(0, .25, .5, .75, 1)))) +
+  geom_point() +
+  scale_color_brewer(type='div', palette=6) +
+  facet_wrap(~mod1) +
+  labs(color='Gamma') +
+  theme_bw()
+```
+
+
+Cluster 2 and 6 mainly contains extremely noisy values.
+
+Cluster 3 seems to be Agent-focused.
+
+Cluster 1, 4, 6 are all Recipient-focused - but with different means on beta and alpha values.
+
+Cluster 5 contains those with very large softmax base value - participants that predicted almost the same as the the model.
+
+
+```{r mclust_cond}
+b<-dp_best %>%
+  mutate(rule_change_cond=ifelse(rule_change=='edge', 'Rule 1', 'Rule 2')) %>%
+  ggplot(aes(x=rule_change_cond, fill=factor(mod1))) +
+  geom_bar(stat='count', position='fill') +
+  facet_grid(~fix_cond, switch = "x", scales = "free_x", space = "free_x") +
+  theme(panel.spacing = unit(0, "lines"), 
+        strip.background = element_blank(),
+        strip.placement = "outside") +
+  labs(x='', y='', title='Clusters per condition', fill='Cluster') +
+  scale_fill_brewer(palette='Set1')
+```
+
+Cluster 6 is only found in condition A3. 
+
+Cluster 3 and 4 are found in all conditions. Cluster 3 is the most popular across conditions.
+
+```{r}
+ggarrange(a, b, labels=c('I.','II.'), ncol=2, widths=c(3,2))
+```
+
+
+
+

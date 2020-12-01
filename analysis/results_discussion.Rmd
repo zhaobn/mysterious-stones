@@ -1,0 +1,435 @@
+---
+title: Results Discussion
+author: Bonan Zhao
+date: Nov 3, 2020
+output: 
+  html_document:
+    toc: true
+    toc_depth: 2
+    toc_float:
+      collapsed: false
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+knitr::opts_chunk$set(results = TRUE)
+```
+
+```{r prep, include=FALSE}
+# Packages & data
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(ggpubr)
+
+load('../data/results/individual_best_fits.Rdata')
+load('../data/mturk/mturk_main.Rdata')
+load('../data/gen_labeled.Rdata')
+load('../data/labels.Rdata')
+task<-read.csv('../data/setup/main.csv')
+```
+
+
+# Generalization data
+
+## Uniformity of selections
+
+Use Cronbach's alpha to measure the uniformity of selections between participants for each generalization trial.
+
+
+```{r plot_ca}
+ggplot(gen_labeled, aes(x=rule_change_cond, y=cronbach_alpha, fill=condition)) +
+  geom_violin() +
+  facet_grid(~fix_cond, switch = "x", scales = "free_x", space = "free_x") +
+  theme(panel.spacing = unit(0, "lines"), 
+        strip.background = element_blank(),
+        strip.placement = "outside",
+        legend.position = "none") +
+  labs(x='', y='', title='Cronbach alpha per trial') +
+  scale_fill_brewer(palette="Paired")
+```
+
+There is a marginal significant effect that when the Agent is fixed, participants hold stronger agreement on the predictions among each other.
+
+```{r lm_ca}
+lm(cronbach_alpha~fix+rule_change, data=gen_labeled) %>% summary()
+```
+
+
+## Feature differences
+
+Define `total_diff` to be the number of feature value difference between the stones in one generalization trial vs all the stones that's appeared in the learning phase. 
+For example, for one generalization trial, if both the Agent stone and Recipient stone have novel feature values that never appeared in the learning phase, its `total_diff` will be 2 + 2 = 4.
+
+There is a clear trend that while the generalization stones get more different from those in the learning trial, participants' selections diverge accordingly.
+
+```{r plot_df}
+gen_labeled %>%
+  ggplot(aes(x=total_diff, y=cronbach_alpha, shape=condition, color=condition)) +
+  geom_point(size=2) +
+  geom_smooth(method = "lm", fill=NA) +
+  scale_color_brewer(palette="Paired")
+```
+
+And the effect is strong.
+
+```{r lm_df}
+lm(cronbach_alpha~total_diff, data=gen_labeled) %>% summary()
+```
+
+
+
+We can further look into the feature differences as per Agent, Recipient, the Fixed stone, and the Varied stone. 
+
+- `agent_diff`: number of feature differences between the agent stone in this generalization trial and all the agents that have been appeared during learning
+- `recipient_diff`: similar to above, but between the recipient stones
+- `fixed_diff`: similar to above, but between the stones that is Fixed during the learning phase. For example, in condition A1 the Agent stone is fixed and Recipient stone is varied, hence the `fixed_diff` for trials in this condition will be `agent_diff`
+- `varied_diff`: similar to `fixed_diff`, but between the one that is varied during learning.
+
+
+```{r diff_data}
+x<-gen_labeled %>%
+  select(condition, trial, ends_with('diff'), cronbach_alpha) %>%
+  pivot_longer(cols=ends_with('diff'), names_to='diff', values_to='value')
+```
+
+Overall, participants are more sensitive to the change of the recipient and the fixed object.
+
+```{r}
+ad<-lm(cronbach_alpha~agent_diff, gen_labeled) %>% summary()
+rd<-lm(cronbach_alpha~recipient_diff, gen_labeled) %>% summary()
+fd<-lm(cronbach_alpha~fixed_diff, gen_labeled) %>% summary()
+vd<-lm(cronbach_alpha~varied_diff, gen_labeled) %>% summary()
+```
+
+
+Figure A shows that as the Agent stones vary from the familiar ones, participants' selection uniformity does not drop much (p = `r round(ad$coefficients[2,4], 2)`); however the the Recipient stones become more novel, participants increasingly deviate from each other (p < .001).
+
+Figure B shows that while the divergence between selections is more sensitive to the stone that is fixed during the learning phase (p_varied = `r round(vd$coefficients[2,4], 2)`, p_fixed < .001). In other words, when participants observe more diversity of a role (A/R), their causal judgment is more robust.
+
+
+```{r}
+a<-x %>%
+  filter(diff %in% c('agent_diff', 'recipient_diff')) %>%
+  ggplot(aes(x=value, y=cronbach_alpha, color=diff, shape=diff)) +
+  geom_point() + labs(x='') +
+  scale_x_continuous(breaks = c(0,1,2)) +
+  geom_smooth(method = "lm", fill=NA)
+
+b<-x %>%
+  filter(diff %in% c('fixed_diff', 'varied_diff')) %>%
+  ggplot(aes(x=value, y=cronbach_alpha, color=diff, shape=diff)) +
+  geom_point() + labs(x='') +
+  scale_x_continuous(breaks = c(0,1,2)) +
+  geom_smooth(method = "lm", fill=NA)
+
+ggarrange(a, b, labels = c('A', 'B'), ncol=2, legend='bottom')
+```
+
+```{r}
+lm(cronbach_alpha~recipient_diff, gen_labeled) %>% summary()
+```
+
+
+# Free responses analysis
+
+```{r format_data}
+# Format data
+labels<-labels %>%
+  filter(rule_like==1) %>%
+  mutate(
+    fix=if_else(condition %in% c('A1', 'A3'), 'A', 'R'),
+    fix_cond=if_else(condition %in% c('A1', 'A3'), 'Fix A', 'Fix R'),
+    rule_change=if_else(condition %in% c('A1','A2'), 'edge', 'shade'),
+    rule_change_cond=if_else(condition %in% c('A1','A2'), 'Rule edge(A)', 'Rule shade(A)'))
+```
+
+## Compatibility
+
+For all the free responses (N = `r nrow(labels)`), we first check whether a self-reported rule is compatible with the all the learning observations. 
+
+```{r}
+comp_grouped<-labels %>%
+  group_by(condition, compatible, fix, fix_cond, rule_change, rule_change_cond) %>%
+  summarise(n=n()) %>%
+  group_by(condition, fix, fix_cond, rule_change, rule_change_cond) %>%
+  mutate(compatiblility=round(100*n/sum(n),2)) %>%
+  ungroup()
+
+incomp<-comp_grouped %>% 
+  filter(compatible==0) %>% 
+  select(condition, incompatible_rules=n)
+comp<-comp_grouped %>% 
+  filter(compatible==1) %>% 
+  select(condition, compatiblility)
+total<-labels %>% count(condition, fix_cond, rule_change_cond) %>% ungroup()
+
+total %>%
+  left_join(incomp, by='condition') %>%
+  left_join(comp, by='condition') %>%
+  select(condition, total_rules=n, incompatible_rules, compatiblility, factor_1=fix_cond, factor_2=rule_change_cond)
+
+  # ggplot(aes(x=rule_change_cond, y=compatiblility)) +
+  # geom_bar(stat="identity", fill='dodgerblue4') +
+  # facet_grid(~fix_cond, switch = "x", scales = "free_x", space = "free_x") +
+  # theme(panel.spacing = unit(0, "lines"), 
+  #       strip.background = element_blank(),
+  #       strip.placement = "outside",
+  #       panel.background = element_rect(fill = "white")) +
+  # labs(x='', y='', title='% compatible rules') +
+  # geom_text(aes(label=paste0(round(compatiblility), '%')), position=position_dodge(width=0.9), vjust=-0.25) +
+  # ylim(0,100) +
+  # scale_fill_brewer(palette="Blues")
+```
+
+There is no effect between conditions as for predicting rule compatibility.
+
+----
+
+
+## Specify the effect
+
+```{r comp_data}
+comp_data<-filter(labels, compatible==1) %>%
+  mutate(rule_type=ifelse(rule_type %in% c('intricate', 'true_relative', 'true_constant'), 'specific', rule_type)) %>%
+  mutate(rule_type=factor(rule_type, levels=c('specific', 'fuzzy', 'tacit', 'fuzzy_tacit')))
+```
+
+For all *compatible* rules (N=`r nrow(comp_data)`), we check whether a rule defines a specific result stone, or implies more than one possible result stones.
+
+- **Specific**: describes precisely one result stone, defines both features clearly. The ground truth rules are all specific rules.
+
+For the non-specific rules, we can further classify them according to the different kinds of implicitness in the rule:
+
+- **Tacit**: precisely specify one feature, but leave the other feature unmentioned
+- **Fuzzy**: refer to a range of possible values for some feature(s). Can be fuzzy about one or both features. When being fuzzy about one feature, the other feature is clearly specified to a definite value.
+- **Fuzzy_tacit**: refer to a range of possible values for one feature and leave the other feature unmentioned
+
+```{r rule_spec}
+ggplot(comp_data, aes(x=rule_change_cond, fill=rule_type)) + 
+  geom_bar(stat="count", position="fill") +
+  facet_grid(~fix_cond, switch = "x", scales = "free_x", space = "free_x") +
+  theme(panel.spacing = unit(0, "lines"), 
+        strip.background = element_blank(),
+        strip.placement = "outside") +
+  labs(x='', y='', title='Rule type') +
+  theme(legend.title = element_blank()) +
+  scale_fill_brewer(palette="Paired")
+```
+
+Participants in the condition where Agent is fixed are more likely to report specific rules, compared to participants in the condition where Agent is varied. 
+
+Participants assigned Rule 1 (*edge(A)+1, shade(R)+1*) are more likely to report specific rules compared to participants assigned Rule 2 (*edge(R)+1, shade(A)+1*).
+
+Both factors predict the probability of reporting specific rules significantly (beta_fix = 1.9, t_fix = .02, beta_rule = 1.6, t_rule = .007, ), and there is no interaction between these two factors.
+
+
+```{r glm_specific, echo=TRUE}
+glm(rule_type=='specific' ~ rule_change + fix + rule_change * fix,
+    data=comp_data, family='binomial') %>% summary()
+
+glm(rule_type=='specific' ~ rule_change + fix + rule_change:fix,
+    data=comp_data, family='binomial') %>% summary()
+```
+
+Participants assigned Rule 2 (*shade(A)+1, edge(R)+1*) are more likely to leave one of the features unmentioned (beta_rule = 1.4, p = .03). The fix A or R condition does not significantly differentiate this (beta_fix = .8, p = .4).
+
+
+``` {r glm_tacic, echo=TRUE}
+glm(rule_type %in% c('tacit', 'fuzzy_tacit') ~ fix + rule_change + fix * rule_change,
+    data=comp_data, family='binomial') %>% summary()
+```
+
+For all the tacit and fuzzy_tacit rules, 
+`r round(100 * nrow(filter(labels, shade_value=='unstated')) / (nrow(filter(labels, shade_value=='unstated')) + nrow(filter(labels, edge_value=='unstated'))))`% of the unmentioned features are colors. This may be related to some feature bias that people are more attentive to shape changes.
+
+
+## Identify causes
+
+Next, we check whether participants use “if”, “when”, “in case”, “unless” to separate types of stones, and if so, whether such categorization is applied on the Active stone (A), Inactive stone (R), or both.
+
+```{r cat_plot}
+ggplot(comp_data, aes(x=rule_change_cond, fill=categorization)) + 
+  geom_bar(stat="count", position="fill") +
+  facet_grid(~fix_cond, switch = "x", scales = "free_x", space = "free_x") +
+  theme(panel.spacing = unit(0, "lines"), 
+        strip.background = element_blank(),
+        strip.placement = "outside") +
+  labs(x='', y='', title='Rule type') +
+  scale_fill_brewer(palette="Paired")
+```
+
+
+Participants in the conditions where Agent is varied are more likely to categorizes their observations and report rules with multiple "if" statements. Overall, Rule 1 (*edge(A)+1, shade(R)+1*) also induces higher probability to categorizes observations (beta_fix = 1.21, p = .02, beta_rule = 1.17, p = .02).
+
+```{r cat_glm, echo=TRUE}
+glm(categorization=='universal' ~ fix + rule_change, 
+    data=comp_data, family='binomial') %>% summary() 
+
+glm(categorization=='universal' ~ fix + rule_change + fix * rule_change, 
+    data=comp_data, family='binomial') %>% summary() 
+```
+
+
+## Combine cause and effect
+
+Further, we could combine these two analysis on the cause side and effect side to have a better understanding of the entire picture.
+
+
+```{r rc_data}
+rule_cat<-comp_data %>%
+  mutate(categorization=as.character(categorization)) %>%
+  mutate(
+    cat=ifelse(categorization!='universal', 'categorized', 'universal'),
+    rule_t=as.character(rule_type),
+    rut=ifelse(grepl('tacit', rule_t), 'tacit', rule_t),
+    cause_effect=paste(rut, cat, sep=', '))
+```
+
+```{r rc_plot}
+rule_cat %>%
+  mutate(cause_effect=factor(cause_effect, levels = c(
+    'specific, universal',
+    'specific, categorized',
+    "fuzzy, universal",
+    "fuzzy, categorized",
+    "tacit, universal",
+    "tacit, categorized"
+  ))) %>%
+  ggplot(aes(x=rule_change_cond, fill=cause_effect)) + 
+  geom_bar(stat="count", position="fill") +
+  facet_grid(~fix_cond, switch = "x", scales = "free_x", space = "free_x") +
+  theme(panel.spacing = unit(0, "lines"), 
+        strip.background = element_blank(),
+        strip.placement = "outside") +
+  labs(x='', y='', title='Rule type') +
+  scale_fill_brewer(palette="Paired")
+```
+
+
+```{r}
+rule_cat %>%
+  mutate(cat_uc=ifelse(cat=='universal', 'U', 'C')) %>%
+  group_by(rut, cat_uc, fix_cond, rule_change_cond) %>%
+  summarise(n=n()) %>%
+  mutate(freq=n/sum(n)) %>%
+  mutate(ifelse(is.na(freq), 0, freq)) %>%
+  ggplot(aes(x=rut, y=cat_uc, fill=freq)) +
+  geom_tile(colour="white",size=0.25) +
+  geom_text(aes(label=round(freq, 2))) +
+  scale_fill_distiller(direction = +1) +
+  facet_grid(fix_cond~rule_change_cond)
+```
+
+
+Conditions where Agent is fixed induces more specific & universal rules, and conditions where Agent is varied induces more fuzzy & categorized rules. These effects holds across underlying rules.
+
+Tacit rules are influenced by the underlying rule, regardless of where A is fixed or varied.
+
+```{r glm_mix}
+glm(cause_effect=="fuzzy, categorized"~ fix + rule_change, 
+    data=rule_cat, family='binomial') %>% summary() 
+
+glm(cause_effect=="specific, universal"~ fix + rule_change + fix * rule_change, 
+    data=rule_cat, family='binomial') %>% summary() 
+
+glm(cause_effect=="tacit, universal"~ fix + rule_change, 
+    data=rule_cat, family='binomial') %>% summary() 
+```
+
+# Model fitting
+
+We compare three models on all data points (N=102): 
+
+- Random baseline
+- Universal model with an inverse temperature parameter for softmax 
+- DP model with four parameters:
+  - alpha: grouping tendendy. Larger alphas means more possible groups.
+  - beta: prior belief about mean-feature. Larger beta means towards no grouping.
+  - gamma: % grouping according to A's features. Ranges between [0, 1]. 1 means soly groups on A, 0 means soly groups on R, .5 means half-half.
+  - b: (inverse) softmax base parameter. Larger b means higher certainty.
+
+## Model fitting results
+
+```{r}
+get_bic<-function(fitted_ll, param=0, N=102) {
+  return(round(param*log(N)-2*fitted_ll))
+}
+```
+
+
+| Model           | Log likelihood | BIC                   | Parameters                       |
+|-----------------|----------------|-----------------------|----------------------------------|
+| Random baseline | -4889          | `r get_bic(-4889)`    |                                  |
+| Universal       | -3706          | `r get_bic(-3706, 1)` | b=3.19                           |
+| **DP**          | **-3462**      | `r get_bic(-3462, 4)` | alpha=9, beta=256, gamma=1 b=9.5 |
+
+
+## Individual fits
+
+```{r ind_data}
+ind_best<-do.call(rbind, lapply(individual_best_fits, data.frame))
+ind_best$ix<-rownames(ind_best)
+rownames(ind_best)<-NULL
+ind_best<-ind_best %>%
+  mutate(ix=as.numeric(as.character(substr(ix, 2, nchar(ix)))),
+         gamma=as.factor(gamma)) %>%
+  select(ix, alpha, beta, gamma, base, raw_ll, fitted_ll, id)
+ind_best<-ind_best %>% left_join(labels, by='ix') %>%
+  select(ix, condition, alpha, beta, gamma, base, raw_ll, fitted_ll, id,
+         fix, fix_cond, rule_change, rule_change_cond, rule_type, categorization)
+
+
+ind_best$log_b=log(ind_best$base)
+```
+
+
+### Certainty of the the fittings
+
+For the inverse **temperature parameter of the softmax**, our model can be extremely certain with certain individuals, but overall quite conservative
+
+```{r plot_fitted_base}
+a<-ggplot(ind_best, aes(x=log_b, color=condition)) + geom_density() +
+  labs(x='log(base)', y='') + ylim(0, 1)
+b<-ggplot(ind_best, aes(x=log_b, color=gamma)) + geom_density() +
+  labs(x='log(base)', y='') + ylim(0, 1)
+ggarrange(a, b, labels = c("A", "B"), ncol=2, legend='bottom')
+```
+
+### Gamma
+
+Below is a plot for the fitted gamma parameter per condition. From the plot we can see that when A is fixed, majority of the fitted gamma is 1 (i.e grouping by A), and vice verse for when R is fixed, in line with our finding on the self-reported data.
+
+```{r plot_fitted_gamma}
+ggplot(ind_best, aes(x=rule_change_cond, fill=gamma)) +
+  geom_bar(stat='count', position='fill') +
+  facet_grid(~fix_cond, switch = "x", scales = "free_x", space = "free_x") +
+  theme(panel.spacing = unit(0, "lines"), 
+        strip.background = element_blank(),
+        strip.placement = "outside") +
+  labs(x='', y='', title='Fitted Gamma value per condition') 
+```
+
+
+### Alpha, beta
+
+The plots below are the the fitted alpha and beta parameters per gamma value.
+
+```{r}
+a<-ggplot(ind_best, aes(x=alpha, y=beta, group=gamma)) + 
+  geom_point(aes(shape=gamma, color=gamma), size=2)
+b<-ind_plot<-ind_best %>%
+  mutate(l_alpha=log(alpha), l_beta=log(beta)) %>%
+  ggplot(aes(x=l_alpha, y=l_beta, group=gamma)) + 
+  geom_point(aes(shape=gamma, color=gamma), size=2) +
+  labs(x='log(alpha)', y='log(beta)')
+ggarrange(a, b, ncol=2, common.legend=T, labels=c('A', 'B'), legend = 'bottom')
+```
+
+
+
+
+
+
+
+

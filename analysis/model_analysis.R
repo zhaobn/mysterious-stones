@@ -97,15 +97,20 @@ dpar_pass_grid_2 %>% arrange(fitted_ll) %>% head(1)
 ## Plot
 library(GA)
 
-alphas<-c(.01, .05, seq(.1, 1, by=.1), seq(2,5))
-betas<-c(.0001, .001, .1, .11, .15, .2, .3, .4, .5, 1, 2)
+alphas<-c(1:10, 2^(4:10))
+betas<-c(seq(0,1,.1), 2^(1:10))
 
 plot_sensitivity<-function(data, base, col) {
   fits<-matrix(nrow=length(alphas), ncol=length(betas))
   for (i in 1:length(alphas)) {
     for (j in 1:length(betas)) {
-      fits[i,j]<-filter(data, alpha==alphas[i], beta==betas[j])%>%pull(col)
-      if (fits[i,j]==-Inf) fits[i,j]=base
+      val<-filter(data, alpha==alphas[i], beta==betas[j])
+      if (nrow(val)>0) {
+        fits[i,j]<-filter(data, alpha==alphas[i], beta==betas[j])%>%pull(col)
+        #if (fits[i,j]==-Inf) fits[i,j]=base
+      } else {
+        fits[i,j]=base 
+      }
       if (fits[i,j]>0) fits[i,j]=-fits[i,j]
     }
   }
@@ -113,7 +118,7 @@ plot_sensitivity<-function(data, base, col) {
   return(persp3D(alphas, betas, fits, theta=50, phi=20, expand=1, col.palette=topo.colors))
 }
 
-plot_sensitivity(dpa_grid, -4841.103, 'raw_ll')
+plot_sensitivity(dp25_grid, -4841.103, 'raw_ll')
 plot_sensitivity(dpar_grid, -4841.103, 'raw_ll')
 
 plot_sensitivity(dpa_grid, -4841.103, 'fitted_ll')
@@ -183,22 +188,33 @@ read_ll<-function(df, colname, default=0) {
 }
 
 
-persp3D(log(alphas), log(betas), read_ll(dpa_grid_2, 'raw_ll', 0), 
+persp3D(log(alphas), log(betas), read_ll(dp50_grid, 'raw_ll', -4841.103), 
         theta=20, phi=20, expand=1, 
         xlab="log(alpha)", ylab="log(beta)", zlab="", )
 
 
-par(mfrow=c(1, 3))
+par(mfrow=c(2, 3))
 
 persp3D(log(alphas), log(betas), read_ll(dpa_grid_2, 'raw_ll', 0), 
         theta=20, phi=20, expand=1, 
-        xlab="log(alpha)", ylab="log(beta)", zlab="", main='DP(A)')
+        xlab="log(alpha)", ylab="log(beta)", zlab="", main='1')
+
+persp3D(log(alphas), log(betas), read_ll(dp75_grid, 'raw_ll', 0), 
+        theta=20, phi=20, expand=1, 
+        xlab="log(alpha)", ylab="log(beta)", zlab="", main='.75')
+
+persp3D(log(alphas), log(betas), read_ll(dp50_grid, 'raw_ll', 0), 
+        theta=20, phi=20, expand=1, 
+        xlab="log(alpha)", ylab="log(beta)", zlab="", main='.5')
+
+persp3D(log(alphas), log(betas), read_ll(dp25_grid, 'raw_ll', 0), 
+        theta=20, phi=20, expand=1, 
+        xlab="log(alpha)", ylab="log(beta)", zlab="", main='.25')
+
 persp3D(log(alphas), log(betas), read_ll(dpr_grid_2, 'raw_ll', 0), 
         theta=20, phi=20, expand=1, 
-        xlab="log(alpha)", ylab="log(beta)", zlab="", main='DP(R)')
-persp3D(log(alphas), log(betas), read_ll(dpar_grid_2, 'raw_ll', 0), 
-        theta=20, phi=20, expand=1, 
-        xlab="log(alpha)", ylab="log(beta)", zlab="", main='DP(AR)')
+        xlab="log(alpha)", ylab="log(beta)", zlab="", main='0')
+
 
 
 

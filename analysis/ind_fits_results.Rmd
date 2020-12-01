@@ -1,0 +1,289 @@
+---
+title: "Individual fits"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo=FALSE)
+```
+
+```{r libs_and_data, include=FALSE}
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(RColorBrewer)
+library(colorRamps)
+library(GA)
+getPalette = colorRampPalette(brewer.pal(9, "Blues"))
+
+load('../data/hdp.Rdata')
+load('../data/mturk/mturk_main.Rdata')
+load('../data/gen_labeled.Rdata')
+load('../data/results/individual_best_fits.Rdata')
+load('../data/labels.Rdata')
+
+# For sensitivity analysis
+load('../data/results/gammas/dpa_2.Rdata')
+load('../data/results/gammas/dpr_2.Rdata')
+load('../data/results/gammas/dp25.Rdata')
+load('../data/results/gammas/dp50.Rdata')
+load('../data/results/gammas/dp75.Rdata')
+```
+
+# Parameters
+
+An overview of model performance with extreme alpha and beta values.
+
+Large beta is a sign for noisy behavior, flattens the Cronbach alpha measurement.
+
+Small alpha is a sign for no grouping, leads to precise predictions thus no obvious drop of the Cronbash alpha measure as objects vary.
+
+Large alpha and small beta is the most sensitive to the difference of objects in generalization trials, effected by the grouping parameter gamma.
+
+
+```{r model_params_funcs}
+softmax_trial<-function(td, t) {
+  td$to_exp<-exp(td$prob*t)
+  td$soft<-td$to_exp/sum(td$to_exp)
+  return(select(td, group, trial, object, prob, soft))
+}
+read_model_preds<-function(alpha_val, beta_val, gamma_val, b_val) {
+  id<-model_refs %>% filter(alpha==alpha_val, beta==beta_val, gamma==gamma_val) %>% pull(id)
+  df<-model_preds[[id]]
+  if (typeof(b_val)=='double') {
+    added<-softmax_trial(filter(df, group=='A1', trial==1), b_val)
+    for (c in paste0('A', 1:4)) {
+      for (i in 1:16) {
+        if (!(c=='A1'&i==1)) added<-rbind(added, softmax_trial(filter(df, group==c, trial==i), b_val))
+      }
+    }
+    df<-added %>% select(group, trial, object, prob=soft)
+  }
+  df$condition=df$group
+  df<-df %>% left_join(GROUP_SIZE, by='condition')
+  df$count<-round(df$prob*df$n)
+  return(select(df, group, trial, result=object, prob, count))
+}
+get_cronbach_alpha<-function(vec) {
+  sx<-var(c(1, rep(0,19)))
+  k=sum(vec)
+  sy<-var(vec)
+  return(k/(k-1)*(1-(k*sx)/sy))
+} 
+get_model_cas<-function(alpha, beta, gamma, base='') {
+  preds<-read_model_preds(alpha, beta, gamma, base)
+  # Calculate Cronbach alpha
+  consistency<-expand.grid(
+    condition=paste0('A',1:4), trial=1:16, cronbach_alpha=NA, 
+    stringsAsFactors = F
+  ) %>% 
+    arrange(condition, trial)
+  for (i in 1:nrow(consistency)) {
+    cond=consistency[i,'condition']
+    tid=consistency[i, 'trial']
+    count_vec<-preds %>% filter(group==cond, trial==tid) %>% pull(count)
+    consistency[i, 'cronbach_alpha'] = get_cronbach_alpha(count_vec)
+  }
+  extra<-gen_labeled %>%
+    select(condition, trial, total_diff, fix, fix_cond, rule_change, rule_change_cond)
+  df<-consistency %>% left_join(extra, by=c('condition', 'trial'))
+  return(df)
+}
+```
+
+```{r model_per_param, message=FALSE, warning=FALSE}
+GAMMAS = c(0, .25, .5, .75, 1)
+GROUP_SIZE=count(df.sw, condition)
+
+params=data.frame(alpha=rep(c(1,1024),each=2), beta=rep(c(0,1024), n=2))
+params$param=paste0('alpha=', params$alpha, ',beta=', params$beta)
+
+to_plot<-data.frame(
+  alpha=numeric(0), beta=numeric(0), gamma=numeric(0), param=character(0),
+  condition=character(0), trial=numeric(0), 
+  cronbach_alpha=numeric(0), total_diff=numeric(0)
+)
+for (i in 1:nrow(params)) {
+  alp=params[i, 'alpha']
+  bet=params[i, 'beta']
+  par=params[i, 'param']
+  for (gam in GAMMAS) {
+    df<-get_model_cas(alp, bet, gam) %>%
+      mutate(alpha=alp, beta=bet, gamma=gam, param=par) %>%
+      select(alpha, beta, gamma, param, condition, trial, cronbach_alpha, total_diff)
+    to_plot<-rbind(to_plot, df)
+  }
+}
+
+to_plot %>%
+  mutate(cronbach_alpha=ifelse(cronbach_alpha<0, 0, cronbach_alpha)) %>%
+  ggplot(aes(x=total_diff, y=cronbach_alpha, color=condition)) +
+  geom_point() +
+  geom_smooth(method='lm', fill=NA) +
+  scale_color_brewer(palette="Paired") +
+  facet_grid(gamma~param) +
+  ylim(0, 1)
+```
+
+
+# Individual fits
+
+Let's have a look at individually-fitted parameters.
+
+```{r ind_data}
+ind<-do.call(rbind.data.frame, individual_best_fits)
+ind$ix<-rownames(ind)
+rownames(ind)<-NULL
+ind<-ind %>%
+  mutate(ix=as.numeric(as.character(substr(ix, 2, nchar(ix))))) %>%
+  select(ix, alpha, beta, gamma, base, raw_ll, fitted_ll, id) %>%
+  left_join(labels, by='ix') %>%
+  select(ix, condition, alpha, beta, gamma, base, raw_ll, fitted_ll, id, categorization) %>%
+  mutate(
+    fix=if_else(condition %in% c('A1', 'A3'), 'A', 'R'),
+    fix_cond=if_else(condition %in% c('A1', 'A3'), 'Fix A', 'Fix R'),
+    rule_change=if_else(condition %in% c('A1','A2'), 'edge', 'shade'),
+    rule_change_cond=if_else(condition %in% c('A1','A2'), 'Rule edge(A)', 'Rule shade(A)'))
+
+```
+
+## Gamma
+
+Conditions where A is fixed is better fitted by grouping by A (gamma > .5).
+
+```{r mean_gamma}
+ind %>%
+  group_by(fix_cond, rule_change_cond, condition) %>%
+  summarise(gamma=mean(gamma)) %>%
+  ggplot(aes(x=rule_change_cond, y=gamma, fill=condition)) +
+  geom_bar(stat='identity') +
+  facet_grid(~fix_cond, switch = "x", scales = "free_x", space = "free_x") +
+  theme(panel.spacing = unit(0, "lines"), 
+        strip.background = element_blank(),
+        strip.placement = "outside") +
+  labs(x='', y='', title='Mean gamma') +
+  theme(legend.position = "none") +
+  geom_text(aes(label=round(gamma, 2)), position=position_dodge(width=0.9), vjust=-0.25) +
+  ylim(0, .7) +
+  scale_fill_brewer(palette='Paired')
+```
+
+
+In average, participants that self-reported using categorizations have a higher fitted gamma value.
+
+
+```{r mean_gamma_by_cat}
+ind %>%
+  mutate(
+    categorization=ifelse(categorization!='universal', 'C', 'U'),
+    condition=factor(condition, levels=c('A1','A3','A2','A4'))) %>%
+  group_by(categorization, condition) %>%
+  summarise(gamma=mean(gamma)) %>%
+  ggplot(aes(x=categorization, y=gamma, fill=categorization)) +
+  geom_bar(stat='identity') +
+  facet_grid(~condition) +
+  scale_fill_brewer(palette='Paired') +
+  labs(x='', y='Mean gamma', fill='self report categorization')
+```
+
+
+## Alpha
+
+Conditions where A is fixed shows less categorization, inline with self reports.
+
+```{r fitted_alpha}
+ind %>%
+  mutate(alpha=as.factor(alpha)) %>%
+  ggplot(aes(x=alpha, fill=alpha)) +
+  geom_bar(stat='count', position = 'dodge') +
+  facet_grid(fix_cond~rule_change_cond) +
+  scale_fill_manual(values = rev(getPalette(20))) +
+  theme(legend.position = 'none')
+```
+
+
+## Beta
+
+The 'edge(M)=edge(A)+1, shade(M)=shade(R)+1' conditions have more precise predictions, while participants that are assigned the other rule are more likely to produce noisy predictions.
+
+```{r fitted_beta}
+ind %>%
+  mutate(beta=as.factor(beta)) %>%
+  ggplot(aes(x=beta, fill=beta)) +
+  geom_bar(stat='count', position = 'dodge') +
+  facet_grid(fix_cond~rule_change_cond) +
+  scale_fill_manual(values = rev(getPalette(30))) +
+  theme(legend.position = 'none')
+```
+
+
+## Overall
+
+In all conditions we found a mixture of best fitted gamma values.
+
+Most individual participants are best fitted by gamma = 0 or 1.
+
+The couple of mixed best-fitted gamma values are only found in conditions where R is fixed.
+
+Conditions where A is fixed have a more concentrated distribution 
+
+
+```{r fitted_all}
+ind %>%
+  mutate(l_alpha=log(alpha), l_beta=log(beta), 
+         fitted_gamma=factor(gamma,levels=c(0, .25, .5, .75, 1))) %>%
+  ggplot(aes(x=l_alpha, y=l_beta, color=fitted_gamma)) +
+  geom_point() +
+  labs(x='log(alpha)', y='log(beta)') +
+  scale_color_brewer(type='div', palette=6) +
+  theme_bw() +
+  facet_grid(fix_cond~rule_change_cond)
+```
+
+# Sensitivity analysis
+
+```{r sensitivity, message=FALSE, warning=FALSE}
+
+alphas<-c(1:10, 2^(4:10))
+betas<-c(seq(0,1,.1), 2^(1:10))
+
+read_ll<-function(df, colname, default=0) {
+  fits<-matrix(nrow=length(alphas), ncol=length(betas))
+  for (i in 1:length(alphas)) {
+    for (j in 1:length(betas)) {
+      ll_col<-filter(df, alpha==alphas[i], beta==betas[j])
+      ll_val<-if (nrow(ll_col)>0) ll_col[, colname] else default
+      fits[i,j]<-if (ll_val > 0) -ll_val else ll_val
+    }
+  }
+  return(fits)
+}
+
+persp3D(log(alphas), log(betas), read_ll(dpa_grid_2, 'raw_ll', 0), 
+        theta=20, phi=20, expand=1, 
+        xlab="log(alpha)", ylab="log(beta)", zlab="", main='Gamma = 1')
+
+persp3D(log(alphas), log(betas), read_ll(dp75_grid, 'raw_ll', 0), 
+        theta=20, phi=20, expand=1, 
+        xlab="log(alpha)", ylab="log(beta)", zlab="", main='Gamma = .75')
+
+persp3D(log(alphas), log(betas), read_ll(dp50_grid, 'raw_ll', 0), 
+        theta=20, phi=20, expand=1, 
+        xlab="log(alpha)", ylab="log(beta)", zlab="", main='Gamma = .5')
+
+persp3D(log(alphas), log(betas), read_ll(dp25_grid, 'raw_ll', 0), 
+        theta=20, phi=20, expand=1, 
+        xlab="log(alpha)", ylab="log(beta)", zlab="", main='Gamma = .25')
+
+persp3D(log(alphas), log(betas), read_ll(dpr_grid_2, 'raw_ll', 0), 
+        theta=20, phi=20, expand=1, 
+        xlab="log(alpha)", ylab="log(beta)", zlab="", main='Gamma = 0')
+
+```
+
+
+
+
+
+
+

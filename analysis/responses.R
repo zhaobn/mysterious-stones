@@ -1,18 +1,24 @@
 
 library(dplyr)
 library(ggplot2)
-theme_set(theme_grey())
+
+# Read labels
+library(googlesheets4)
+labels<-read_sheet("1mmLKveAu3GGDAfQDxg87LrzH2kRwjCuyfKQr83mGwHw")
+labels$initial_input<-as.character(labels$initial_input)
+save(labels, file='../data/labels.Rdata')
 
 load('../data/mturk/mturk_all.Rdata')
 summary(df.sw.all)
+
+df.sw %>% filter(token=='JIE9BMZJ') %>% select(correct)
+df.tw %>% filter(ix==190) %>% select(tid, agent, recipient, result)
 
 # Get all free responses
 res<-df.sw.all %>% select(ix, token, condition, initial_input)
 write.csv(res, file='../data/responses/all_responses.csv', )
 
-# Add labels to main data
-labels<-read.csv('../data/responses/labelled.csv', stringsAsFactors=F)
-summary(labels)
+
 
 df.sw.all<-df.sw.all %>%
   select(setdiff(names(df.sw.all), c('bot', 'rule_like')))

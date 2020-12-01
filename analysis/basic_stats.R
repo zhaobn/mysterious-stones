@@ -2,12 +2,15 @@ options("scipen" = 10)
 options()$scipen
 
 library(dplyr)
-library(ggplot)
+library(ggplot2)
 theme_set(theme_bw())
 rm(list=ls())
 
 # Print mean ± sd
 ms<-function(vec) print(paste0(round(mean(vec), 2), ' ± ', round(sd(vec),2)))
+
+# Load data
+load('../data/mturk/mturk_main.Rdata')
 
 # Overall checks
 df.sw.all %>% filter(bot==1) %>% nrow()
@@ -21,6 +24,13 @@ ms(df.sw$age)
 ms(df.sw$task_duration/60000)
 ms(df.sw$instructions_duration/60000)
 
+ggplot(df.sw.all, aes(x=task_duration/60000, y=correct)) + geom_point()
+
+df.sw.all %>%
+  mutate(task_dur_min=task_duration/60000) %>%
+  filter(task_dur_min<30) %>%
+  summarise(mean=mean(task_dur_min), sd=sd(task_dur_min))
+
 # Accuracy
 bind_rows(
   filter(df.sw.all, rule_like==0|bot==1) %>% 
@@ -33,18 +43,42 @@ bind_rows(
     mutate(acc=acc/(n*18), data='approved')
 ) %>%
   mutate(data=factor(data, levels=c('excluded', 'approved')),
-         condition=factor(condition, levels=c('A1','A3','A2','A4'))) %>%
+         condition=factor(condition, levels=c('A1','A2','A3','A4'))) %>%
   ggplot(aes(x=data, y=acc, fill=condition)) +
   geom_bar(stat='identity', position='dodge') +
   geom_hline(yintercept=1/20) +
-  geom_text(aes(2.4, 1/20, label='Random = 5%'), vjust=-.8) +
+  geom_text(aes(2.4, 1/20, label='Random'), vjust=-.8) +
   geom_text(aes(label=paste0(round(acc*100),'%')), 
             position=position_dodge(width=.9), 
             size=4,
             vjust=-.5) +
   labs(x='', y='', title='Accuracy') +
-  theme(text = element_text(size=20)) +
   scale_fill_brewer(palette="Paired")
+
+
+info<-extra%>%select(condition, fix_cond, rule_change_cond) %>% distinct()
+
+filter(df.sw.all, rule_like==1) %>%
+  group_by(condition) %>%
+  summarise(acc=sum(correct), n=n()) %>%
+  mutate(acc=acc/(n*18),
+         condition=factor(condition, levels=c('A1','A2','A3','A4'))) %>%
+  left_join(info, by='condition') %>%
+  ggplot(aes(x=rule_change_cond, y=acc, fill=condition)) +
+  geom_bar(stat='identity', position='dodge') +
+  geom_hline(yintercept=1/20) +
+  facet_grid(~fix_cond, switch = "x", scales = "free_x", space = "free_x") +
+  theme(panel.spacing = unit(0, "lines"), 
+        strip.background = element_blank(),
+        strip.placement = "outside") +
+  geom_text(aes(label=paste0(round(acc*100),'%')), 
+            position=position_dodge(width=.9), 
+            size=4,
+            vjust=-.5) +
+  labs(x='', y='', title='Accuracy') +
+  scale_fill_brewer(palette="Paired")
+
+
 
 acc_data<-df.sw %>% 
   mutate(fix=if_else(condition %in% c('A1', 'A3'), 'A', 'R'),

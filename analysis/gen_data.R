@@ -56,6 +56,26 @@ get_cronbach_alpha<-function(vec) {
   return(k/(k-1)*(1-(k*sx)/sy))
 } 
 
+KR20<-function(x, k=20) {
+  n=length(x)
+  if (n-length(which(x==0))==1) {
+    rho=1
+  } else {
+    total=sum(x)
+    items=sum(sapply(x, function(i) (i/total)*(1-i/total)))
+    rho=(k/(k-1))*(1-items/var(x))
+  }
+  return(rho)
+}
+
+KR21<-function(x) {
+  k=sum(x)
+  n=length(x)
+  p=1/n
+  rho<-(k/(k-1))*(1-(k*p*(1-p)/var(x)))
+  return(rho)
+}
+
 get_cronbach_alpha(filter(counts, group=='A1', trial==1) %>% pull(count))
 
 consistency<-expand.grid(
@@ -69,7 +89,11 @@ for (i in 1:nrow(consistency)) {
   tid=consistency[i, 'trial']
   count_vec<-filter(counts, group==cond, trial==tid) %>% pull(count)
   consistency[i, 'cronbach_alpha'] = get_cronbach_alpha(count_vec)
+  consistency[i, 'kr20'] = KR20(count_vec)
+  consistency[i, 'kr21'] = KR21(count_vec)
 }
+
+x<-filter(counts, group=='A1', trial==9) %>% pull(count)
 
 cond_info<-labels %>% 
   select(condition, fix, fix_cond, rule_change, rule_change_cond) %>%
@@ -81,6 +105,15 @@ consistency<-consistency %>%
 ggplot(consistency, aes(x=condition, y=cronbach_alpha, fill=condition)) +
   geom_violin() 
 
+
+gen_backup<-gen_labeled
+alphas<-consistency %>% select(condition, trial, cronbach_alpha=kr21)
+gen_labeled<-gen_labeled %>% 
+  select(-cronbach_alpha) %>%
+  left_join(alphas, by=c('condition', 'trial'))
+
+save(gen_labeled, file='gen_labeled.Rdata')
+
 ggplot(consistency, aes(x=rule_change_cond, y=cronbach_alpha, fill=condition)) +
   geom_violin() +
   facet_grid(~fix_cond, switch = "x", scales = "free_x", space = "free_x") +
@@ -91,7 +124,7 @@ ggplot(consistency, aes(x=rule_change_cond, y=cronbach_alpha, fill=condition)) +
   labs(x='', y='', title='Cronbach alpha per trial') +
   scale_fill_brewer(palette="Paired")
 
-lm(cronbach_alpha~fix+rule_change, data=consistency) %>% summary()
+lm(cronbach_alpha~fix+rule_change, data=gen_labeled) %>% summary()
 #lm(cronbach_alpha~fix+rule_change+fix*rule_change, data=consistency) %>% summary()
 
 
@@ -127,8 +160,6 @@ for (i in 1:nrow(gen_labeled)) {
   gen_labeled[i, 'varied_diff']<-ifelse(cond %in% c('A1', 'A3'), gen_labeled[i, 'recipient_diff'], gen_labeled[i, 'agent_diff'])
 }
 
-
-
 gen_labeled<-gen_labeled %>%
   filter(phase=='gen') %>% 
   select(condition, trial, ends_with('diff'))
@@ -163,7 +194,7 @@ sim.random<-function(n) {
     mutate(n=ifelse(is.na(n), 0, n))
   return(a$n)
 }
-mean(replicate(100,get_cronbach_alpha(sim.random(25)))) # ~0
+mean(replicate(1000,KR21(sim.random(25)))) # ~0
 
 
 ggplot(gen_labeled, aes(x=total_diff, y=cronbach_alpha)) +

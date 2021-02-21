@@ -17,7 +17,8 @@ data_likeli<-function(data, b) {
       }
     }
   }
-  ds<-ds%>%filter(count>0)
+  nc<-counts %>% select(group, trial, object, count)
+  ds<-ds %>% left_join(nc)
   ll<-sum(ds$count*log(ds$softmaxed))
   return(-ll)
 }
@@ -41,7 +42,7 @@ counts<-df.tw %>%
 -2*-4841.103
 
 ## Normative model
-out<-optim(par=0, fn=data_likeli, data=counts, method='Brent', lower=0, upper=100)
+out<-optim(par=0, fn=data_likeli, data=model.uni, method='Brent', lower=0, upper=100)
 out$par #3.19
 out$value #3706.359
 2*log(102)-2*-3706.359 # 7421.948

@@ -1,0 +1,50 @@
+---
+title: "Results discussion"
+author: "Bonan"
+date: "1/10/2021"
+output:
+  rmdformats::html_clean
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+# Paper draft
+
+## Current stage
+
+- Bonan finished the first complete draft
+- Chris has looked at the intro paragraphs at the modeling section
+- Neil has looked at the PCFG part of the modeling section
+- **Priority: Chris to have a look at the DP part of the modeling section?**
+
+
+## Model fitting results
+
+|                 | $\alpha$ | $\beta$ | $t$   | Log likelihood | BIC        |
+|-----------------|----------|---------|-------|----------------|------------|
+| Random baseline |          |         |       | -3955          | 7910       |
+| Universal model |          |         | 6.96  | -2761          | 5529       |
+| DPG model       | 2.41     | 938.81  | 9.44  | -2748          | 5518       |
+| Process model   | 0.38     | 1       | 10.09 | **-2736**      | **5494**   |
+
+
+## New figs
+- I made a new table for exp 1 generalization trials
+- Exp 1 model prediction plot
+- Exp 2 model prediction plot
+
+## Unsure
+- Check trial stats?
+- Intro & discussion points
+- (Minor: merge .tex files into one?)
+
+
+# New project ideas
+
+- Program induction of causal knowledge
+- Multiple ground truth
+- Change of feature as hint for causal learning
+- Iterative learning

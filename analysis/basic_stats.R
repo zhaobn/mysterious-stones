@@ -55,6 +55,18 @@ bind_rows(
   labs(x='', y='', title='Accuracy') +
   scale_fill_brewer(palette="Paired")
 
+df.sw.all %>% 
+  filter(rule_like==1) %>% 
+  summarise(total_pass=sum(pass))
+
+df.sw.all %>% 
+  filter(rule_like==0|bot==1) %>% 
+  mutate(acc=correct/18) %>%
+  pull(acc) %>% ms(.)
+
+
+df.sw.all %>% 
+  filter(rule_like==1)
 
 info<-extra%>%select(condition, fix_cond, rule_change_cond) %>% distinct()
 

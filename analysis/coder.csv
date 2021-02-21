@@ -1,0 +1,25 @@
+ix,condition,input,bot_like,compatible,rule_type,categorization
+58,A1,"the inactive stone will become a pentagon when near a glowing stone.  In addition, it will darken a bit.",0,1,specific,universal
+62,A2,A shape that has more than 3 sides will change the inactive shape and color. The triangle will change the inactive stone's color only,0,1,fuzzy,A
+63,A4,"The best I can come up with is when the activated stone hits against the inactive stone, it changes the color. If the active stone is light colored, it seems the new stone shape is a light color, as well. If the active stone is a dark color, the inactive stone shape takes on a dark color, as well.",0,1,tacit,A
+70,A1,it turns stones into pentagons,0,1,tacit,universal
+86,A3,I think that the active stone adds an edge to the inactive whenever it hits the inactive object.,0,1,tacit,universal
+89,A2,make correctly good decision is my best.,NA,NA,NA,NA
+95,A1,"This active square stone will always turn the other inactive stone into a pentagon of darker shade. The shape of the inactive stone does not matter in this case. The original shade of the inactive stone determines the shade of the stone it transforms into; the lighter the original is, the lighter the resulting stone will be, although darker.",0,1,fuzzy,R
+99,A2,it is very easy to identify active and inactive stones then triangle and square it forms no change then active hexogan and square it forms changes to them then active pentagon and square it forms changes,0,0,incompatible,universal
+104,A4,"Tapping an active stone against an inactive stone, makes the inactive stone a shape with one more side than it previously had.",0,1,tacit,universal
+114,A2,"Original color of active or inactive stone don't matter.  Inactive stone interacting with active stone always end up in a dark state, if already in a dark state, doesn't darken.  More importantly if the polygon count of the active stone (ie how many sides it has) is greater than the inactive stone, then the inactive stone transforms into a polygon with a count of one greater than the active stone.  If the polygoncount of the active stone is lower, not transformation occurs to the inactive stone.",0,1,fuzzy,A
+120,A3,When the active stone bumps into the inactive stone the inactive stone turns into a shape that has 1 extra point than it had. The inactive stone also turns dark blue in color when bumped by the active stone.,0,1,specific,universal
+140,A4,"all the case , the inactive stones ,have a shades of color, and it shape merged to the active stone ,it gives a pentagon, my guess is , the shape depends on the inactive stone shape .",0,1,tacit,universal
+141,A3,GOOD,NA,NA,NA,NA
+151,A4,"triangular , square , pentagon , hexagon",NA,NA,NA,NA
+162,A2,"When colliding an active stone with an inactive one, the inactive stone will reform to have one more side than the active stone, and turn a shade darker than its original state.  The inactive stone will remain inactive, and the active stone will keep the same properties it had before colliding.",0,1,specific,universal
+170,A1,"The active stone, upon colliding with the inactive stone, will convert the number of sides of the inactive stone to n+1, where n is the number of sides of the active stone. In this case, the inactive stone always had 5 sides after the collision as the active stone had 4. After impact, the inactive stone will always be one shade darker than before the interaction.",0,1,specific,universal
+177,A2,These mysterious stones work based on the level of force and light from the active stones. The level of force at which the active stone hit the inactive stone makes the inactive stone assume a new shape and a new shade of color different from what the active stone had.,0,1,fuzzy,universal
+180,A1,I will guess and to answered the questions its very easy to do.,NA,NA,NA,NA
+188,A3,A stone changes its shape when rubbed with a stone Also gives good color.,0,1,tacit,universal
+189,A3,when glow stone touches the triangle it changes into square,0,1,tacit,R
+192,A3,That is good inactive as properties the stones,0,NA,NA,NA
+203,A2,"When an active polygon with touches an inactive square, the square transforms into the polygon plus an extra side (still inactive). So when a pentagon touches the square, the square transforms into a hexagon. When a hexagon touches, it turns into a heptagon.   We see this with the triangle too, it just looks like the square is lighting up but in fact it's the triangle's 3 sides plus one.",0,1,tacit,universal
+214,A2,"When the active stone hit the inactive stones, the inactive stone change color from light to medium and soe evem change the shape to look like the active stones.",0,0,incompatible,universal
+218,A2,Number of side of the inactive increases when collide with active. Five sided active result in six sided inactive. Also the color becomes darker.,0,1,fuzzy,universal

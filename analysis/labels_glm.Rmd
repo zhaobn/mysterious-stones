@@ -1,0 +1,82 @@
+---
+title: "Labels GLM results"
+author: "Bonan"
+date: "4/20/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r data, include=FALSE, message=FALSE, results = 'hide'}
+library(tidyverse)
+
+load('../data/mturk/mturk_main.Rdata')
+load('../data/gen_labeled.Rdata')
+load('../data/labels.Rdata')
+
+```
+
+
+# Responses types re effects
+
+```{r effects}
+glm(rule_type_2=='specific' ~ fix + rule_change, 
+    data=comp_data, family='binomial') %>% summary()
+glm(rule_type_2=='specific' ~ fix + rule_change + fix:rule_change, 
+    data=comp_data, family='binomial') %>% summary()
+
+glm(rule_type_2=='fuzzy' ~ fix + rule_change, 
+    data=comp_data, family='binomial') %>% summary()
+glm(rule_type_2=='fuzzy' ~ fix + rule_change + fix:rule_change, 
+    data=comp_data, family='binomial') %>% summary()
+
+glm(rule_type_2=='tacit' ~ fix + rule_change, 
+    data=comp_data, family='binomial') %>% summary()
+glm(rule_type_2=='tacit' ~ fix + rule_change + fix:rule_change, 
+    data=comp_data, family='binomial') %>% summary()
+
+
+glm(rule_type ~ fix + rule_change, 
+    data=comp_data, family='binomial') %>% summary()
+glm(rule_type ~ fix + rule_change + fix:rule_change, 
+    data=comp_data, family='binomial') %>% summary()
+```
+
+
+# Responses type re causes
+
+```{r causes}
+glm(categorization=='universal' ~ fix + rule_change, 
+    data=comp_data, family='binomial') %>% summary() 
+glm(categorization=='universal' ~ fix + rule_change + fix:rule_change, 
+    data=comp_data, family='binomial') %>% summary() 
+```
+
+# Responses type combined
+
+```{r combined}
+comp_data$cause_effect %>% unique()
+glm(cause_effect=='categorized, fuzzy' ~ fix + rule_change, 
+    data=comp_data, family='binomial') %>% summary() 
+glm(cause_effect=='categorized, fuzzy' ~ fix + rule_change +fix:rule_change, 
+    data=comp_data, family='binomial') %>% summary() 
+
+glm(cause_effect=='universal, tacit' ~ fix + rule_change, 
+    data=comp_data, family='binomial') %>% summary() 
+glm(cause_effect=='universal, tacit' ~ fix + rule_change +fix:rule_change, 
+    data=comp_data, family='binomial') %>% summary() 
+
+glm(cause_effect=='universal, specific' ~ fix + rule_change, 
+    data=comp_data, family='binomial') %>% summary() 
+glm(cause_effect=='universal, specific' ~ fix + rule_change +fix:rule_change, 
+    data=comp_data, family='binomial') %>% summary() 
+
+
+glm(cause_effect=='categorized, specific' ~ fix + rule_change, 
+    data=comp_data, family='binomial') %>% summary() 
+glm(cause_effect=='categorized, specific' ~ fix + rule_change +fix:rule_change, 
+    data=comp_data, family='binomial') %>% summary() 
+```
+

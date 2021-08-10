@@ -258,14 +258,16 @@ ind_bics %>%
   mutate(m_bic=ifelse(dp_bic<ndp_bic, dp_bic, ndp_bic)) %>%
   mutate(bic_label=ifelse(rand_bic_val<m_bic, 'DP < Rand',
                           ifelse(dp_bic<ndp_bic, 'DP', 'Universal'))) %>%
-  mutate(bic_label=factor(bic_label, levels=c('Universal', 'DP', 'DP < Rand'))) %>%
-  ggplot(aes(x=reorder(as.character(ix), m_bic), y=m_bic, fill=bic_label)) +
+  mutate(plot_label=case_when(bic_label=='Universal'~'UnCaLa', bic_label=='DP'~'LoCaLa', TRUE ~ 'Baseline')) %>%
+  mutate(plot_label=factor(plot_label, levels=c('UnCaLa', 'LoCaLa', 'Baseline'))) %>%
+  ggplot(aes(x=reorder(as.character(ix), m_bic), y=m_bic, fill=plot_label)) +
   geom_bar(stat='identity') +
   geom_hline(yintercept=rand_bic_val) +
-  labs(x='', y='', title='Best model BIC per individual') +
+  geom_text(aes(5, rand_bic_val,label=round(rand_bic_val,2), vjust = -1)) +
+  labs(x='', y='BIC', title='') +
   theme(axis.text.x=element_blank(), axis.ticks.x=element_blank(),
         legend.title=element_blank()) +
-  scale_fill_manual(values=c("red4", "royalblue4", "#999999"))
+  scale_fill_manual(values=c("#a6cee3", "#1f78b4", "#999999"))
 
 
 # Try clustering best-DP fitted parameters
@@ -299,10 +301,10 @@ class <- diabetes$class
 X <- diabetes[,-1]
 clPairs(X, class)
 
-Y<-dp_best %>% select(alpha, beta, gamma, base)
+Y<-dp_best %>% select(alpha, beta)
 Z<-dp_best %>% mutate(l_alpha=log(alpha),l_beta=log(beta)) %>% 
   mutate(l_beta=ifelse(l_beta==-Inf, -5, l_beta)) %>%
-  select(l_alpha, l_beta, gamma)
+  select(l_alpha, l_beta)
 clPairs(Y)
 clPairs(Z)
 
@@ -315,23 +317,77 @@ summary(mod1, parameters = TRUE)
 plot(mod1, what = "classification")
 
 # Try plot on log scale
-dp_best$mod1<-mod1$classification
-ggplot(dp_best, aes(x=factor(mod1))) + geom_dotplot()
+dp_best$mod3<-mod1$classification
+
+dp_best <- dp_best %>% mutate(mod_f = mod3)
+ggplot(dp_best, aes(x=factor(mod3))) + geom_dotplot()
 
 dp_best %>%
   ggplot(aes(x=log(alpha), y=log(beta), 
              color=factor(gamma,levels=c(0, .25, .5, .75, 1)))) +
   geom_point() +
   scale_color_brewer(type='div', palette=6) +
-  facet_wrap(~mod1) +
-  labs(color='Gamma')
+  facet_wrap(~mod2) +
+  labs(color='Gamma') +
+  theme_bw()
 
 dp_best %>%
-  ggplot(aes(x=log(alpha), y=log(beta), 
-             color=base)) +
+  ggplot(aes(x=log(alpha), y=log(beta))) +
   geom_point() +
-  facet_wrap(~mod1) +
-  labs(color='Base')
+  facet_wrap(~mod3)
+
+dp_plot <- dp_best %>%
+  mutate(mod_f=case_when(mod3==4~2, mod3==2~4, TRUE~mod3))
+
+dp_plot %>%
+  ggplot(aes(x=log(alpha), y=log(beta))) +
+  geom_point() +
+  facet_wrap(~mod_f)
+
+dp_plot %>%
+  mutate(condition=paste0('B', substr(condition,2,2))) %>%
+  ggplot(aes(x=log(alpha), y=log(beta), shape=condition)) +
+  geom_point() + facet_grid(~mod_f) + theme_bw() +
+  theme(panel.grid.major=element_blank(),
+        panel.grid.minor=element_blank())
+
+dp_plot %>%
+  mutate(cluster=factor(mod_f)) %>%
+  ggplot(aes(x=rule_change_cond, fill=cluster)) +
+  geom_bar(stat='count', position='fill') +
+  facet_grid(~fix_cond, switch = "x", scales = "free_x", space = "free_x") +
+  theme(panel.spacing = unit(0, "lines"), 
+        strip.background = element_blank(),
+        strip.placement = "outside") +
+  labs(x='', y='', title='Clusters per condition', fill='Cluster') +
+  scale_fill_brewer(palette='RdYlGn') + theme_classic() +
+  theme(panel.spacing = unit(0, "lines"), 
+        strip.background = element_blank(),
+        strip.placement = "outside")
+
+
+a<-dp_plot %>%
+  mutate(cluster=factor(mod_f)) %>%
+  ggplot(aes(x=log(alpha), y=log(beta), color=cluster, shape=cluster)) +
+  geom_point(size=3) +
+  scale_fill_brewer(palette='Set1')
+
+
+
+b<-dp_plot %>%
+  mutate(cluster=factor(mod_f)) %>%
+  ggplot(aes(x=rule_change_cond, fill=cluster)) +
+  geom_bar(stat='count', position='fill') +
+  facet_grid(~fix_cond, switch = "x", scales = "free_x", space = "free_x") +
+  theme(panel.spacing = unit(0, "lines"), 
+        strip.background = element_blank(),
+        strip.placement = "outside") +
+  labs(x='', y='', title='Clusters per condition', fill='Cluster') +
+  scale_fill_brewer(palette='Set1')
+
+
+ggarrange(a,b,ncol=2, labels = c('A', 'B'))
+
 
 # People in cluster 1 and 3
 dp_best %>%

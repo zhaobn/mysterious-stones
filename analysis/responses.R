@@ -253,6 +253,29 @@ ggplot(vfeats, aes(x=rule_change_cond, fill=source)) +
   scale_fill_brewer(palette="Paired")
 
 
+# Review request - accuracy
+labels %>% 
+  group_by(condition) %>%
+  summarise(n=n(), 
+    groundtruth=sum(rule_type=='true_relative'), 
+    altertruth=sum(rule_type=='true_constant')) %>%
+  ungroup() %>%
+  mutate(
+    condition=paste0('B', substr(condition, 2, 2)),
+    alltrue=groundtruth+altertruth) %>%
+  mutate(
+    ground_tr_rate=round(groundtruth/n, 2),
+    alter_tr_rate=round(altertruth/n, 2),
+    all_tr_rate=round(alltrue/n, 2)) %>%
+  select(condition, ground_tr_rate, alter_tr_rate, all_tr_rate)
+
+
+
+
+
+
+
+
 
 
 

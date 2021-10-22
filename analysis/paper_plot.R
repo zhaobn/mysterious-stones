@@ -70,12 +70,92 @@ ggarrange(up, pp, ncol=2,
 
 
 
+# Plot behavorial data vs model
+all_results<-c()
+for (e in 3:7) {
+  for (s in 1:4) {
+    all_results<-c(all_results, e*10+s)
+  }
+}
+default<-expand.grid(condition=paste0('B', seq(4)), trial=seq(16), result=all_results)
+default$condition<-as.character(default$condition)
+
+beh<-df.tw %>%
+  filter(phase=='gen'&grepl('gen', sid)) %>%
+  mutate(trial=as.numeric(substr(sid,8,9)),
+         condition=paste0('B',substr(condition,2,2))) %>%
+  select(ix, condition, trial, result) %>%
+  arrange(condition, trial) %>%
+  group_by(condition, trial, result) %>%
+  summarise(count=n()) %>%
+  ungroup() %>%
+  right_join(default, by=c('condition', 'trial', 'result')) %>%
+  mutate(count=replace_na(count, 0)) %>%
+  group_by(condition, trial, result) %>%
+  summarise(n = sum(count)) %>%
+  mutate(freq = n / sum(n), 
+         result=as.character(result), 
+         data='mturk',
+         # label=l,
+         # fixed=if_else(condition %in% c('A1', 'A3'), 'Fixed Agent', 'Fixed Recipient'),
+         # rule=if_else(condition %in% c('A1', 'A2'), 'edge(A)+1, shade(R)+1', 'shade(A)+1, edge(R)+1')
+         ) %>%
+  select(condition, trial, result, prob=freq, data)
+
+ggplot(beh, aes(x=result, y=trial, fill=prob)) + geom_tile() + 
+  labs(x='object', y='task') +
+  scale_y_continuous(trans="reverse", breaks=1:16) + 
+  scale_fill_gradient(low='white', high='#293352') +
+  facet_grid(~condition) +
+  theme_bw()
+
+
+locala<-model.proc %>%
+  mutate(condition=paste0('B',substr(group,2,2)), result=object, data='LoCaLa') %>%
+  select(condition, trial, result, prob=prob_s, data)
+
+
+ggplot(locala, aes(x=result, y=trial, fill=prob)) + geom_tile() + 
+  labs(x='object', y='task') +
+  scale_y_continuous(trans="reverse", breaks=1:16) + 
+  scale_fill_gradient(low='white', high='#293352') +
+  facet_grid(~condition) +
+  theme_bw()
+
+
+uncala<-model.uni %>%
+  mutate(condition=paste0('B',substr(group,2,2)), result=object, data='UnCaLa') %>%
+  select(condition, trial, result, prob=prob_s, data)
+
+
+ggplot(uncala, aes(x=result, y=trial, fill=prob)) + geom_tile() + 
+  labs(x='object', y='task') +
+  scale_y_continuous(trans="reverse", breaks=1:16) + 
+  scale_fill_gradient(low='white', high='#293352') +
+  facet_grid(~condition) +
+  theme_bw()
 
 
 
+all_data<-rbind(beh, uncala, locala)
+ggplot(all_data, aes(x=result, y=trial, fill=prob)) + geom_tile() + 
+  labs(x='object', y='task') +
+  scale_y_continuous(trans="reverse", breaks=1:16) + 
+  scale_fill_gradient(low='white', high='#293352') +
+  facet_grid(data~condition) +
+  theme_bw()
 
-
-
-
-
+plot_data<-rbind(beh, locala)
+plot_data$data<-factor(plot_data$data, levels=c('mturk','LoCaLa'))
+ggplot(plot_data, aes(x=result, y=trial, fill=prob)) + geom_tile() + 
+  labs(x='', y='task') +
+  scale_y_continuous(trans="reverse", breaks=1:16) + 
+  scale_fill_gradient(low='white', high='#293352') +
+  facet_grid(data~condition) +
+  theme_classic() +
+  theme(strip.background = element_rect(colour=NA, fill=NA),
+        panel.border = element_rect(fill = NA, color = "black"),
+        text = element_text(size=15),
+        legend.position="bottom",
+        legend.title=element_blank())
 

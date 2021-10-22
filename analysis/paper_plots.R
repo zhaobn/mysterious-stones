@@ -21,6 +21,8 @@ a<-gen_labeled %>%
   mutate(rule_change_cond=ifelse(rule_change_cond=='Rule edge(A)', 'Rule 1', 'Rule 2')) %>%
   ggplot(aes(x=rule_change_cond, y=cronbach_alpha, fill=condition)) +
   geom_violin() +
+  geom_boxplot(width=0.3) +
+  stat_summary(fun=mean, geom="point", shape=20, size=4, color="black", fill="black") +
   facet_grid(~fix_cond, switch = "x", scales = "free_x", space = "free_x") +
   theme(panel.spacing = unit(0, "lines"), 
         strip.background = element_blank(),
@@ -172,6 +174,7 @@ persp3D(log(alphas), log(betas), read_ll(dpa_grid_2, 'raw_ll', 0),
 
 # 2D heatmap
 # ggplot(dpa_grid_2, aes(log(alpha), log(beta), fill= raw_ll)) + geom_tile()
+
 
 
 
